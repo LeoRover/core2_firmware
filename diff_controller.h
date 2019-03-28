@@ -13,13 +13,13 @@ public:
 private:
     void updateLoop();
 
-    Wheel *wheelFL;
+    Wheel *wheelFL, *wheelRL, *wheelFR, *wheelRR;
 
     //constants
-    int enc_res = 8256;
-    int wheel_radius = 0.06;
-    int wheel_max_speed = 6000;
-    int robot_width = 0.33;
+    float enc_res = 8256;
+    float wheel_radius = 0.06;
+    float wheel_max_speed = 6500;
+    float robot_width = 0.33;
 };
 
 #endif

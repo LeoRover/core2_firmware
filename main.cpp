@@ -26,7 +26,6 @@ void hMain()
 {
 	uint32_t t = sys.getRefTime();
 	platform.begin(&RPi);
-	//sys.setLogDev(&platform.LocalSerial);
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
 	nh.initNode();
 
@@ -36,9 +35,6 @@ void hMain()
 	while (true)
 	{
 		nh.spinOnce();
-
-		//do something
-
 		sys.delaySync(t, 10);
 	}
 
