@@ -7,4 +7,4 @@ enable_module(hSensors)
 enable_module(hModules)
 enable_module(hROS)
 
-add_hexecutable(myproject main.cpp)
+add_hexecutable(myproject main.cpp diff_controller.cpp)

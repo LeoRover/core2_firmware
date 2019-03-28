@@ -1,18 +1,45 @@
 #include "hFramework.h"
-//#include "hCloudClient.h"
-#include <stddef.h>
-#include <stdio.h>
+#include "hCloudClient.h"
+#include "ros.h"
+#include "geometry_msgs/Twist.h"
+#include "diff_controller.h"
 
 using namespace hFramework;
 
+ros::NodeHandle nh;
+ros::Subscriber<geometry_msgs::Twist> *twist_sub;
+
+DiffController df;
+
+void cmdVelCallback(const geometry_msgs::Twist& msg)
+{
+	df.setSpeed(msg.linear.x, msg.angular.z);
+}
+
+void initROS()
+{
+	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
+	nh.subscribe(*twist_sub);
+}
+
 void hMain()
 {
-	sys.setLogDev(&Serial);
-	//platform.begin(&RPi);
-	for (;;)
+	uint32_t t = sys.getRefTime();
+	platform.begin(&RPi);
+	//sys.setLogDev(&platform.LocalSerial);
+	nh.getHardware()->initWithDevice(&platform.LocalSerial);
+	nh.initNode();
+
+	df.start();
+	initROS();
+
+	while (true)
 	{
-		hLED1.toggle();
-		printf("test 111 %d\r\n", (int) sys.getRefTime());
-		sys.delay(500);
+		nh.spinOnce();
+
+		//do something
+
+		sys.delaySync(t, 10);
 	}
+
 }
