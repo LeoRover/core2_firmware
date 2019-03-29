@@ -1,13 +1,15 @@
 #include "hFramework.h"
-#include "diff_controller.h"
 #include "wheel.h"
+
+#include "diff_controller.h"
+#include "params.h"
 
 DiffController::DiffController()
 {
-    wheelFL = new Wheel(hMotC, 1, wheel_max_speed);
-    wheelRL = new Wheel(hMotD, 1, wheel_max_speed);
-    wheelFR = new Wheel(hMotA, 0, wheel_max_speed);
-    wheelRR = new Wheel(hMotB, 0, wheel_max_speed);
+    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED);
+    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED);
+    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED);
+    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED);
 }
 
 void DiffController::start()
@@ -21,12 +23,12 @@ void DiffController::start()
 
 void DiffController::setSpeed(float linear, float angular)
 {
-    float L_wheel_lin_speed = linear - (angular * robot_width / 2);
-    float R_wheel_lin_speed = linear + (angular * robot_width / 2);
-    float L_wheel_angular_velocity = L_wheel_lin_speed / wheel_radius;
-    float R_wheel_angular_velocity = R_wheel_lin_speed / wheel_radius;
-    float L_enc_speed = enc_res * L_wheel_angular_velocity / (2 * M_PI);
-    float R_enc_speed = enc_res * R_wheel_angular_velocity / (2 * M_PI);
+    float L_wheel_lin_speed = linear - (angular * ROBOT_WIDTH / 2);
+    float R_wheel_lin_speed = linear + (angular * ROBOT_WIDTH / 2);
+    float L_wheel_angular_velocity = L_wheel_lin_speed / WHEEL_RADIUS;
+    float R_wheel_angular_velocity = R_wheel_lin_speed / WHEEL_RADIUS;
+    float L_enc_speed = ENCODER_RESOLUTION * L_wheel_angular_velocity / (2 * M_PI);
+    float R_enc_speed = ENCODER_RESOLUTION * R_wheel_angular_velocity / (2 * M_PI);
 
     //Serial.printf("[DiffController] linear speed: %f m/s; angular velocity: %f r/s; enc speed: %f t/s\r\n", 
     //            L_wheel_lin_speed, L_wheel_angular_velocity, L_enc_speed);
