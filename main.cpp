@@ -4,6 +4,7 @@
 #include "ros.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Int16.h"
+#include "sensor_msgs/BatteryState.h"
 
 #include "diff_controller.h"
 #include "params.h"
@@ -11,6 +12,9 @@
 using namespace hFramework;
 
 ros::NodeHandle nh;
+
+sensor_msgs::BatteryState battery;
+ros::Publisher *battery_pub;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
@@ -45,10 +49,12 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 
 void initROS()
 {
+    battery_pub = new ros::Publisher("/battery", &battery);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 	servo1_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/command", &servo1Callback);
 	servo2_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/command", &servo2Callback);
 	servo3_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/command", &servo3Callback);
+    nh.advertise(*battery_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_sub);
 	nh.subscribe(*servo2_sub);
@@ -82,6 +88,17 @@ void setupServos()
 							SERVO_3_ANGLE_MAX, SERVO_3_WIDTH_MAX); 
 }
 
+void batteryLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 500;
+    while(true)
+    {
+        battery.voltage = sys.getSupplyVoltage();
+        battery_pub->publish(&battery);
+        sys.delaySync(t, dt);
+    }
+}
 
 void hMain()
 {
