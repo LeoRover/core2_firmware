@@ -1,14 +1,24 @@
 #include "hFramework.h"
 #include "hCloudClient.h"
+
 #include "ros.h"
+#include "geometry_msgs/Twist.h"
 #include "std_msgs/Int16.h"
 
+#include "diff_controller.h"
 #include "limits.h"
 
+using namespace hFramework;
+
 ros::NodeHandle nh;
+
+ros::Subscriber<geometry_msgs::Twist> *twist_sub;
+
 ros::Subscriber<std_msgs::Int16> *servo1_sub;
 ros::Subscriber<std_msgs::Int16> *servo2_sub;
 ros::Subscriber<std_msgs::Int16> *servo3_sub;
+
+DiffController dc;
 
 void servo1Callback(const std_msgs::Int16& msg)
 {
@@ -28,6 +38,23 @@ void servo3Callback(const std_msgs::Int16& msg)
 	Serial.printf("[servo3Callback] angle: %d\r\n", msg.data);
 }
 
+void cmdVelCallback(const geometry_msgs::Twist& msg)
+{
+	dc.setSpeed(msg.linear.x, msg.angular.z);
+}
+
+void initROS()
+{
+	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
+	servo1_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/command", &servo1Callback);
+	servo2_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/command", &servo2Callback);
+	servo3_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/command", &servo3Callback);
+	nh.subscribe(*twist_sub);
+	nh.subscribe(*servo1_sub);
+	nh.subscribe(*servo2_sub);
+	nh.subscribe(*servo3_sub);
+}
+
 void setupServos()
 {
 	hServo.enablePower(); 
@@ -38,15 +65,6 @@ void setupServos()
 	hServo.servo3.calibrate(0, SERVO_3_MIN, 90, SERVO_3_MAX); 
 }
 
-void initROS()
-{
-	servo1_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/command", &servo1Callback);
-	servo2_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/command", &servo2Callback);
-	servo3_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/command", &servo3Callback);
-	nh.subscribe(*servo1_sub);
-	nh.subscribe(*servo2_sub);
-	nh.subscribe(*servo3_sub);
-}
 
 void hMain()
 {
@@ -55,6 +73,7 @@ void hMain()
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
 	nh.initNode();
 
+	dc.start();
 	setupServos();
 	initROS();
 
@@ -63,4 +82,5 @@ void hMain()
 		nh.spinOnce();
 		sys.delaySync(t, 10);
 	}
+
 }

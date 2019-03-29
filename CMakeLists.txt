@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(LeoDriver NONE)
+project(LeoFirmware NONE)
 
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
 enable_module(hCloudClient)
@@ -7,4 +7,4 @@ enable_module(hSensors)
 enable_module(hModules)
 enable_module(hROS)
 
-add_hexecutable(myproject main.cpp diff_controller.cpp)
+add_hexecutable(leo_firmware main.cpp diff_controller.cpp)
