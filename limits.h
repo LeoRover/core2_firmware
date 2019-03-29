@@ -1,6 +1,0 @@
-#define SERVO_1_MIN 1000 
-#define SERVO_1_MAX 1300
-#define SERVO_2_MIN 1000 
-#define SERVO_2_MAX 1300
-#define SERVO_3_MIN 1000 
-#define SERVO_3_MAX 1300

@@ -6,7 +6,7 @@
 #include "std_msgs/Int16.h"
 
 #include "diff_controller.h"
-#include "limits.h"
+#include "params.h"
 
 using namespace hFramework;
 
@@ -57,12 +57,29 @@ void initROS()
 
 void setupServos()
 {
-	hServo.enablePower(); 
-	hServo.setVoltage7V4();
+	hServo.enablePower();
+	hServo.setPeriod(SERVO_PERIOD);
 
-	hServo.servo1.calibrate(0, SERVO_1_MIN, 90, SERVO_1_MAX); 
-	hServo.servo2.calibrate(0, SERVO_2_MIN, 90, SERVO_2_MAX); 
-	hServo.servo3.calibrate(0, SERVO_3_MIN, 90, SERVO_3_MAX); 
+	switch(SERVO_VOLTAGE) {
+		case VOLTAGE_5V:
+			hServo.setVoltage5V();
+			break;
+		case VOLTAGE_6V:
+			hServo.setVoltage6V();
+			break;
+		case VOLTAGE_7V4:
+			hServo.setVoltage7V4();
+			break;
+		case VOLTAGE_8V6:
+			hServo.setVoltage8V6();
+	}
+
+	hServo.servo1.calibrate(SERVO_1_ANGLE_MIN, SERVO_1_WIDTH_MIN, 
+							SERVO_1_ANGLE_MAX, SERVO_1_WIDTH_MAX); 
+	hServo.servo2.calibrate(SERVO_2_ANGLE_MIN, SERVO_2_WIDTH_MIN, 
+							SERVO_2_ANGLE_MAX, SERVO_2_WIDTH_MAX); 
+	hServo.servo3.calibrate(SERVO_3_ANGLE_MIN, SERVO_3_WIDTH_MIN, 
+							SERVO_3_ANGLE_MAX, SERVO_3_WIDTH_MAX); 
 }
 
 
