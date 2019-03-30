@@ -18,5 +18,10 @@
 
     Current linear and angular velocities estimated from encoder readings
 
+* **`battery`** ([sensor_msgs/BatteryState])
+
+    Current battery voltage reading
+
 [geometry_msgs/Twist]: http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
 [std_msgs/Int16]: http://docs.ros.org/melodic/api/std_msgs/html/msg/Int16.html
+[sensor_msgs/BatteryState]: http://docs.ros.org/melodic/api/sensor_msgs/html/msg/BatteryState.html
