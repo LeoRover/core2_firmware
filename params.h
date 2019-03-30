@@ -26,3 +26,8 @@ const float ENCODER_RESOLUTION = 8256; //in ticks per rotation
 const float WHEEL_RADIUS = 0.06; //in meters
 const float WHEEL_MAX_SPEED = 6500; //in ticks per second
 const float ROBOT_WIDTH = 0.33; //in meters
+
+// PID
+const float PID_P = 0.25;
+const float PID_I = 0.005;
+const float PID_D = 0.0;

@@ -16,6 +16,9 @@ ros::NodeHandle nh;
 sensor_msgs::BatteryState battery;
 ros::Publisher *battery_pub;
 
+geometry_msgs::Twist odom;
+ros::Publisher *odom_pub;
+
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
 ros::Subscriber<std_msgs::Int16> *servo1_sub;
@@ -50,11 +53,13 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
+	odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 	servo1_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/command", &servo1Callback);
 	servo2_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/command", &servo2Callback);
 	servo3_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/command", &servo3Callback);
     nh.advertise(*battery_pub);
+	nh.advertise(*odom_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_sub);
 	nh.subscribe(*servo2_sub);
@@ -91,11 +96,25 @@ void setupServos()
 void batteryLoop()
 {
     uint32_t t = sys.getRefTime();
-    long dt = 500;
+    long dt = 1000;
     while(true)
     {
         battery.voltage = sys.getSupplyVoltage();
         battery_pub->publish(&battery);
+        sys.delaySync(t, dt);
+    }
+}
+
+void odomLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 50;
+    while(true)
+    {
+		std::vector<float> chuj = dc.getOdom();
+		odom.linear.x = chuj[0];
+		odom.angular.z = chuj[1];
+        odom_pub->publish(&odom);
         sys.delaySync(t, dt);
     }
 }
@@ -110,6 +129,9 @@ void hMain()
 	dc.start();
 	setupServos();
 	initROS();
+
+	sys.taskCreate(&batteryLoop);
+	sys.taskCreate(&odomLoop);
 
 	while (true)
 	{

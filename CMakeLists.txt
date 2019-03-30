@@ -7,4 +7,4 @@ enable_module(hSensors)
 enable_module(hModules)
 enable_module(hROS)
 
-add_hexecutable(leo_firmware main.cpp diff_controller.cpp)
+add_hexecutable(leo_firmware main.cpp diff_controller.cpp wheel.cpp)
