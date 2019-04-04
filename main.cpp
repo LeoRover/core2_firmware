@@ -21,28 +21,55 @@ ros::Publisher *odom_pub;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
-ros::Subscriber<std_msgs::Int16> *servo1_sub;
-ros::Subscriber<std_msgs::Int16> *servo2_sub;
-ros::Subscriber<std_msgs::Int16> *servo3_sub;
+ros::Subscriber<std_msgs::Int16> *servo1_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo2_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo3_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo4_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo5_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo6_angle_sub;
+ros::Subscriber<std_msgs::Int16> *servo1_pwm_sub;
+ros::Subscriber<std_msgs::Int16> *servo2_pwm_sub;
+ros::Subscriber<std_msgs::Int16> *servo3_pwm_sub;
+ros::Subscriber<std_msgs::Int16> *servo4_pwm_sub;
+ros::Subscriber<std_msgs::Int16> *servo5_pwm_sub;
+ros::Subscriber<std_msgs::Int16> *servo6_pwm_sub;
 
 DiffController dc;
 
-void servo1Callback(const std_msgs::Int16& msg)
+void servo1AngleCallback(const std_msgs::Int16& msg)
 {
 	hServo.servo1.rotAbs(msg.data);
-	Serial.printf("[servo1Callback] angle: %d\r\n", msg.data);
+	Serial.printf("[servo1AngleCallback] angle: %d\r\n", msg.data);
 }
 
-void servo2Callback(const std_msgs::Int16& msg)
+void servo2AngleCallback(const std_msgs::Int16& msg)
 {
 	hServo.servo2.rotAbs(msg.data);
-	Serial.printf("[servo2Callback] angle: %d\r\n", msg.data);
+	Serial.printf("[servo2AngleCallback] angle: %d\r\n", msg.data);
 }
 
-void servo3Callback(const std_msgs::Int16& msg)
+void servo3AngleCallback(const std_msgs::Int16& msg)
 {
 	hServo.servo3.rotAbs(msg.data);
-	Serial.printf("[servo3Callback] angle: %d\r\n", msg.data);
+	Serial.printf("[servo3AngleCallback] angle: %d\r\n", msg.data);
+}
+
+void servo4AngleCallback(const std_msgs::Int16& msg)
+{
+	hServo.servo4.rotAbs(msg.data);
+	Serial.printf("[servo4AngleCallback] angle: %d\r\n", msg.data);
+}
+
+void servo5AngleCallback(const std_msgs::Int16& msg)
+{
+	hServo.servo5.rotAbs(msg.data);
+	Serial.printf("[servo5AngleCallback] angle: %d\r\n", msg.data);
+}
+
+void servo6AngleCallback(const std_msgs::Int16& msg)
+{
+	hServo.servo6.rotAbs(msg.data);
+	Serial.printf("[servo6AngleCallback] angle: %d\r\n", msg.data);
 }
 
 void cmdVelCallback(const geometry_msgs::Twist& msg)
@@ -55,15 +82,21 @@ void initROS()
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
-	servo1_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/command", &servo1Callback);
-	servo2_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/command", &servo2Callback);
-	servo3_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/command", &servo3Callback);
+	servo1_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo1/angle", &servo1AngleCallback);
+	servo2_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo2/angle", &servo2AngleCallback);
+	servo3_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo3/angle", &servo3AngleCallback);
+	servo4_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo4/angle", &servo4AngleCallback);
+	servo5_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo5/angle", &servo5AngleCallback);
+	servo6_angle_sub = new ros::Subscriber<std_msgs::Int16>("/servo6/angle", &servo6AngleCallback);
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.subscribe(*twist_sub);
-	nh.subscribe(*servo1_sub);
-	nh.subscribe(*servo2_sub);
-	nh.subscribe(*servo3_sub);
+	nh.subscribe(*servo1_angle_sub);
+	nh.subscribe(*servo2_angle_sub);
+	nh.subscribe(*servo3_angle_sub);
+	nh.subscribe(*servo4_angle_sub);
+	nh.subscribe(*servo5_angle_sub);
+	nh.subscribe(*servo6_angle_sub);
 }
 
 void setupServos()
@@ -90,7 +123,13 @@ void setupServos()
 	hServo.servo2.calibrate(SERVO_2_ANGLE_MIN, SERVO_2_WIDTH_MIN, 
 							SERVO_2_ANGLE_MAX, SERVO_2_WIDTH_MAX); 
 	hServo.servo3.calibrate(SERVO_3_ANGLE_MIN, SERVO_3_WIDTH_MIN, 
-							SERVO_3_ANGLE_MAX, SERVO_3_WIDTH_MAX); 
+							SERVO_3_ANGLE_MAX, SERVO_3_WIDTH_MAX);
+	hServo.servo4.calibrate(SERVO_4_ANGLE_MIN, SERVO_4_WIDTH_MIN, 
+							SERVO_4_ANGLE_MAX, SERVO_4_WIDTH_MAX); 
+	hServo.servo5.calibrate(SERVO_5_ANGLE_MIN, SERVO_5_WIDTH_MIN, 
+							SERVO_5_ANGLE_MAX, SERVO_5_WIDTH_MAX); 
+	hServo.servo6.calibrate(SERVO_6_ANGLE_MIN, SERVO_6_WIDTH_MIN, 
+							SERVO_6_ANGLE_MAX, SERVO_6_WIDTH_MAX); 
 }
 
 void batteryLoop()

@@ -21,6 +21,21 @@ const int16_t SERVO_3_ANGLE_MAX = 90;
 const uint16_t SERVO_3_WIDTH_MIN = 1000;
 const uint16_t SERVO_3_WIDTH_MAX = 1300;
 
+const int16_t SERVO_4_ANGLE_MIN = 0;
+const int16_t SERVO_4_ANGLE_MAX = 90;
+const uint16_t SERVO_4_WIDTH_MIN = 1000;
+const uint16_t SERVO_4_WIDTH_MAX = 1300;
+
+const int16_t SERVO_5_ANGLE_MIN = 0;
+const int16_t SERVO_5_ANGLE_MAX = 90;
+const uint16_t SERVO_5_WIDTH_MIN = 1000;
+const uint16_t SERVO_5_WIDTH_MAX = 1300;
+
+const int16_t SERVO_6_ANGLE_MIN = 0;
+const int16_t SERVO_6_ANGLE_MAX = 90;
+const uint16_t SERVO_6_WIDTH_MIN = 1000;
+const uint16_t SERVO_6_WIDTH_MAX = 1300;
+
 // Wheels
 const float ENCODER_RESOLUTION = 8256; //in ticks per rotation
 const float WHEEL_RADIUS = 0.06; //in meters
