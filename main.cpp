@@ -111,9 +111,9 @@ void odomLoop()
     long dt = 50;
     while(true)
     {
-		std::vector<float> chuj = dc.getOdom();
-		odom.linear.x = chuj[0];
-		odom.angular.z = chuj[1];
+		std::vector<float> odo = dc.getOdom();
+		odom.linear.x = odo[0];
+		odom.angular.z = odo[1];
         odom_pub->publish(&odom);
         sys.delaySync(t, dt);
     }
