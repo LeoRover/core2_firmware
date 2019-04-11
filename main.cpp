@@ -63,7 +63,7 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
-	odom_pub = new ros::Publisher("/odom", &odom);
+	//odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
@@ -93,7 +93,7 @@ void initROS()
 		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
     nh.advertise(*battery_pub);
-	nh.advertise(*odom_pub);
+	//nh.advertise(*odom_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -158,7 +158,7 @@ void batteryLoop()
 void odomLoop()
 {
     uint32_t t = sys.getRefTime();
-    long dt = 500;
+    long dt = 50;
     while(true)
     {
 		nh.spinOnce();
@@ -182,12 +182,13 @@ void hMain()
 	initROS();
 
 	sys.taskCreate(&batteryLoop);
-	sys.taskCreate(&odomLoop);
+	//sys.taskCreate(&odomLoop);
 
 	while (true)
 	{
 		nh.spinOnce();
 		sys.delaySync(t, 10);
 	}
+
 
 }

@@ -10,56 +10,47 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed)
 void Wheel::begin()
 {
 	vReg.setScale(1);
-    setPID(0.25, 0.005, 0.0);
-
 	vReg.setRange(-vRange, vRange);
 
-	if (1 == pol) {
+	if (pol) {
 		mot->setMotorPolarity(Polarity::Reversed);
 		mot->setEncoderPolarity(Polarity::Reversed);
 	}
 
 	mot->resetEncoderCnt();
-	speed_step = _max_speed * 0.01;
 }
 
 void Wheel::update(uint32_t dt)
 {
-	vTarget_tmp = vTarget + copysign(speed_step, vSet - vTarget);	
-	if (vTarget_tmp > _max_speed)
-	{
-		vTarget = _max_speed;
-	}
-	else if (vTarget_tmp < -_max_speed)
-	{
-		vTarget = -_max_speed;
-	}
-	else if (fabs(vTarget_tmp) <= speed_step && vSet == 0)
-	{
-		vTarget = 0;
-	}
-	else
-	{
-		vTarget = vTarget_tmp;
-	}
+	float dPrev = dNow;
+	dNow = (float)mot->getEncoderCnt();
 
-	float vErr = 0.0;
-	float pidOut = 0;
-	dNow = mot->getEncoderCnt();
-	vNow = (dNow - (float)lastPositions[0]) / (dt * lastPositions.size() * 0.001);
-	lastPositions.push_back(dNow);
+	vNow = (dNow - dPrev) / (dt * 0.001);
 
-	vErr = vNow - vTarget;
-	pidOut = vReg.update(vErr, dt);
+	float vErr = vNow - vTarget;
+	float pidOut = vReg.update(vErr, dt);
 
 	if (turnedOn == true) {
-		mot->setPower(pidOut);
+		if (vNow == 0.0 && vTarget == 0.0){
+			vReg.reset();
+			mot->setPower(0);
+		} else {
+			mot->setPower(pidOut);
+		}
 	}
 }
 
 void Wheel::setSpeed(float speed)
 {
-	vSet = speed;
+	if (speed > _max_speed) {
+		vTarget = _max_speed;
+	} 
+	else if (speed < -_max_speed) {
+		vTarget = -_max_speed;
+	} 
+	else {
+		vTarget = speed;
+	}
 }
 
 float Wheel::getSpeed()
@@ -69,9 +60,7 @@ float Wheel::getSpeed()
 
 void Wheel::setPID(float P, float I, float D)
 {
-	vReg.setKP(P);
-	vReg.setKI(I);
-	vReg.setKD(D);
+	vReg.setCoeffs(P, I, D);
 }
 
 int32_t Wheel::getDistance()
@@ -88,15 +77,8 @@ void Wheel::reset()
 {
 	mot->resetEncoderCnt();
 	vReg.reset();
-	for (int i = 0; i < lastPositions.size(); i++)
-	{
-		lastPositions.push_back(0);
-	}
-	dNow = 0;
 	vNow = 0;
 	vTarget = 0;
-	vSet = 0;
-	vTarget_tmp = 0;
 	mot->setPower(0);
 }
 

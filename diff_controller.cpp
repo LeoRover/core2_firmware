@@ -28,17 +28,24 @@ void DiffController::start()
     sys.taskCreate(std::bind(&DiffController::updateOdometryLoop, this));
 }
 
+float clamp(float value, float limit)
+{
+    if (value > limit) 
+        return limit;
+    else if (value < -limit)
+        return -limit;
+    else
+        return value;
+}
+
 void DiffController::setSpeed(float linear, float angular)
 {
     float wheel_L_lin_vel = linear - (angular * ROBOT_WIDTH / 2);
     float wheel_R_lin_vel = linear + (angular * ROBOT_WIDTH / 2);
     float wheel_L_ang_vel = wheel_L_lin_vel / WHEEL_RADIUS;
     float wheel_R_ang_vel = wheel_R_lin_vel / WHEEL_RADIUS;
-    float enc_L_speed = ENCODER_RESOLUTION * wheel_L_ang_vel / (2 * M_PI);
-    float enc_R_speed = ENCODER_RESOLUTION * wheel_R_ang_vel / (2 * M_PI);
-
-    //Serial.printf("[DiffController] linear: %f m/s; angular: %f r/s; enc speed: %f t/s\r\n", 
-    //            wheel_L_lin_vel, wheel_L_angular_velocity, enc_L_speed);
+    float enc_L_speed = clamp(ENCODER_RESOLUTION * wheel_L_ang_vel / (2 * M_PI), WHEEL_MAX_SPEED);
+    float enc_R_speed = clamp(ENCODER_RESOLUTION * wheel_R_ang_vel / (2 * M_PI), WHEEL_MAX_SPEED);
 
     wheelFL->setSpeed(enc_L_speed);
     wheelRL->setSpeed(enc_L_speed);
