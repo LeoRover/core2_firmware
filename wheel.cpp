@@ -2,7 +2,7 @@
 
 Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 			 float Kp, float Ki, float Kd) 
-	: mot(&motor),
+	: mot(motor),
 	  pol(polarity),
 	  _max_speed(max_speed),
 	  turnedOn(true),
@@ -16,17 +16,17 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 	vReg.setCoeffs(Kp, Ki, Kd);
 
 	if (pol) {
-		mot->setMotorPolarity(Polarity::Reversed);
-		mot->setEncoderPolarity(Polarity::Reversed);
+		mot.setMotorPolarity(Polarity::Reversed);
+		mot.setEncoderPolarity(Polarity::Reversed);
 	}
 
-	mot->resetEncoderCnt();
+	mot.resetEncoderCnt();
 }
 
 void Wheel::update(uint32_t dt)
 {
 	float dPrev = dNow;
-	dNow = (float)mot->getEncoderCnt();
+	dNow = (float)mot.getEncoderCnt();
 
 	vNow = (dNow - dPrev) / (dt * 0.001);
 
@@ -36,9 +36,9 @@ void Wheel::update(uint32_t dt)
 	if (turnedOn == true) {
 		if (vNow == 0.0 && vTarget == 0.0){
 			vReg.reset();
-			mot->setPower(0);
+			mot.setPower(0);
 		} else {
-			mot->setPower(pidOut);
+			mot.setPower(pidOut);
 		}
 	}
 }
@@ -68,22 +68,22 @@ int32_t Wheel::getDistance()
 
 void Wheel::resetDistance()
 {
-	mot->resetEncoderCnt();
+	mot.resetEncoderCnt();
 }
 
 void Wheel::reset()
 {
-	mot->resetEncoderCnt();
+	mot.resetEncoderCnt();
 	vReg.reset();
 	vNow = 0;
 	vTarget = 0;
-	mot->setPower(0);
+	mot.setPower(0);
 }
 
 void Wheel::turnOff()
 {
 	turnedOn = false;
-	mot->setPower(0);
+	mot.setPower(0);
 }
 void Wheel::turnOn()
 {

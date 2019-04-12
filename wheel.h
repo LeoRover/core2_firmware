@@ -8,7 +8,7 @@
 
 class Wheel {
 
-	hMotor* mot;
+	hMotor& mot;
 	hPIDRegulator vReg;
 
 	bool pol;
