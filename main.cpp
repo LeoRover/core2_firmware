@@ -22,7 +22,7 @@ ros::Publisher *odom_pub;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
-DiffController dc;
+DiffController *dc;
 
 class ServoWrapper
 {
@@ -57,7 +57,7 @@ ServoWrapper servo6(6, hServo.servo6);
 
 void cmdVelCallback(const geometry_msgs::Twist& msg)
 {
-	dc.setSpeed(msg.linear.x, msg.angular.z);
+	dc->setSpeed(msg.linear.x, msg.angular.z);
 }
 
 void initROS()
@@ -162,7 +162,7 @@ void odomLoop()
     while(true)
     {
 		nh.spinOnce();
-		std::vector<float> odo = dc.getOdom();
+		std::vector<float> odo = dc->getOdom();
 		odom.linear.x = odo[0];
 		odom.angular.z = odo[1];
         odom_pub->publish(&odom);
@@ -176,9 +176,10 @@ void hMain()
 	platform.begin(&RPi);
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
 	nh.initNode();
-
 	
-	dc.start();
+	dc = new DiffController();
+	dc->start();
+
 	setupServos();
 	initROS();
 

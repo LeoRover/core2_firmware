@@ -43,6 +43,6 @@ const float WHEEL_MAX_SPEED = 6500; //in ticks per second
 const float ROBOT_WIDTH = 0.33; //in meters
 
 // PID
-const float PID_P = 0.05;
+const float PID_P = 0.00;
 const float PID_I = 0.0005;
 const float PID_D = 0.0;
