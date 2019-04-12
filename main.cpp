@@ -36,6 +36,7 @@ public:
 
 	void angleCallback(const std_msgs::Int16& msg)
 	{
+		servo.setPeriod(SERVO_PERIOD);
 		servo.rotAbs(msg.data);
 		Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num, msg.data);
 	}
