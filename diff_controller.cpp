@@ -8,22 +8,14 @@ DiffController::DiffController()
     : _last_wheel_L_ang_pos(0),
       _last_wheel_R_ang_pos(0)
 {
-    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED);
-    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED);
-    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED);
-    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED);
-    wheelFL->setPID(PID_P, PID_I, PID_D);
-    wheelRL->setPID(PID_P, PID_I, PID_D);
-    wheelFR->setPID(PID_P, PID_I, PID_D);
-    wheelRR->setPID(PID_P, PID_I, PID_D);
+    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
+    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
+    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
+    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
 }
 
 void DiffController::start()
 {
-    wheelFL->begin();
-    wheelRL->begin();
-    wheelFR->begin();
-    wheelRR->begin();
     sys.taskCreate(std::bind(&DiffController::updateWheelLoop, this));
     sys.taskCreate(std::bind(&DiffController::updateOdometryLoop, this));
 }

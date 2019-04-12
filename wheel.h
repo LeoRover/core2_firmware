@@ -10,27 +10,24 @@ class Wheel {
 
 	hMotor* mot;
 	hPIDRegulator vReg;
+
 	bool pol;
+	float _max_speed;
 
-	float dNow = 0.0;
-
-	float vTarget = 0.0;
-	float vNow = 0.0;
+	bool turnedOn;
+	float dNow;
+	float vTarget;
+	float vNow;
+	
 	float vRange = 1000.0;
-	float _max_speed = 0;
 
-	bool turnedOn = 1;
-
-  public:
-	Wheel(hMotor &motor, bool polarity, float max_speed);
-	void begin();
+public:
+	Wheel(hMotor &motor, bool polarity, float max_speed, float Kp, float Ki, float Kd);
 
 	void update(uint32_t dt);
 
 	void setSpeed(float speed);
 	float getSpeed();
-
-    void setPID(float P, float I, float D);
 	
 	int32_t getDistance();
 	void resetDistance();

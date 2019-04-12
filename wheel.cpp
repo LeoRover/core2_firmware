@@ -1,16 +1,19 @@
 #include "wheel.h"
 
-Wheel::Wheel(hMotor& motor, bool polarity, float max_speed)
-{
-	mot = &motor;
-	pol = polarity;
-	_max_speed = max_speed;
-}
-
-void Wheel::begin()
+Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
+			 float Kp, float Ki, float Kd) 
+	: mot(&motor),
+	  pol(polarity),
+	  _max_speed(max_speed),
+	  turnedOn(true),
+	  dNow(0.0),
+	  vNow(0.0),
+	  vTarget(0.0)
 {
 	vReg.setScale(1);
 	vReg.setRange(-vRange, vRange);
+	vReg.setIRange(-vRange, vRange);
+	vReg.setCoeffs(Kp, Ki, Kd);
 
 	if (pol) {
 		mot->setMotorPolarity(Polarity::Reversed);
@@ -56,11 +59,6 @@ void Wheel::setSpeed(float speed)
 float Wheel::getSpeed()
 {
 	return vNow;
-}
-
-void Wheel::setPID(float P, float I, float D)
-{
-	vReg.setCoeffs(P, I, D);
 }
 
 int32_t Wheel::getDistance()

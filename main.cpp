@@ -177,6 +177,7 @@ void hMain()
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
 	nh.initNode();
 
+	
 	dc.start();
 	setupServos();
 	initROS();
