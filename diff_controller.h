@@ -9,7 +9,7 @@
 class DiffController
 {
 public:
-    DiffController();
+    DiffController(uint32_t input_timeout = 0);
     void start();
     void setSpeed(float linear, float angular);
     std::vector<float> getOdom();
@@ -17,6 +17,7 @@ public:
 private:
     void updateWheelLoop();
     void updateOdometryLoop();
+    void inputWatchdog();
 
     Wheel *wheelFL;
     Wheel *wheelRL;
@@ -27,6 +28,9 @@ private:
     float _last_wheel_R_ang_pos;
     float _lin_vel;
     float _ang_vel;
+
+    uint32_t _input_timeout;
+    uint32_t _last_update;
 };
 
 #endif

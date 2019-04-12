@@ -46,3 +46,8 @@ const float ROBOT_WIDTH = 0.33; //in meters
 const float PID_P = 0.00;
 const float PID_I = 0.0005;
 const float PID_D = 0.0;
+
+// Input timeout in ms. 
+// The controller will stop the motors if it doesn't receive a command for a specified time. 
+// If set to 0, the controller won't check for a timeout
+const uint32_t INPUT_TIMEOUT = 500;

@@ -178,7 +178,7 @@ void hMain()
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
 	nh.initNode();
 	
-	dc = new DiffController();
+	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
 
 	setupServos();

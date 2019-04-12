@@ -4,9 +4,10 @@
 #include "diff_controller.h"
 #include "params.h"
 
-DiffController::DiffController()
+DiffController::DiffController(uint32_t input_timeout)
     : _last_wheel_L_ang_pos(0),
-      _last_wheel_R_ang_pos(0)
+      _last_wheel_R_ang_pos(0),
+      _input_timeout(input_timeout)
 {
     wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
     wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
@@ -18,6 +19,10 @@ void DiffController::start()
 {
     sys.taskCreate(std::bind(&DiffController::updateWheelLoop, this));
     sys.taskCreate(std::bind(&DiffController::updateOdometryLoop, this));
+    if (_input_timeout > 0.0) {
+        _last_update = sys.getRefTime();
+        sys.taskCreate(std::bind(&DiffController::inputWatchdog, this));
+    }
 }
 
 float clamp(float value, float limit)
@@ -43,6 +48,9 @@ void DiffController::setSpeed(float linear, float angular)
     wheelRL->setSpeed(enc_L_speed);
     wheelFR->setSpeed(enc_R_speed);
     wheelRR->setSpeed(enc_R_speed);
+
+    if (_input_timeout > 0.0)
+        _last_update = sys.getRefTime();
 }
 
 std::vector<float> DiffController::getOdom()
@@ -103,5 +111,17 @@ void DiffController::updateOdometryLoop()
         _ang_vel = (wheel_R_lin_vel - wheel_L_lin_vel) / ROBOT_WIDTH;
         
         sys.delaySync(t, dt);
+    }
+}
+
+void DiffController::inputWatchdog()
+{
+    while (true)
+    {
+        // TODO possibly not thread safe ?
+        while (sys.getRefTime() < _last_update + _input_timeout)
+            sys.delay(_last_update + _input_timeout - sys.getRefTime() + 1);
+        
+        setSpeed(0.0, 0.0);
     }
 }
