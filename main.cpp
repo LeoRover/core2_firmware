@@ -4,8 +4,8 @@
 #include "ros.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Int16.h"
+#include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
-#include "sensor_msgs/BatteryState.h"
 
 #include "diff_controller.h"
 #include "params.h"
@@ -14,11 +14,15 @@ using namespace hFramework;
 
 ros::NodeHandle nh;
 
-sensor_msgs::BatteryState battery;
+hMutex publish_mutex;
+
+std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
+bool publish_battery = false;
 
 geometry_msgs::Twist odom;
 ros::Publisher *odom_pub;
+bool publish_odom = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
@@ -59,12 +63,13 @@ ServoWrapper servo6(6, hServo.servo6);
 void cmdVelCallback(const geometry_msgs::Twist& msg)
 {
 	dc->setSpeed(msg.linear.x, msg.angular.z);
+	Serial.printf("[cmdVelCallback] linear: %f angular %f\r\n", msg.linear.x, msg.angular.z);
 }
 
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
-	//odom_pub = new ros::Publisher("/odom", &odom);
+	odom_pub = new ros::Publisher("/odom", &odom);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
@@ -94,7 +99,7 @@ void initROS()
 		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
     nh.advertise(*battery_pub);
-	//nh.advertise(*odom_pub);
+	nh.advertise(*odom_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -149,9 +154,12 @@ void batteryLoop()
     long dt = 1000;
     while(true)
     {
-		nh.spinOnce();
-        battery.voltage = sys.getSupplyVoltage();
-        battery_pub->publish(&battery);
+        battery.data = sys.getSupplyVoltage();
+		
+		publish_mutex.lock();
+        publish_battery = true;
+		publish_mutex.unlock();
+
         sys.delaySync(t, dt);
     }
 }
@@ -162,11 +170,14 @@ void odomLoop()
     long dt = 50;
     while(true)
     {
-		nh.spinOnce();
 		std::vector<float> odo = dc->getOdom();
 		odom.linear.x = odo[0];
 		odom.angular.z = odo[1];
-        odom_pub->publish(&odom);
+
+		publish_mutex.lock();
+		publish_odom = true;
+		publish_mutex.unlock();
+
         sys.delaySync(t, dt);
     }
 }
@@ -176,6 +187,7 @@ void hMain()
 	uint32_t t = sys.getRefTime();
 	platform.begin(&RPi);
 	nh.getHardware()->initWithDevice(&platform.LocalSerial);
+	//nh.getHardware()->initWithDevice(&RPi);
 	nh.initNode();
 	
 	dc = new DiffController(INPUT_TIMEOUT);
@@ -185,11 +197,26 @@ void hMain()
 	initROS();
 
 	sys.taskCreate(&batteryLoop);
-	//sys.taskCreate(&odomLoop);
+	sys.taskCreate(&odomLoop);
 
 	while (true)
 	{
 		nh.spinOnce();
+
+		publish_mutex.lock();
+
+		if (publish_battery){
+			battery_pub->publish(&battery);
+			publish_battery = false;
+		}
+
+		if (publish_odom){
+			odom_pub->publish(&odom);
+			publish_odom = false;
+		}
+
+		publish_mutex.unlock();
+
 		sys.delaySync(t, 10);
 	}
 
