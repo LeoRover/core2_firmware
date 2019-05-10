@@ -31,6 +31,7 @@ DiffController *dc;
 class ServoWrapper
 {
 	int num;
+	int per;
 	IServo& servo;
 
 public:
@@ -40,13 +41,18 @@ public:
 
 	void angleCallback(const std_msgs::Int16& msg)
 	{
-		servo.setPeriod(SERVO_PERIOD);
+		if (per!=SERVO_PERIOD)
+		{
+			servo.setPeriod(SERVO_PERIOD);
+			per=SERVO_PERIOD;
+		}
 		servo.rotAbs(msg.data);
 		Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num, msg.data);
 	}
 
 	void pwmCallback(const std_msgs::UInt16MultiArray& msg)
 	{
+		per=msg.data[0];
 		servo.setPeriod(msg.data[0]);
 		servo.setWidth(msg.data[1]);
 		Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num, msg.data[0], msg.data[1]);
