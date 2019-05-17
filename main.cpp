@@ -47,7 +47,9 @@ public:
 			per=SERVO_PERIOD;
 		}
 		servo.rotAbs(msg.data);
+#ifdef DEBUG
 		Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num, msg.data);
+#endif
 	}
 
 	void pwmCallback(const std_msgs::UInt16MultiArray& msg)
@@ -55,7 +57,9 @@ public:
 		per=msg.data[0];
 		servo.setPeriod(msg.data[0]);
 		servo.setWidth(msg.data[1]);
+#ifdef DEBUG
 		Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num, msg.data[0], msg.data[1]);
+#endif
 	}
 };
 
@@ -69,7 +73,9 @@ ServoWrapper servo6(6, hServo.servo6);
 void cmdVelCallback(const geometry_msgs::Twist& msg)
 {
 	dc->setSpeed(msg.linear.x, msg.angular.z);
+#ifdef DEBUG
 	Serial.printf("[cmdVelCallback] linear: %f angular %f\r\n", msg.linear.x, msg.angular.z);
+#endif
 }
 
 void initROS()
