@@ -47,6 +47,11 @@ const float PID_P = 0.00;
 const float PID_I = 0.0005;
 const float PID_D = 0.0;
 
+// Value between 0 and 1000 describing power limit
+// e.g. 1000 means no limit, 800 corresponds to 80%
+// Take into account that this value only limits the Voltage (PWM) and not the current.
+const int32_t POWER_LIMIT = 1000;
+
 // Input timeout in ms. 
 // The controller will stop the motors if it doesn't receive a command for a specified time. 
 // If set to 0, the controller won't check for a timeout

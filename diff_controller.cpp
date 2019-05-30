@@ -9,10 +9,10 @@ DiffController::DiffController(uint32_t input_timeout)
       _last_wheel_R_ang_pos(0),
       _input_timeout(input_timeout)
 {
-    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
-    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
-    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
-    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D);
+    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
+    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
+    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
+    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
 }
 
 void DiffController::start()

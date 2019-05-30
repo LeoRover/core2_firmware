@@ -22,7 +22,7 @@ class Wheel {
 	float vRange = 1000.0;
 
 public:
-	Wheel(hMotor &motor, bool polarity, float max_speed, float Kp, float Ki, float Kd);
+	Wheel(hMotor &motor, bool polarity, float max_speed, float Kp, float Ki, float Kd, int32_t power_limit);
 
 	void update(uint32_t dt);
 

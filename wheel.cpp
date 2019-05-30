@@ -1,7 +1,7 @@
 #include "wheel.h"
 
 Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
-			 float Kp, float Ki, float Kd) 
+			 float Kp, float Ki, float Kd, int32_t power_limit = 1000) 
 	: mot(motor),
 	  pol(polarity),
 	  _max_speed(max_speed),
@@ -20,6 +20,7 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 		mot.setEncoderPolarity(Polarity::Reversed);
 	}
 
+	mot.setPowerLimit(power_limit);
 	mot.resetEncoderCnt();
 }
 
