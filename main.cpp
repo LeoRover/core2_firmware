@@ -54,12 +54,16 @@ public:
 
 	void pwmCallback(const std_msgs::UInt16MultiArray& msg)
 	{
-		per=msg.data[0];
-		servo.setPeriod(msg.data[0]);
-		servo.setWidth(msg.data[1]);
+		if (msg.data_length >= 2){
+			per=msg.data[0];
+			servo.setPeriod(msg.data[0]);
+			servo.setWidth(msg.data[1]);
 #ifdef DEBUG
-		Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num, msg.data[0], msg.data[1]);
+			Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num, msg.data[0], msg.data[1]);
+		} else {
+			Serial.printf("ERROR: [servo%dPWMCallback] data array should have 2 members\r\n", num);
 #endif
+		}
 	}
 };
 
