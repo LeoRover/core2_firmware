@@ -1,4 +1,8 @@
+#ifndef PARAMS_H
+#define PARAMS_H
+
 #include <cstdint>
+#include "hFramework.h"
 
 // Servos
 const uint16_t SERVO_PERIOD = 20000;
@@ -56,3 +60,9 @@ const int32_t POWER_LIMIT = 1000;
 // The controller will stop the motors if it doesn't receive a command for a specified time. 
 // If set to 0, the controller won't check for a timeout
 const uint32_t INPUT_TIMEOUT = 500;
+
+// The pin which will be used to drive the informative LED on the power switch
+// By default it is set to pin1 on hExt port
+static hFramework::hGPIO& LED = hExt.pin1; 
+
+#endif

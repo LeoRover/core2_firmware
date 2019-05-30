@@ -194,6 +194,21 @@ void odomLoop()
     }
 }
 
+void LEDLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 250;
+    while(true)
+    {
+		if(!nh.connected())
+			LED.toggle();
+		else
+			LED.write(true);
+
+        sys.delaySync(t, dt);
+    }
+}
+
 void hMain()
 {
 	uint32_t t = sys.getRefTime();
@@ -207,6 +222,9 @@ void hMain()
 
 	setupServos();
 	initROS();
+
+	LED.setOut();
+	sys.taskCreate(&LEDLoop);
 
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
