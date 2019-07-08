@@ -3,16 +3,17 @@
 
 #include "diff_controller.h"
 #include "params.h"
+#include "utils.h"
 
 DiffController::DiffController(uint32_t input_timeout)
     : _last_wheel_L_ang_pos(0),
       _last_wheel_R_ang_pos(0),
       _input_timeout(input_timeout)
 {
-    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
-    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
-    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
-    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT);
+    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
+    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
+    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
+    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
 }
 
 void DiffController::start()
@@ -23,16 +24,9 @@ void DiffController::start()
         _last_update = sys.getRefTime();
         sys.taskCreate(std::bind(&DiffController::inputWatchdog, this));
     }
-}
-
-float clamp(float value, float limit)
-{
-    if (value > limit) 
-        return limit;
-    else if (value < -limit)
-        return -limit;
-    else
-        return value;
+#ifdef DEBUG
+    sys.taskCreate(std::bind(&DiffController::debugLoop, this));
+#endif
 }
 
 void DiffController::setSpeed(float linear, float angular)
@@ -110,6 +104,20 @@ void DiffController::updateOdometryLoop()
         _lin_vel = (wheel_L_lin_vel + wheel_R_lin_vel) / 2;
         _ang_vel = (wheel_R_lin_vel - wheel_L_lin_vel) / ROBOT_WIDTH;
         
+        sys.delaySync(t, dt);
+    }
+}
+
+void DiffController::debugLoop()
+{
+    uint32_t t = sys.getRefTime();
+    uint32_t dt = 100;
+
+    while(true)
+    {
+        Serial.printf("Motor powers: %d %d %d %d\r\n", 
+                      wheelFL->getPower(), wheelRL->getPower(), 
+                      wheelFR->getPower(), wheelRR->getPower());
         sys.delaySync(t, dt);
     }
 }

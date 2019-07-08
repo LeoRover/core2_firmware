@@ -17,6 +17,7 @@ public:
 private:
     void updateWheelLoop();
     void updateOdometryLoop();
+    void debugLoop();
     void inputWatchdog();
 
     Wheel *wheelFL;

@@ -12,6 +12,9 @@ class Wheel {
 	hPIDRegulator vReg;
 
 	bool pol;
+	int16_t _power;
+	uint16_t _power_limit;
+	uint16_t _torque_limit;
 	float _max_speed;
 
 	bool turnedOn;
@@ -22,12 +25,15 @@ class Wheel {
 	float vRange = 1000.0;
 
 public:
-	Wheel(hMotor &motor, bool polarity, float max_speed, float Kp, float Ki, float Kd, int32_t power_limit);
+	Wheel(hMotor &motor, bool polarity, float max_speed, 
+		  float Kp, float Ki, float Kd, 
+		  uint16_t power_limit, uint16_t torque_limit);
 
 	void update(uint32_t dt);
 
 	void setSpeed(float speed);
 	float getSpeed();
+	int16_t getPower();
 	
 	int32_t getDistance();
 	void resetDistance();
