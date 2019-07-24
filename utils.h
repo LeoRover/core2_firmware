@@ -1,5 +1,5 @@
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef LEO_FIRMWARE_UTILS_H_
+#define LEO_FIRMWARE_UTILS_H_
 
 inline float clamp(float value, float limit)
 {

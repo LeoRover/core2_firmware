@@ -6,9 +6,9 @@
 #include "utils.h"
 
 DiffController::DiffController(uint32_t input_timeout)
-    : _last_wheel_L_ang_pos(0),
-      _last_wheel_R_ang_pos(0),
-      _input_timeout(input_timeout)
+    : last_wheel_L_ang_pos_(0),
+      last_wheel_R_ang_pos_(0),
+      input_timeout_(input_timeout)
 {
     wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
     wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
@@ -20,8 +20,8 @@ void DiffController::start()
 {
     sys.taskCreate(std::bind(&DiffController::updateWheelLoop, this));
     sys.taskCreate(std::bind(&DiffController::updateOdometryLoop, this));
-    if (_input_timeout > 0.0) {
-        _last_update = sys.getRefTime();
+    if (input_timeout_ > 0.0) {
+        last_update_ = sys.getRefTime();
         sys.taskCreate(std::bind(&DiffController::inputWatchdog, this));
     }
 #ifdef DEBUG
@@ -43,15 +43,15 @@ void DiffController::setSpeed(float linear, float angular)
     wheelFR->setSpeed(enc_R_speed);
     wheelRR->setSpeed(enc_R_speed);
 
-    if (_input_timeout > 0.0)
-        _last_update = sys.getRefTime();
+    if (input_timeout_ > 0.0)
+        last_update_ = sys.getRefTime();
 }
 
 std::vector<float> DiffController::getOdom()
 {
     std::vector<float> odom;
-    odom.push_back(_lin_vel);
-    odom.push_back(_ang_vel);
+    odom.push_back(lin_vel_);
+    odom.push_back(ang_vel_);
     return odom;
 }
 
@@ -90,19 +90,19 @@ void DiffController::updateOdometryLoop()
         float wheel_R_ang_pos = 2 * M_PI * enc_R / ENCODER_RESOLUTION;
 
         // velocity in radians per second
-        float wheel_L_ang_vel = (wheel_L_ang_pos - _last_wheel_L_ang_pos) / (dt / 1000.0);
-        float wheel_R_ang_vel = (wheel_R_ang_pos - _last_wheel_R_ang_pos) / (dt / 1000.0);
+        float wheel_L_ang_vel = (wheel_L_ang_pos - last_wheel_L_ang_pos_) / (dt / 1000.0);
+        float wheel_R_ang_vel = (wheel_R_ang_pos - last_wheel_R_ang_pos_) / (dt / 1000.0);
 
-        _last_wheel_L_ang_pos = wheel_L_ang_pos;
-        _last_wheel_R_ang_pos = wheel_R_ang_pos;
+        last_wheel_L_ang_pos_ = wheel_L_ang_pos;
+        last_wheel_R_ang_pos_ = wheel_R_ang_pos;
 
         // velocity in meters per second
         float wheel_L_lin_vel = wheel_L_ang_vel * WHEEL_RADIUS;
         float wheel_R_lin_vel = wheel_R_ang_vel * WHEEL_RADIUS;
 
         // linear (m/s) and angular (r/s) velocities of the robot
-        _lin_vel = (wheel_L_lin_vel + wheel_R_lin_vel) / 2;
-        _ang_vel = (wheel_R_lin_vel - wheel_L_lin_vel) / ROBOT_WIDTH;
+        lin_vel_ = (wheel_L_lin_vel + wheel_R_lin_vel) / 2;
+        ang_vel_ = (wheel_R_lin_vel - wheel_L_lin_vel) / ROBOT_WIDTH;
         
         sys.delaySync(t, dt);
     }
@@ -126,9 +126,8 @@ void DiffController::inputWatchdog()
 {
     while (true)
     {
-        // TODO possibly not thread safe ?
-        while (sys.getRefTime() < _last_update + _input_timeout)
-            sys.delay(_last_update + _input_timeout - sys.getRefTime() + 1);
+        while (sys.getRefTime() < last_update_ + input_timeout_)
+            sys.delay(last_update_ + input_timeout_ - sys.getRefTime() + 1);
         
         setSpeed(0.0, 0.0);
     }

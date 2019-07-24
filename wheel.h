@@ -1,32 +1,16 @@
-#ifndef _WHEEL_H_
-#define _WHEEL_H_
+#ifndef LEO_FIRMWARE_WHEEL_H_
+#define LEO_FIRMWARE_WHEEL_H_
 
 #include <cstddef>
 #include <cstdint>
 #include "hFramework.h"
 #include "hCyclicBuffer.h"
 
-class Wheel {
-
-	hMotor& mot;
-	hPIDRegulator vReg;
-
-	bool pol;
-	int16_t _power;
-	uint16_t _power_limit;
-	uint16_t _torque_limit;
-	float _max_speed;
-
-	bool turnedOn;
-	float dNow;
-	float vTarget;
-	float vNow;
-	
-	float vRange = 1000.0;
-
+class Wheel 
+{
 public:
 	Wheel(hMotor &motor, bool polarity, float max_speed, 
-		  float Kp, float Ki, float Kd, 
+		  float kp, float ki, float kd, 
 		  uint16_t power_limit, uint16_t torque_limit);
 
 	void update(uint32_t dt);
@@ -41,6 +25,23 @@ public:
 	void reset();
 	void turnOff();
 	void turnOn();
+
+private:
+	hMotor& motor_;
+	hPIDRegulator v_reg_;
+
+	int16_t power_;
+
+	bool turned_on_;
+	float d_now_;
+	float v_target_;
+	float v_now_;
+	
+	const bool polarity_;
+	const float max_speed_;
+	const uint16_t power_limit_;
+	const uint16_t torque_limit_;
+	static constexpr float v_range_ = 1000.0;
 };
 
 #endif

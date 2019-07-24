@@ -1,5 +1,5 @@
-#ifndef _DIFF_CONTROLLER_H_
-#define _DIFF_CONTROLLER_H_
+#ifndef LEO_FIRMWARE_DIFF_CONTROLLER_H_
+#define LEO_FIRMWARE_DIFF_CONTROLLER_H_
 
 #include "wheel.h"
 
@@ -25,13 +25,13 @@ private:
     Wheel *wheelFR;
     Wheel *wheelRR;
 
-    float _last_wheel_L_ang_pos;
-    float _last_wheel_R_ang_pos;
-    float _lin_vel;
-    float _ang_vel;
+    float last_wheel_L_ang_pos_;
+    float last_wheel_R_ang_pos_;
+    float lin_vel_;
+    float ang_vel_;
 
-    uint32_t _input_timeout;
-    uint32_t _last_update;
+    uint32_t input_timeout_;
+    uint32_t last_update_;
 };
 
 #endif
