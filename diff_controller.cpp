@@ -118,6 +118,9 @@ void DiffController::debugLoop()
         Serial.printf("Motor powers: %d %d %d %d\r\n", 
                       wheelFL->getPower(), wheelRL->getPower(), 
                       wheelFR->getPower(), wheelRR->getPower());
+        Serial.printf("Motor speeds: %f %f %f %f\r\n", 
+                      wheelFL->getSpeed(), wheelRL->getSpeed(), 
+                      wheelFR->getSpeed(), wheelRR->getSpeed());
         sys.delaySync(t, dt);
     }
 }

@@ -10,9 +10,12 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 	  power_limit_(power_limit),
 	  torque_limit_(torque_limit),
 	  turned_on_(true),
-	  d_now_(0.0),
+	  ticks_now_(0),
+	  ticks_sum_(0),
+	  dt_sum_(0),
 	  v_now_(0.0),
-	  v_target_(0.0)
+	  v_target_(0.0),
+	  encoder_buffer_(encoder_buffer_size_)
 {
 	v_reg_.setScale(1);
 	v_reg_.setRange(-v_range_, v_range_);
@@ -30,10 +33,21 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 
 void Wheel::update(uint32_t dt)
 {
-	float d_prev = d_now_;
-	d_now_ = (float)motor_.getEncoderCnt();
+	int32_t ticks_prev = ticks_now_;
+	ticks_now_ = motor_.getEncoderCnt();
 
-	v_now_ = (d_now_ - d_prev) / (dt * 0.001);
+	int32_t new_ticks = ticks_now_ - ticks_prev;
+
+	std::pair<int32_t, uint32_t> encoder_old = 
+		encoder_buffer_.push_back(std::pair<int32_t, uint32_t>(new_ticks, dt));
+
+	ticks_sum_ += new_ticks;
+	dt_sum_ += dt;
+
+	ticks_sum_ -= encoder_old.first;
+	dt_sum_ -= encoder_old.second;
+
+	v_now_ = static_cast<float>(ticks_sum_) / (dt_sum_ * 0.001);
 
 	float v_err = v_now_ - v_target_;
 	float pid_out = v_reg_.update(v_err, dt);
@@ -79,7 +93,7 @@ int16_t Wheel::getPower()
 
 int32_t Wheel::getDistance()
 {
-	return d_now_;
+	return ticks_now_;
 }
 
 void Wheel::resetDistance()
