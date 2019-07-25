@@ -25,8 +25,6 @@ private:
     Wheel *wheelFR;
     Wheel *wheelRR;
 
-    float last_wheel_L_ang_pos_;
-    float last_wheel_R_ang_pos_;
     float lin_vel_;
     float ang_vel_;
 

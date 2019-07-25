@@ -6,9 +6,7 @@
 #include "utils.h"
 
 DiffController::DiffController(uint32_t input_timeout)
-    : last_wheel_L_ang_pos_(0),
-      last_wheel_R_ang_pos_(0),
-      input_timeout_(input_timeout)
+    : input_timeout_(input_timeout)
 {
     wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
     wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
@@ -76,33 +74,26 @@ void DiffController::updateOdometryLoop()
 
     while(true)
     {
-        // distance in tics
-        float enc_FL = wheelFL->getDistance();  
-        float enc_RL = wheelRL->getDistance();
-        float enc_FR = wheelFR->getDistance();
-        float enc_RR = wheelRR->getDistance();
+        // speed in ticks/sec
+        float FL_speed = wheelFL->getSpeed();  
+        float RL_speed = wheelRL->getSpeed();
+        float FR_speed = wheelFR->getSpeed();
+        float RR_speed = wheelRR->getSpeed();
 
-        float enc_L = (enc_FL + enc_RL) / 2;
-        float enc_R = (enc_FR + enc_RR) / 2;
-
-        // distance in radians
-        float wheel_L_ang_pos = 2 * M_PI * enc_L / ENCODER_RESOLUTION;
-        float wheel_R_ang_pos = 2 * M_PI * enc_R / ENCODER_RESOLUTION;
+        float L_speed = (FL_speed + RL_speed) / 2.0;
+        float R_speed = (FR_speed + RR_speed) / 2.0;
 
         // velocity in radians per second
-        float wheel_L_ang_vel = (wheel_L_ang_pos - last_wheel_L_ang_pos_) / (dt / 1000.0);
-        float wheel_R_ang_vel = (wheel_R_ang_pos - last_wheel_R_ang_pos_) / (dt / 1000.0);
-
-        last_wheel_L_ang_pos_ = wheel_L_ang_pos;
-        last_wheel_R_ang_pos_ = wheel_R_ang_pos;
+        float L_ang_vel = 2 * M_PI * L_speed / ENCODER_RESOLUTION;
+        float R_ang_vel = 2 * M_PI * R_speed / ENCODER_RESOLUTION;
 
         // velocity in meters per second
-        float wheel_L_lin_vel = wheel_L_ang_vel * WHEEL_RADIUS;
-        float wheel_R_lin_vel = wheel_R_ang_vel * WHEEL_RADIUS;
+        float L_lin_vel = L_ang_vel * WHEEL_RADIUS;
+        float R_lin_vel = R_ang_vel * WHEEL_RADIUS;
 
         // linear (m/s) and angular (r/s) velocities of the robot
-        lin_vel_ = (wheel_L_lin_vel + wheel_R_lin_vel) / 2;
-        ang_vel_ = (wheel_R_lin_vel - wheel_L_lin_vel) / ROBOT_WIDTH;
+        lin_vel_ = (L_lin_vel + R_lin_vel) / 2;
+        ang_vel_ = (R_lin_vel - L_lin_vel) / ROBOT_WIDTH;
         
         sys.delaySync(t, dt);
     }
