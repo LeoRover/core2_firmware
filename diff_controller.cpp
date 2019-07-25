@@ -53,6 +53,36 @@ std::vector<float> DiffController::getOdom()
     return odom;
 }
 
+std::vector<float> DiffController::getWheelPositions()
+{
+    std::vector<float> positions(4);
+    positions[0] = 2 * M_PI * wheelFL->getDistance() / ENCODER_RESOLUTION;
+    positions[1] = 2 * M_PI * wheelRL->getDistance() / ENCODER_RESOLUTION;
+    positions[2] = 2 * M_PI * wheelFR->getDistance() / ENCODER_RESOLUTION;
+    positions[3] = 2 * M_PI * wheelRR->getDistance() / ENCODER_RESOLUTION;
+    return positions;
+}
+
+std::vector<float> DiffController::getWheelVelocities()
+{
+    std::vector<float> velocities(4);
+    velocities[0] = 2 * M_PI * wheelFL->getSpeed() / ENCODER_RESOLUTION;
+    velocities[1] = 2 * M_PI * wheelRL->getSpeed() / ENCODER_RESOLUTION;
+    velocities[2] = 2 * M_PI * wheelFR->getSpeed() / ENCODER_RESOLUTION;
+    velocities[3] = 2 * M_PI * wheelRR->getSpeed() / ENCODER_RESOLUTION;
+    return velocities;
+}
+
+std::vector<float> DiffController::getWheelEfforts()
+{
+    std::vector<float> efforts(4);
+    efforts[0] = wheelFL->getPower() * 0.1;
+    efforts[1] = wheelRL->getPower() * 0.1;
+    efforts[2] = wheelFR->getPower() * 0.1;
+    efforts[3] = wheelRR->getPower() * 0.1;
+    return efforts;
+}
+
 void DiffController::updateWheelLoop()
 {
     uint32_t t = sys.getRefTime();

@@ -6,6 +6,7 @@
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
+#include "sensor_msgs/JointState.h"
 
 #include "diff_controller.h"
 #include "params.h"
@@ -15,8 +16,6 @@ using namespace hFramework;
 
 ros::NodeHandle nh;
 
-hMutex publish_mutex;
-
 std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
 bool publish_battery = false;
@@ -24,6 +23,10 @@ bool publish_battery = false;
 geometry_msgs::Twist odom;
 ros::Publisher *odom_pub;
 bool publish_odom = false;
+
+sensor_msgs::JointState joint_states;
+ros::Publisher *joint_states_pub;
+bool publish_joint = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
@@ -48,6 +51,7 @@ void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/odom", &odom);
+	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
@@ -78,6 +82,7 @@ void initROS()
 
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
+	nh.advertise(*joint_states_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -126,17 +131,31 @@ void setupServos()
 							SERVO_6_ANGLE_MAX, SERVO_6_WIDTH_MAX); 
 }
 
+void setupJoints()
+{
+	joint_states.header.frame_id = "base_link";
+	joint_states.name = new char*[4] {"wheelFL", "wheelRL", "wheelFR", "wheelRR"};
+	joint_states.position = new float[4];
+	joint_states.velocity = new float[4];
+	joint_states.effort = new float[4];
+	joint_states.name_length = 4;
+	joint_states.position_length = 4;
+	joint_states.velocity_length = 4;
+	joint_states.effort_length = 4;
+}
+
 void batteryLoop()
 {
     uint32_t t = sys.getRefTime();
     long dt = 1000;
     while(true)
     {
-        battery.data = sys.getSupplyVoltage();
-		
-		publish_mutex.lock();
-        publish_battery = true;
-		publish_mutex.unlock();
+		if (!publish_battery) 
+		{
+			battery.data = sys.getSupplyVoltage();
+			
+			publish_battery = true;
+		}
 
         sys.delaySync(t, dt);
     }
@@ -148,13 +167,50 @@ void odomLoop()
     long dt = 50;
     while(true)
     {
-		std::vector<float> odo = dc->getOdom();
-		odom.linear.x = odo[0];
-		odom.angular.z = odo[1];
+		if (!publish_odom)
+		{
+			std::vector<float> odo = dc->getOdom();
+			odom.linear.x = odo[0];
+			odom.angular.z = odo[1];
 
-		publish_mutex.lock();
-		publish_odom = true;
-		publish_mutex.unlock();
+			publish_odom = true;
+		}
+
+        sys.delaySync(t, dt);
+    }
+}
+
+void jointStatesLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 50;
+    while(true)
+    {
+		if (!publish_joint)
+		{
+			std::vector<float> pos = dc->getWheelPositions();
+			std::vector<float> vel = dc->getWheelVelocities();
+			std::vector<float> eff = dc->getWheelEfforts();
+
+			joint_states.header.stamp = nh.now();
+
+			joint_states.position[0] = pos[0];
+			joint_states.position[1] = pos[1];
+			joint_states.position[2] = pos[2];
+			joint_states.position[3] = pos[3];
+
+			joint_states.velocity[0] = vel[0];
+			joint_states.velocity[1] = vel[1];
+			joint_states.velocity[2] = vel[2];
+			joint_states.velocity[3] = vel[3];
+
+			joint_states.effort[0] = eff[0];
+			joint_states.effort[1] = eff[1];
+			joint_states.effort[2] = eff[2];
+			joint_states.effort[3] = eff[3];
+
+			publish_joint = true;
+		}
 
         sys.delaySync(t, dt);
     }
@@ -187,6 +243,7 @@ void hMain()
 	dc->start();
 
 	setupServos();
+	setupJoints();
 	initROS();
 
 	LED.setOut();
@@ -194,12 +251,11 @@ void hMain()
 
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
+	sys.taskCreate(&jointStatesLoop);
 
 	while (true)
 	{
 		nh.spinOnce();
-
-		publish_mutex.lock();
 
 		if (publish_battery){
 			battery_pub->publish(&battery);
@@ -211,7 +267,10 @@ void hMain()
 			publish_odom = false;
 		}
 
-		publish_mutex.unlock();
+		if (publish_joint){
+			joint_states_pub->publish(&joint_states);
+			publish_joint = false;
+		}
 
 		sys.delaySync(t, 10);
 	}
