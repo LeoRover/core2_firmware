@@ -9,6 +9,7 @@
 
 #include "diff_controller.h"
 #include "params.h"
+#include "utils.h"
 
 using namespace hFramework;
 
@@ -27,45 +28,6 @@ bool publish_odom = false;
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
 DiffController *dc;
-
-class ServoWrapper
-{
-	int num;
-	int per;
-	IServo& servo;
-
-public:
-	ServoWrapper(int num, IServo& servo)
-		: num(num),
-		  servo(servo) {}
-
-	void angleCallback(const std_msgs::Int16& msg)
-	{
-		if (per!=SERVO_PERIOD)
-		{
-			servo.setPeriod(SERVO_PERIOD);
-			per=SERVO_PERIOD;
-		}
-		servo.rotAbs(msg.data);
-#ifdef DEBUG
-		Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num, msg.data);
-#endif
-	}
-
-	void pwmCallback(const std_msgs::UInt16MultiArray& msg)
-	{
-		if (msg.data_length >= 2){
-			per=msg.data[0];
-			servo.setPeriod(msg.data[0]);
-			servo.setWidth(msg.data[1]);
-#ifdef DEBUG
-			Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num, msg.data[0], msg.data[1]);
-		} else {
-			Serial.printf("ERROR: [servo%dPWMCallback] data array should have 2 members\r\n", num);
-#endif
-		}
-	}
-};
 
 ServoWrapper servo1(1, hServo.servo1);
 ServoWrapper servo2(2, hServo.servo2);
