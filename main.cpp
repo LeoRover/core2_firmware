@@ -134,7 +134,10 @@ void setupServos()
 void setupJoints()
 {
 	joint_states.header.frame_id = "base_link";
-	joint_states.name = new char*[4] {"wheelFL", "wheelRL", "wheelFR", "wheelRR"};
+	joint_states.name = new char*[4] {
+		"wheel_FL_joint", "wheel_RL_joint", 
+		"wheel_FR_joint", "wheel_RR_joint"
+	};
 	joint_states.position = new float[4];
 	joint_states.velocity = new float[4];
 	joint_states.effort = new float[4];
