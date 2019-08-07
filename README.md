@@ -26,7 +26,12 @@
 
     Current battery voltage reading
 
+* **`joint_states`** ([sensor_msgs/JointState])
+
+    Current state of wheel joints. Effort is the percent of applied power (PWM duty)
+
 [geometry_msgs/Twist]: http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
 [std_msgs/Int16]: http://docs.ros.org/melodic/api/std_msgs/html/msg/Int16.html
 [std_msgs/Float32]: http://docs.ros.org/api/std_msgs/html/msg/Float32.html
 [std_msgs/UInt16MultiArray]: http://docs.ros.org/api/std_msgs/html/msg/UInt16MultiArray.html
+[sensor_msgs/JointState]: http://docs.ros.org/melodic/api/sensor_msgs/html/msg/JointState.html
