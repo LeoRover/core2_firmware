@@ -1,10 +1,9 @@
-#ifndef _DIFF_CONTROLLER_H_
-#define _DIFF_CONTROLLER_H_
+#ifndef LEO_FIRMWARE_DIFF_CONTROLLER_H_
+#define LEO_FIRMWARE_DIFF_CONTROLLER_H_
+
+#include <vector>
 
 #include "wheel.h"
-
-#include "ros.h"
-#include <vector>
 
 class DiffController
 {
@@ -13,6 +12,9 @@ public:
     void start();
     void setSpeed(float linear, float angular);
     std::vector<float> getOdom();
+    std::vector<float> getWheelPositions();
+    std::vector<float> getWheelVelocities();
+    std::vector<float> getWheelEfforts();
 
 private:
     void updateWheelLoop();
@@ -25,13 +27,11 @@ private:
     Wheel *wheelFR;
     Wheel *wheelRR;
 
-    float _last_wheel_L_ang_pos;
-    float _last_wheel_R_ang_pos;
-    float _lin_vel;
-    float _ang_vel;
+    float lin_vel_;
+    float ang_vel_;
 
-    uint32_t _input_timeout;
-    uint32_t _last_update;
+    uint32_t input_timeout_;
+    uint32_t last_update_;
 };
 
 #endif

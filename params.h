@@ -1,5 +1,5 @@
-#ifndef PARAMS_H
-#define PARAMS_H
+#ifndef LEO_FIRMWARE_PARAMS_H
+#define LEO_FIRMWARE_PARAMS_H
 
 #include <cstdint>
 #include "hFramework.h"
