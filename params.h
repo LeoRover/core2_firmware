@@ -42,6 +42,7 @@ const uint16_t SERVO_6_WIDTH_MAX = 2000;
 
 // Wheels
 const float ENCODER_RESOLUTION = 8256; //in ticks per rotation
+const bool ENCODER_PULLUP = false; //set encoder pin A and B as pullups
 const float WHEEL_RADIUS = 0.0625; //in meters
 const float WHEEL_MAX_SPEED = 6500; //in ticks per second
 const float ROBOT_WIDTH = 0.33; //in meters

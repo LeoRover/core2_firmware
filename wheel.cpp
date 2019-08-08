@@ -1,9 +1,10 @@
 #include "wheel.h"
 #include "utils.h"
 
-Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
-			 float kp, float ki, float kd, 
-			 uint16_t power_limit = 1000, uint16_t torque_limit = 1000) 
+Wheel::Wheel(hMotor &motor, const bool polarity, const float max_speed, 
+		  	 const float kp, const float ki, const float kd, 
+		  	 uint16_t power_limit, uint16_t torque_limit,
+		  	 const bool encoder_pullup)
 	: motor_(motor),
 	  polarity_(polarity),
 	  max_speed_(max_speed),
@@ -26,6 +27,11 @@ Wheel::Wheel(hMotor& motor, bool polarity, float max_speed,
 		motor_.setMotorPolarity(Polarity::Reversed);
 		motor_.setEncoderPolarity(Polarity::Reversed);
 	}
+
+	if (encoder_pullup)
+		motor_.setEncoderPu();
+	else
+		motor_.setEncoderPd();
 
 	motor_.setPowerLimit(power_limit);
 	motor_.resetEncoderCnt();

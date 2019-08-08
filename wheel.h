@@ -10,9 +10,10 @@
 class Wheel 
 {
 public:
-	Wheel(hMotor &motor, bool polarity, float max_speed, 
-		  float kp, float ki, float kd, 
-		  uint16_t power_limit, uint16_t torque_limit);
+	Wheel(hMotor &motor, const bool polarity, const float max_speed, 
+		  const float kp, const float ki, const float kd, 
+		  uint16_t power_limit = 1000, uint16_t torque_limit = 1000,
+		  const bool encoder_pullup = false);
 
 	void update(uint32_t dt);
 
