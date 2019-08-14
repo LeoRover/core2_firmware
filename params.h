@@ -40,17 +40,39 @@ const int16_t SERVO_6_ANGLE_MAX = 90;
 const uint16_t SERVO_6_WIDTH_MIN = 1000;
 const uint16_t SERVO_6_WIDTH_MAX = 2000;
 
-// Wheels
-const float ENCODER_RESOLUTION = 8256; //in ticks per rotation
-const bool ENCODER_PULLUP = false; //set encoder pin A and B as pullups
-const float WHEEL_RADIUS = 0.0625; //in meters
-const float WHEEL_MAX_SPEED = 6500; //in ticks per second
-const float ROBOT_WIDTH = 0.33; //in meters
 
-// PID
-const float PID_P = 0.00;
-const float PID_I = 0.0005;
-const float PID_D = 0.0;
+// Uncomment the line according to your wheel motors configuration
+#define POLOLU
+//#define BUEHLER
+
+#ifdef POLOLU
+
+    const float ENCODER_RESOLUTION = 8256.0; //in ticks per rotation
+    const bool ENCODER_PULLUP = false; //set encoder pin A and B as pullups
+    const float WHEEL_MAX_SPEED = 6500.0; //in ticks per second
+
+    // PID
+    const float PID_P = 0.0;
+    const float PID_I = 0.0005;
+    const float PID_D = 0.0;
+
+#elif defined BUEHLER
+
+    const float ENCODER_RESOLUTION = 878.4;
+    const bool ENCODER_PULLUP = true;
+    const float WHEEL_MAX_SPEED = 800.0;
+
+    // PID
+    const float PID_P = 0.0;
+    const float PID_I = 0.005;
+    const float PID_D = 0.0;
+
+#endif
+
+
+// Wheels
+const float WHEEL_RADIUS = 0.0625; //in meters
+const float ROBOT_WIDTH = 0.33; //in meters
 
 // Value between 0 and 1000 describing power limit
 // e.g. 1000 means no limit, 800 corresponds to 80%
