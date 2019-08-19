@@ -2,7 +2,7 @@
 #include "hCloudClient.h"
 
 #include "ros.h"
-#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
@@ -20,7 +20,7 @@ std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
 bool publish_battery = false;
 
-geometry_msgs::Twist odom;
+geometry_msgs::TwistWithCovarianceStamped odom;
 ros::Publisher *odom_pub;
 bool publish_odom = false;
 
@@ -50,7 +50,7 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
-	odom_pub = new ros::Publisher("/odom", &odom);
+	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
@@ -147,6 +147,13 @@ void setupJoints()
 	joint_states.effort_length = 4;
 }
 
+void setupOdom()
+{
+	odom.header.frame_id = "base_link";
+	for (int i = 0; i < 6; ++i)
+		odom.twist.covariance[i*6 + i] = ODOM_COVARIANCE_DIAGONAL[i];
+}
+
 void batteryLoop()
 {
     uint32_t t = sys.getRefTime();
@@ -172,9 +179,11 @@ void odomLoop()
     {
 		if (!publish_odom)
 		{
+			odom.header.stamp = nh.now();
+
 			std::vector<float> odo = dc->getOdom();
-			odom.linear.x = odo[0];
-			odom.angular.z = odo[1];
+			odom.twist.twist.linear.x = odo[0];
+			odom.twist.twist.angular.z = odo[1];
 
 			publish_odom = true;
 		}
@@ -245,6 +254,7 @@ void hMain()
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
 
+	setupOdom();
 	setupServos();
 	setupJoints();
 	initROS();
