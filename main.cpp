@@ -161,8 +161,6 @@ void setupJoints()
 void setupImu()
 {
 	imu.begin();
-    imu.resetFifo();
-
 	imu_msg.header.frame_id = "imu";
 }
 
@@ -250,10 +248,12 @@ void jointStatesLoop()
 void imuLoop()
 {
     uint32_t t = sys.getRefTime();
-    long dt = 20;
+    long dt = 50;
     while(true)
     {
 		imu_msg.header.stamp = nh.now();
+
+		imu.update();
 
 		std::vector<float> accel = imu.getAccel();
 		std::vector<float> gyro = imu.getGyro();
@@ -296,9 +296,9 @@ void LEDLoop()
 void hMain()
 {
 	uint32_t t = sys.getRefTime();
-	platform.begin(&RPi);
-	nh.getHardware()->initWithDevice(&platform.LocalSerial);
-	//nh.getHardware()->initWithDevice(&RPi);
+	//platform.begin(&RPi);
+	//nh.getHardware()->initWithDevice(&platform.LocalSerial);
+	nh.getHardware()->initWithDevice(&RPi);
 	nh.initNode();
 	
 	dc = new DiffController(INPUT_TIMEOUT);
@@ -309,6 +309,8 @@ void hMain()
 	setupJoints();
 	setupImu();
 	initROS();
+
+	sys.setLogDev(&Serial);
 
 	LED.setOut();
 	sys.taskCreate(&LEDLoop);
@@ -342,7 +344,7 @@ void hMain()
 			publish_imu = false;
 		}
 
-		sys.delaySync(t, 10);
+		sys.delaySync(t, 1);
 	}
 
 

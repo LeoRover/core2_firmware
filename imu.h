@@ -7,7 +7,7 @@ class IMU
 {
 public:
     void begin();
-    void resetFifo();
+    void update();
     std::vector<float> getAccel();
     std::vector<float> getGyro();
     std::vector<float> getQuaternion();
