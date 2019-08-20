@@ -47,7 +47,7 @@ void IMU::update()
       	}
 	}
 
-	if (mpu.update() != INV_SUCCESS)
+	if (mpu.update(UPDATE_ACCEL | UPDATE_GYRO | UPDATE_COMPASS) != INV_SUCCESS)
 	{
 		sys.log("[IMU] update failed\r\n");
 	}
@@ -79,4 +79,13 @@ std::vector<float> IMU::getQuaternion()
 	quat[2] = mpu.calcQuat(mpu.qz);
 	quat[3] = mpu.calcQuat(mpu.qw);
 	return quat;
+}
+
+std::vector<float> IMU::getMag()
+{
+	std::vector<float> mag(3);
+	mag[0] = mpu.calcMag(mpu.mx) * 0.000001;
+	mag[1] = mpu.calcMag(mpu.my) * 0.000001;
+	mag[2] = mpu.calcMag(mpu.mz) * 0.000001;
+	return mag;
 }

@@ -8,6 +8,7 @@
 #include "std_msgs/UInt16MultiArray.h"
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/MagneticField.h"
 
 #include "diff_controller.h"
 #include "params.h"
@@ -32,8 +33,10 @@ ros::Publisher *joint_states_pub;
 bool publish_joint = false;
 
 IMU imu;
-sensor_msgs::Imu imu_msg;
-ros::Publisher *imu_pub;
+sensor_msgs::Imu imu_raw_msg;
+ros::Publisher *imu_raw_pub;
+sensor_msgs::MagneticField imu_mag_msg;
+ros::Publisher *imu_mag_pub;
 bool publish_imu = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
@@ -60,7 +63,8 @@ void initROS()
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
-	imu_pub = new ros::Publisher("/imu", &imu_msg);
+	imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
+	imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
 
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
@@ -93,7 +97,8 @@ void initROS()
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
-	nh.advertise(*imu_pub);
+	nh.advertise(*imu_raw_pub);
+	nh.advertise(*imu_mag_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -161,7 +166,15 @@ void setupJoints()
 void setupImu()
 {
 	imu.begin();
-	imu_msg.header.frame_id = "imu";
+	imu_raw_msg.header.frame_id = "imu";
+	for (int i = 0; i < 3; ++i)
+	{
+		imu_raw_msg.angular_velocity_covariance[i*3 + i] = 
+			IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[i];
+		imu_raw_msg.linear_acceleration_covariance[i*3 + i] = 
+			IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[i];
+	}
+	imu_mag_msg.header.frame_id = "imu";
 }
 
 void setupOdom()
@@ -251,26 +264,34 @@ void imuLoop()
     long dt = 50;
     while(true)
     {
-		imu_msg.header.stamp = nh.now();
-
 		imu.update();
+
+		imu_raw_msg.header.stamp = nh.now();
 
 		std::vector<float> accel = imu.getAccel();
 		std::vector<float> gyro = imu.getGyro();
 		std::vector<float> quat = imu.getQuaternion();
 
-		imu_msg.linear_acceleration.x = accel[0];
-		imu_msg.linear_acceleration.y = accel[1];
-		imu_msg.linear_acceleration.z = accel[2];
+		imu_raw_msg.linear_acceleration.x = accel[0];
+		imu_raw_msg.linear_acceleration.y = accel[1];
+		imu_raw_msg.linear_acceleration.z = accel[2];
 
-		imu_msg.angular_velocity.x = gyro[0];
-		imu_msg.angular_velocity.y = gyro[1];
-		imu_msg.angular_velocity.z = gyro[2];
+		imu_raw_msg.angular_velocity.x = gyro[0];
+		imu_raw_msg.angular_velocity.y = gyro[1];
+		imu_raw_msg.angular_velocity.z = gyro[2];
 
-		imu_msg.orientation.x = quat[0];
-		imu_msg.orientation.y = quat[1];
-		imu_msg.orientation.z = quat[2];
-		imu_msg.orientation.w = quat[3];
+		imu_raw_msg.orientation.x = quat[0];
+		imu_raw_msg.orientation.y = quat[1];
+		imu_raw_msg.orientation.z = quat[2];
+		imu_raw_msg.orientation.w = quat[3];
+
+		imu_mag_msg.header.stamp = nh.now();
+		
+		std::vector<float> mag = imu.getMag();
+
+		imu_mag_msg.magnetic_field.x = mag[0];
+		imu_mag_msg.magnetic_field.y = mag[1];
+		imu_mag_msg.magnetic_field.z = mag[2];
 
 		publish_imu = true;
 
@@ -340,7 +361,8 @@ void hMain()
 		}
 
 		if (publish_imu){
-			imu_pub->publish(&imu_msg);
+			imu_raw_pub->publish(&imu_raw_msg);
+			imu_mag_pub->publish(&imu_mag_msg);
 			publish_imu = false;
 		}
 

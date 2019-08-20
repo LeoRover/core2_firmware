@@ -11,6 +11,7 @@ public:
     std::vector<float> getAccel();
     std::vector<float> getGyro();
     std::vector<float> getQuaternion();
+    std::vector<float> getMag();
 
 private:
     void updateLoop();

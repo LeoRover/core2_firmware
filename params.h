@@ -77,6 +77,10 @@ const float ROBOT_WIDTH = 0.33; //in meters
 // Odom
 const float ODOM_COVARIANCE_DIAGONAL[6] = {0.001, 0, 0, 0, 0, 0.1};
 
+// Imu
+const float IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
+const float IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
+
 // Value between 0 and 1000 describing power limit
 // e.g. 1000 means no limit, 800 corresponds to 80%
 // Take into account that this value only limits the Voltage (PWM) and not the current.
