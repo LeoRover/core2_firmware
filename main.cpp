@@ -7,10 +7,13 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
 #include "sensor_msgs/JointState.h"
+#include "sensor_msgs/Imu.h"
 
 #include "diff_controller.h"
 #include "params.h"
 #include "utils.h"
+
+#include "imu.h"
 
 using namespace hFramework;
 
@@ -27,6 +30,11 @@ bool publish_odom = false;
 sensor_msgs::JointState joint_states;
 ros::Publisher *joint_states_pub;
 bool publish_joint = false;
+
+IMU imu;
+sensor_msgs::Imu imu_msg;
+ros::Publisher *imu_pub;
+bool publish_imu = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
@@ -52,6 +60,8 @@ void initROS()
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
+	imu_pub = new ros::Publisher("/imu", &imu_msg);
+
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
@@ -83,6 +93,7 @@ void initROS()
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
+	nh.advertise(*imu_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
@@ -145,6 +156,14 @@ void setupJoints()
 	joint_states.position_length = 4;
 	joint_states.velocity_length = 4;
 	joint_states.effort_length = 4;
+}
+
+void setupImu()
+{
+	imu.begin();
+    imu.resetFifo();
+
+	imu_msg.header.frame_id = "imu";
 }
 
 void setupOdom()
@@ -228,6 +247,37 @@ void jointStatesLoop()
     }
 }
 
+void imuLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 20;
+    while(true)
+    {
+		imu_msg.header.stamp = nh.now();
+
+		std::vector<float> accel = imu.getAccel();
+		std::vector<float> gyro = imu.getGyro();
+		std::vector<float> quat = imu.getQuaternion();
+
+		imu_msg.linear_acceleration.x = accel[0];
+		imu_msg.linear_acceleration.y = accel[1];
+		imu_msg.linear_acceleration.z = accel[2];
+
+		imu_msg.angular_velocity.x = gyro[0];
+		imu_msg.angular_velocity.y = gyro[1];
+		imu_msg.angular_velocity.z = gyro[2];
+
+		imu_msg.orientation.x = quat[0];
+		imu_msg.orientation.y = quat[1];
+		imu_msg.orientation.z = quat[2];
+		imu_msg.orientation.w = quat[3];
+
+		publish_imu = true;
+
+        sys.delaySync(t, dt);
+    }
+}
+
 void LEDLoop()
 {
     uint32_t t = sys.getRefTime();
@@ -257,6 +307,7 @@ void hMain()
 	setupOdom();
 	setupServos();
 	setupJoints();
+	setupImu();
 	initROS();
 
 	LED.setOut();
@@ -265,6 +316,7 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
+    sys.taskCreate(&imuLoop);
 
 	while (true)
 	{
@@ -283,6 +335,11 @@ void hMain()
 		if (publish_joint){
 			joint_states_pub->publish(&joint_states);
 			publish_joint = false;
+		}
+
+		if (publish_imu){
+			imu_pub->publish(&imu_msg);
+			publish_imu = false;
 		}
 
 		sys.delaySync(t, 10);
