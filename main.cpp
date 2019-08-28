@@ -32,7 +32,7 @@ sensor_msgs::JointState joint_states;
 ros::Publisher *joint_states_pub;
 bool publish_joint = false;
 
-IMU imu;
+IMU* imu;
 sensor_msgs::Imu imu_raw_msg;
 ros::Publisher *imu_raw_pub;
 sensor_msgs::MagneticField imu_mag_msg;
@@ -165,7 +165,9 @@ void setupJoints()
 
 void setupImu()
 {
-	imu.begin();
+	IMU_HSENS.selectI2C();
+	imu = new IMU(IMU_HSENS.getI2C());
+	imu->begin();
 	imu_raw_msg.header.frame_id = "imu";
 	for (int i = 0; i < 3; ++i)
 	{
@@ -264,34 +266,28 @@ void imuLoop()
     long dt = 50;
     while(true)
     {
-		imu.update();
+		imu->update();
 
 		imu_raw_msg.header.stamp = nh.now();
 
-		std::vector<float> accel = imu.getAccel();
-		std::vector<float> gyro = imu.getGyro();
-		std::vector<float> quat = imu.getQuaternion();
+		imu_raw_msg.linear_acceleration.x = imu->ax;
+		imu_raw_msg.linear_acceleration.y = imu->ay;
+		imu_raw_msg.linear_acceleration.z = imu->az;
 
-		imu_raw_msg.linear_acceleration.x = accel[0];
-		imu_raw_msg.linear_acceleration.y = accel[1];
-		imu_raw_msg.linear_acceleration.z = accel[2];
+		imu_raw_msg.angular_velocity.x = imu->gx;
+		imu_raw_msg.angular_velocity.y = imu->gy;
+		imu_raw_msg.angular_velocity.z = imu->gz;
 
-		imu_raw_msg.angular_velocity.x = gyro[0];
-		imu_raw_msg.angular_velocity.y = gyro[1];
-		imu_raw_msg.angular_velocity.z = gyro[2];
-
-		imu_raw_msg.orientation.x = quat[0];
-		imu_raw_msg.orientation.y = quat[1];
-		imu_raw_msg.orientation.z = quat[2];
-		imu_raw_msg.orientation.w = quat[3];
+		imu_raw_msg.orientation.x = imu->qx;
+		imu_raw_msg.orientation.y = imu->qy;
+		imu_raw_msg.orientation.z = imu->qz;
+		imu_raw_msg.orientation.w = imu->qw;
 
 		imu_mag_msg.header.stamp = nh.now();
-		
-		std::vector<float> mag = imu.getMag();
 
-		imu_mag_msg.magnetic_field.x = mag[0];
-		imu_mag_msg.magnetic_field.y = mag[1];
-		imu_mag_msg.magnetic_field.z = mag[2];
+		imu_mag_msg.magnetic_field.x = imu->mx;
+		imu_mag_msg.magnetic_field.y = imu->my;
+		imu_mag_msg.magnetic_field.z = imu->mz;
 
 		publish_imu = true;
 
@@ -345,27 +341,30 @@ void hMain()
 	{
 		nh.spinOnce();
 
-		if (publish_battery){
-			battery_pub->publish(&battery);
-			publish_battery = false;
-		}
+		if (nh.connected())
+		{
+			if (publish_battery){
+				battery_pub->publish(&battery);
+				publish_battery = false;
+			}
 
-		if (publish_odom){
-			odom_pub->publish(&odom);
-			publish_odom = false;
-		}
+			else if (publish_odom){
+				odom_pub->publish(&odom);
+				publish_odom = false;
+			}
 
-		if (publish_joint){
-			joint_states_pub->publish(&joint_states);
-			publish_joint = false;
-		}
+			else if (publish_joint){
+				joint_states_pub->publish(&joint_states);
+				publish_joint = false;
+			}
 
-		if (publish_imu){
-			imu_raw_pub->publish(&imu_raw_msg);
-			imu_mag_pub->publish(&imu_mag_msg);
-			publish_imu = false;
+			else if (publish_imu){
+				imu_raw_pub->publish(&imu_raw_msg);
+				imu_mag_pub->publish(&imu_mag_msg);
+				publish_imu = false;
+			}
 		}
-
+		
 		sys.delaySync(t, 1);
 	}
 

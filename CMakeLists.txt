@@ -7,4 +7,4 @@ enable_module(hSensors)
 enable_module(hModules)
 enable_module(hROS)
 
-add_hexecutable(leo_firmware main.cpp diff_controller.cpp wheel.cpp imu.cpp)
+add_hexecutable(leo_firmware main.cpp diff_controller.cpp wheel.cpp imu.cpp imu/MPU9250.cpp)

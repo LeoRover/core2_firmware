@@ -78,6 +78,7 @@ const float ROBOT_WIDTH = 0.33; //in meters
 const float ODOM_COVARIANCE_DIAGONAL[6] = {0.001, 0, 0, 0, 0, 0.1};
 
 // Imu
+static hFramework::hSensor_i2c& IMU_HSENS = hSens2;
 const float IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
 const float IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
 
