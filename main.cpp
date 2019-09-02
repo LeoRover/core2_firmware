@@ -1,11 +1,13 @@
 #include "hFramework.h"
-#include "hCloudClient.h"
+//#include "hCloudClient.h"
 
 #include "ros.h"
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
+#include "std_msgs/Empty.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/MagneticField.h"
@@ -13,6 +15,7 @@
 #include "diff_controller.h"
 #include "params.h"
 #include "utils.h"
+#include "config.h"
 
 #include "imu.h"
 
@@ -41,6 +44,9 @@ bool publish_imu = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
+ros::Subscriber<std_msgs::Empty> *reset_sub;
+ros::Subscriber<std_msgs::Bool> *set_imu_sub;
+
 DiffController *dc;
 
 ServoWrapper servo1(1, hServo.servo1);
@@ -58,48 +64,61 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #endif
 }
 
+void resetCallback(const std_msgs::Empty& msg)
+{
+	while(1)
+		sys.reset();
+}
+
+void setImuCallback(const std_msgs::Bool& msg)
+{
+	conf.imu_enabled = msg.data;
+	store_config();
+}
+
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
-	imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
-	imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
 
-	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
+	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
+
+	reset_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset", &resetCallback);
+	set_imu_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo1/angle", &ServoWrapper::angleCallback, &servo1);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo1/angle", &ServoWrapper::angleCallback, &servo1);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo2_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo2/angle", &ServoWrapper::angleCallback, &servo2);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo2/angle", &ServoWrapper::angleCallback, &servo2);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo3_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo3/angle", &ServoWrapper::angleCallback, &servo3);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo3/angle", &ServoWrapper::angleCallback, &servo3);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo4_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo4/angle", &ServoWrapper::angleCallback, &servo4);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo4/angle", &ServoWrapper::angleCallback, &servo4);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo5_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo5/angle", &ServoWrapper::angleCallback, &servo5);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo5/angle", &ServoWrapper::angleCallback, &servo5);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo6_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo6/angle", &ServoWrapper::angleCallback, &servo6);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo6/angle", &ServoWrapper::angleCallback, &servo6);
 
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo1_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo2_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo3_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo4_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo5_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo6_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
-	nh.advertise(*imu_raw_pub);
-	nh.advertise(*imu_mag_pub);
 	nh.subscribe(*twist_sub);
+	nh.subscribe(*reset_sub);
+	nh.subscribe(*set_imu_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
 	nh.subscribe(*servo3_angle_sub);
@@ -112,6 +131,14 @@ void initROS()
 	nh.subscribe(*servo4_pwm_sub);
 	nh.subscribe(*servo5_pwm_sub);
 	nh.subscribe(*servo6_pwm_sub);
+
+	if (conf.imu_enabled)
+	{
+		imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
+		imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
+		nh.advertise(*imu_raw_pub);
+		nh.advertise(*imu_mag_pub);
+	}
 }
 
 void setupServos()
@@ -321,10 +348,11 @@ void hMain()
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
 
+	load_config();
+
 	setupOdom();
 	setupServos();
 	setupJoints();
-	setupImu();
 	initROS();
 
 	sys.setLogDev(&Serial);
@@ -335,7 +363,12 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
-    sys.taskCreate(&imuLoop);
+
+	if (conf.imu_enabled)
+	{
+		setupImu();
+		sys.taskCreate(&imuLoop);
+	}
 
 	while (true)
 	{
