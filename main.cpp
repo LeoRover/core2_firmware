@@ -11,6 +11,7 @@
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/MagneticField.h"
+#include "std_srvs/Trigger.h"
 
 #include "diff_controller.h"
 #include "params.h"
@@ -47,6 +48,9 @@ ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 ros::Subscriber<std_msgs::Empty> *reset_sub;
 ros::Subscriber<std_msgs::Bool> *set_imu_sub;
 
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mpu_srv;
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mag_srv;
+
 DiffController *dc;
 
 ServoWrapper servo1(1, hServo.servo1);
@@ -66,14 +70,27 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 
 void resetCallback(const std_msgs::Empty& msg)
 {
-	while(1)
-		sys.reset();
+	sys.reset();
 }
 
 void setImuCallback(const std_msgs::Bool& msg)
 {
 	conf.imu_enabled = msg.data;
 	store_config();
+}
+
+void calMpuCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
+{
+	imu->calGyroAccel();
+	res.message = "Succesfully calibrated gyroscope and accelerometer biases";
+	res.success = true;
+}
+
+void calMagCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
+{
+	imu->calMag();
+	res.message = "Succesfully calibrated magnetometer";
+	res.success = true;
 }
 
 void initROS()
@@ -136,8 +153,14 @@ void initROS()
 	{
 		imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
 		imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
+		imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
+			("imu/calibrate_gyro_accel", &calMpuCallback);
+		imu_cal_mag_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
+			("imu/calibrate_mag", &calMagCallback);
 		nh.advertise(*imu_raw_pub);
 		nh.advertise(*imu_mag_pub);
+		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mpu_srv);
+		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mag_srv);
 	}
 }
 

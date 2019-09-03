@@ -11,6 +11,8 @@ public:
 
     void begin();
     void update();
+    void calGyroAccel();
+    void calMag();
 
     float ax, ay, az; // accelerometer data
     float gx, gy, gz; // gyroscope data
@@ -20,7 +22,9 @@ public:
 private:
     MPU9250 mpu_;
     float ares_, gres_, mres_;
+    float abias_[3], mscale_[3], mbias_[3];
     float magCal_[3];
+    hFramework::hMutex mpu_mutex_;
 };
 
 #endif
