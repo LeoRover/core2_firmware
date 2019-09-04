@@ -76,9 +76,9 @@ void IMU::update()
 		// Magnetometer axes are changed to (y,x,-z) to comply with North-West-Up world frame 
 		mx = (float)mag[1] * mres_ * magCal_[1] - mbias_[1];
 		my = (float)mag[0] * mres_ * magCal_[0] - mbias_[0];
-		mz = -(float)mag[2] * mres_ * magCal_[2] - mbias_[2];
-		mx *= mscale_[0] * mGuassToGauss;
-		my *= mscale_[1] * mGuassToGauss;
+		mz = -((float)mag[2] * mres_ * magCal_[2] - mbias_[2]);
+		mx *= mscale_[1] * mGuassToGauss;
+		my *= mscale_[0] * mGuassToGauss;
 		mz *= mscale_[2] * mGuassToGauss;
 
 	mpu_mutex_.unlock();
