@@ -6,11 +6,11 @@ hStorage storage;
 
 uint8_t checksum(Config* config)
 {
-    int size = sizeof(Config) - 1;
+    int size = sizeof(Config);
     uint8_t* data = (uint8_t*)config;
 
     uint8_t checksum = 0;
-    for(int i = 0; i < size; i++)
+    for(int i = 1; i < size; i++)
         checksum += data[i];
     return checksum;
 }
