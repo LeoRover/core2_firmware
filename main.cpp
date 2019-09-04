@@ -1,16 +1,24 @@
 #include "hFramework.h"
-#include "hCloudClient.h"
+//#include "hCloudClient.h"
 
 #include "ros.h"
-#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
+#include "std_msgs/Empty.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/JointState.h"
+#include "sensor_msgs/Imu.h"
+#include "sensor_msgs/MagneticField.h"
+#include "std_srvs/Trigger.h"
 
 #include "diff_controller.h"
 #include "params.h"
 #include "utils.h"
+#include "config.h"
+
+#include "imu.h"
 
 using namespace hFramework;
 
@@ -20,7 +28,7 @@ std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
 bool publish_battery = false;
 
-geometry_msgs::Twist odom;
+geometry_msgs::TwistWithCovarianceStamped odom;
 ros::Publisher *odom_pub;
 bool publish_odom = false;
 
@@ -28,7 +36,21 @@ sensor_msgs::JointState joint_states;
 ros::Publisher *joint_states_pub;
 bool publish_joint = false;
 
+IMU* imu;
+sensor_msgs::Imu imu_raw_msg;
+ros::Publisher *imu_raw_pub;
+sensor_msgs::MagneticField imu_mag_msg;
+ros::Publisher *imu_mag_pub;
+bool publish_imu = false;
+
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
+
+ros::Subscriber<std_msgs::Empty> *reset_board_sub;
+ros::Subscriber<std_msgs::Empty> *reset_config_sub;
+ros::Subscriber<std_msgs::Bool> *set_imu_sub;
+
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mpu_srv;
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mag_srv;
 
 DiffController *dc;
 
@@ -47,43 +69,81 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #endif
 }
 
+void resetBoardCallback(const std_msgs::Empty& msg)
+{
+	sys.reset();
+}
+
+void resetConfigCallback(const std_msgs::Empty& msg)
+{
+	reset_config();
+}
+
+void setImuCallback(const std_msgs::Bool& msg)
+{
+	conf.imu_enabled = msg.data;
+	store_config();
+}
+
+void calMpuCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
+{
+	imu->calGyroAccel();
+	res.message = "Succesfully calibrated gyroscope and accelerometer biases";
+	res.success = true;
+}
+
+void calMagCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
+{
+	imu->calMag();
+	res.message = "Succesfully calibrated magnetometer";
+	res.success = true;
+}
+
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
-	odom_pub = new ros::Publisher("/odom", &odom);
+	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
-	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("/cmd_vel", &cmdVelCallback);
+
+	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
+
+	reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board", &resetBoardCallback);
+	reset_config_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_config", &resetConfigCallback);
+	set_imu_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo1/angle", &ServoWrapper::angleCallback, &servo1);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo1/angle", &ServoWrapper::angleCallback, &servo1);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo2_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo2/angle", &ServoWrapper::angleCallback, &servo2);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo2/angle", &ServoWrapper::angleCallback, &servo2);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo3_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo3/angle", &ServoWrapper::angleCallback, &servo3);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo3/angle", &ServoWrapper::angleCallback, &servo3);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo4_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo4/angle", &ServoWrapper::angleCallback, &servo4);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo4/angle", &ServoWrapper::angleCallback, &servo4);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo5_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo5/angle", &ServoWrapper::angleCallback, &servo5);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo5/angle", &ServoWrapper::angleCallback, &servo5);
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo6_angle_sub = 
-		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("/servo6/angle", &ServoWrapper::angleCallback, &servo6);
+		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo6/angle", &ServoWrapper::angleCallback, &servo6);
 
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo1_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo2_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo3_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo4_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo5_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo6_pwm_sub =
-		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("/servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
+		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
 	nh.subscribe(*twist_sub);
+	nh.subscribe(*reset_board_sub);
+	nh.subscribe(*reset_config_sub);
+	nh.subscribe(*set_imu_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
 	nh.subscribe(*servo3_angle_sub);
@@ -96,6 +156,20 @@ void initROS()
 	nh.subscribe(*servo4_pwm_sub);
 	nh.subscribe(*servo5_pwm_sub);
 	nh.subscribe(*servo6_pwm_sub);
+
+	if (conf.imu_enabled)
+	{
+		imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
+		imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
+		imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
+			("imu/calibrate_gyro_accel", &calMpuCallback);
+		imu_cal_mag_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
+			("imu/calibrate_mag", &calMagCallback);
+		nh.advertise(*imu_raw_pub);
+		nh.advertise(*imu_mag_pub);
+		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mpu_srv);
+		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mag_srv);
+	}
 }
 
 void setupServos()
@@ -147,6 +221,29 @@ void setupJoints()
 	joint_states.effort_length = 4;
 }
 
+void setupImu()
+{
+	IMU_HSENS.selectI2C();
+	imu = new IMU(IMU_HSENS.getI2C());
+	imu->begin();
+	imu_raw_msg.header.frame_id = "imu";
+	for (int i = 0; i < 3; ++i)
+	{
+		imu_raw_msg.angular_velocity_covariance[i*3 + i] = 
+			IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[i];
+		imu_raw_msg.linear_acceleration_covariance[i*3 + i] = 
+			IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[i];
+	}
+	imu_mag_msg.header.frame_id = "imu";
+}
+
+void setupOdom()
+{
+	odom.header.frame_id = "base_link";
+	for (int i = 0; i < 6; ++i)
+		odom.twist.covariance[i*6 + i] = ODOM_COVARIANCE_DIAGONAL[i];
+}
+
 void batteryLoop()
 {
     uint32_t t = sys.getRefTime();
@@ -172,9 +269,11 @@ void odomLoop()
     {
 		if (!publish_odom)
 		{
+			odom.header.stamp = nh.now();
+
 			std::vector<float> odo = dc->getOdom();
-			odom.linear.x = odo[0];
-			odom.angular.z = odo[1];
+			odom.twist.twist.linear.x = odo[0];
+			odom.twist.twist.angular.z = odo[1];
 
 			publish_odom = true;
 		}
@@ -219,6 +318,41 @@ void jointStatesLoop()
     }
 }
 
+void imuLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 50;
+    while(true)
+    {
+		imu->update();
+
+		imu_raw_msg.header.stamp = nh.now();
+
+		imu_raw_msg.linear_acceleration.x = imu->ax;
+		imu_raw_msg.linear_acceleration.y = imu->ay;
+		imu_raw_msg.linear_acceleration.z = imu->az;
+
+		imu_raw_msg.angular_velocity.x = imu->gx;
+		imu_raw_msg.angular_velocity.y = imu->gy;
+		imu_raw_msg.angular_velocity.z = imu->gz;
+
+		imu_raw_msg.orientation.x = imu->qx;
+		imu_raw_msg.orientation.y = imu->qy;
+		imu_raw_msg.orientation.z = imu->qz;
+		imu_raw_msg.orientation.w = imu->qw;
+
+		imu_mag_msg.header.stamp = nh.now();
+
+		imu_mag_msg.magnetic_field.x = imu->mx;
+		imu_mag_msg.magnetic_field.y = imu->my;
+		imu_mag_msg.magnetic_field.z = imu->mz;
+
+		publish_imu = true;
+
+        sys.delaySync(t, dt);
+    }
+}
+
 void LEDLoop()
 {
     uint32_t t = sys.getRefTime();
@@ -237,17 +371,22 @@ void LEDLoop()
 void hMain()
 {
 	uint32_t t = sys.getRefTime();
-	platform.begin(&RPi);
-	nh.getHardware()->initWithDevice(&platform.LocalSerial);
-	//nh.getHardware()->initWithDevice(&RPi);
+	//platform.begin(&RPi);
+	//nh.getHardware()->initWithDevice(&platform.LocalSerial);
+	nh.getHardware()->initWithDevice(&RPi);
 	nh.initNode();
 	
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
 
+	load_config();
+
+	setupOdom();
 	setupServos();
 	setupJoints();
 	initROS();
+
+	sys.setLogDev(&Serial);
 
 	LED.setOut();
 	sys.taskCreate(&LEDLoop);
@@ -256,26 +395,41 @@ void hMain()
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
 
+	if (conf.imu_enabled)
+	{
+		setupImu();
+		sys.taskCreate(&imuLoop);
+	}
+
 	while (true)
 	{
 		nh.spinOnce();
 
-		if (publish_battery){
-			battery_pub->publish(&battery);
-			publish_battery = false;
-		}
+		if (nh.connected())
+		{
+			if (publish_battery){
+				battery_pub->publish(&battery);
+				publish_battery = false;
+			}
 
-		if (publish_odom){
-			odom_pub->publish(&odom);
-			publish_odom = false;
-		}
+			else if (publish_odom){
+				odom_pub->publish(&odom);
+				publish_odom = false;
+			}
 
-		if (publish_joint){
-			joint_states_pub->publish(&joint_states);
-			publish_joint = false;
-		}
+			else if (publish_joint){
+				joint_states_pub->publish(&joint_states);
+				publish_joint = false;
+			}
 
-		sys.delaySync(t, 10);
+			else if (publish_imu){
+				imu_raw_pub->publish(&imu_raw_msg);
+				imu_mag_pub->publish(&imu_mag_msg);
+				publish_imu = false;
+			}
+		}
+		
+		sys.delaySync(t, 1);
 	}
 
 

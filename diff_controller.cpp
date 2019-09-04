@@ -8,10 +8,14 @@
 DiffController::DiffController(uint32_t input_timeout)
     : input_timeout_(input_timeout)
 {
-    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
-    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
-    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
-    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT, TORQUE_LIMIT);
+    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, 
+        POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+        POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+        POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+        POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
 }
 
 void DiffController::start()
