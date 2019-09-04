@@ -1,7 +1,7 @@
 #include "hFramework.h"
 #include "config.h"
 
-Config conf = {};
+Config conf;
 hStorage storage;
 
 uint8_t checksum(Config* config)
@@ -53,3 +53,8 @@ void store_config()
     print_config();
 }
 
+void reset_config()
+{
+    conf = Config();
+    store_config();
+}

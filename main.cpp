@@ -45,7 +45,8 @@ bool publish_imu = false;
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
-ros::Subscriber<std_msgs::Empty> *reset_sub;
+ros::Subscriber<std_msgs::Empty> *reset_board_sub;
+ros::Subscriber<std_msgs::Empty> *reset_config_sub;
 ros::Subscriber<std_msgs::Bool> *set_imu_sub;
 
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mpu_srv;
@@ -68,9 +69,14 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #endif
 }
 
-void resetCallback(const std_msgs::Empty& msg)
+void resetBoardCallback(const std_msgs::Empty& msg)
 {
 	sys.reset();
+}
+
+void resetConfigCallback(const std_msgs::Empty& msg)
+{
+	reset_config();
 }
 
 void setImuCallback(const std_msgs::Bool& msg)
@@ -101,7 +107,8 @@ void initROS()
 
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
 
-	reset_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset", &resetCallback);
+	reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board", &resetBoardCallback);
+	reset_config_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_config", &resetConfigCallback);
 	set_imu_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
@@ -134,7 +141,8 @@ void initROS()
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
 	nh.subscribe(*twist_sub);
-	nh.subscribe(*reset_sub);
+	nh.subscribe(*reset_board_sub);
+	nh.subscribe(*reset_config_sub);
 	nh.subscribe(*set_imu_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
