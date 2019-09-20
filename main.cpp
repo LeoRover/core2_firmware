@@ -49,6 +49,11 @@ ros::Subscriber<std_msgs::Empty> *reset_board_sub;
 ros::Subscriber<std_msgs::Empty> *reset_config_sub;
 ros::Subscriber<std_msgs::Bool> *set_imu_sub;
 
+ros::Subscriber<std_msgs::Bool> *relay1_sub;
+ros::Subscriber<std_msgs::Bool> *relay2_sub;
+ros::Subscriber<std_msgs::Bool> *relay3_sub;
+ros::Subscriber<std_msgs::Bool> *relay4_sub;
+
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mpu_srv;
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mag_srv;
 
@@ -67,6 +72,30 @@ void cmdVelCallback(const geometry_msgs::Twist& msg)
 #ifdef DEBUG
 	Serial.printf("[cmdVelCallback] linear: %f angular %f\r\n", msg.linear.x, msg.angular.z);
 #endif
+}
+
+void relay1Callback(const std_msgs::Bool& msg)
+{
+	if (msg.data==true) hSens1.pin1.write(1);
+	else  hSens1.pin1.write(0);;
+}
+
+void relay2Callback(const std_msgs::Bool& msg)
+{
+	if (msg.data==true) hSens1.pin2.write(1);
+	else  hSens1.pin2.write(0);;
+}
+
+void relay3Callback(const std_msgs::Bool& msg)
+{
+	if (msg.data==true) hSens1.pin3.write(1);
+	else  hSens1.pin3.write(0);;
+}
+
+void relay4Callback(const std_msgs::Bool& msg)
+{
+	if (msg.data==true) hSens1.pin4.write(1);
+	else  hSens1.pin4.write(0);;
 }
 
 void resetBoardCallback(const std_msgs::Empty& msg)
@@ -110,6 +139,11 @@ void initROS()
 	reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board", &resetBoardCallback);
 	reset_config_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_config", &resetConfigCallback);
 	set_imu_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
+
+	relay1_sub = new ros::Subscriber<std_msgs::Bool>("/relay1", &relay1Callback);
+	relay2_sub = new ros::Subscriber<std_msgs::Bool>("/relay2", &relay2Callback);
+	relay3_sub = new ros::Subscriber<std_msgs::Bool>("/relay3", &relay3Callback);
+	relay4_sub = new ros::Subscriber<std_msgs::Bool>("/relay4", &relay4Callback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
 		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo1/angle", &ServoWrapper::angleCallback, &servo1);
@@ -156,6 +190,10 @@ void initROS()
 	nh.subscribe(*servo4_pwm_sub);
 	nh.subscribe(*servo5_pwm_sub);
 	nh.subscribe(*servo6_pwm_sub);
+	nh.subscribe(*relay1_sub);
+	nh.subscribe(*relay2_sub);
+	nh.subscribe(*relay3_sub);
+	nh.subscribe(*relay4_sub);
 
 	if (conf.imu_enabled)
 	{
@@ -378,6 +416,11 @@ void hMain()
 	
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
+
+	hSens1.pin1.setOut();
+	hSens1.pin2.setOut();
+	hSens1.pin3.setOut();
+	hSens1.pin4.setOut();
 
 	load_config();
 
