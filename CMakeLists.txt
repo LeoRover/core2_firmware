@@ -10,4 +10,5 @@ add_hexecutable(leo_firmware
     wheel.cpp
     config.cpp
     imu.cpp
-    imu/MPU9250.cpp)
+    imu/MPU9250.cpp
+    gps.cpp)

@@ -11,6 +11,7 @@
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/MagneticField.h"
+#include "sensor_msgs/NavSatFix.h"
 #include "std_srvs/Trigger.h"
 
 #include "diff_controller.h"
@@ -19,6 +20,7 @@
 #include "config.h"
 
 #include "imu.h"
+#include "gps.h"
 
 using namespace hFramework;
 
@@ -42,6 +44,13 @@ ros::Publisher *imu_raw_pub;
 sensor_msgs::MagneticField imu_mag_msg;
 ros::Publisher *imu_mag_pub;
 bool publish_imu = false;
+
+GPS* gps;
+sensor_msgs::NavSatFix gps_fix;
+ros::Publisher *gps_pub;
+bool publish_gps = false;
+
+
 
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
@@ -99,11 +108,14 @@ void calMagCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerRespon
 	res.success = true;
 }
 
+
+
 void initROS()
 {
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
+	gps_pub = new ros::Publisher("/gps_fix", &gps_fix);
 
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
 
@@ -136,10 +148,12 @@ void initROS()
 		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
 	ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo6_pwm_sub =
 		new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>("servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
+		
 
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
+	nh.advertise(*gps_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*reset_board_sub);
 	nh.subscribe(*reset_config_sub);
@@ -368,6 +382,37 @@ void LEDLoop()
     }
 }
 
+void gpsLoop()
+{
+    uint32_t t = sys.getRefTime();
+    long dt = 250;
+    while(true)
+    {
+		
+		gps->read();
+		printf("%s\r\n", gps->received_data);
+		if (gps->check(gps->received_data, 0) && gps->isGGA(gps->received_data)==1)
+		{
+			if (gps->check(gps->received_data, 0) ==1)
+			printf("okey\n");
+			else printf("nie-okey\n");
+
+			printf("%s\r\n", gps->received_data);
+			gps->update(gps->received_data);
+
+			gps_fix.latitude = gps->gpgga.latitude;
+			gps_fix.longitude = gps->gpgga.longitude;
+			gps_fix.position_covariance[0] = gps->gpgga.hdop;
+
+			publish_gps = true;
+
+		}
+		
+
+        sys.delaySync(t, dt);
+    }
+}
+
 void hMain()
 {
 	uint32_t t = sys.getRefTime();
@@ -394,6 +439,16 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
+
+
+
+	gps = new GPS;
+	gps->begin();
+
+
+
+	sys.taskCreate(&gpsLoop);
+
 
 	if (conf.imu_enabled)
 	{
@@ -427,7 +482,18 @@ void hMain()
 				imu_mag_pub->publish(&imu_mag_msg);
 				publish_imu = false;
 			}
+
+			else if (publish_gps){
+				gps_pub->publish(&gps_fix);
+				publish_gps = false;
+			}
 		}
+		// if (check("GPGGA,123204.00,5106.94086,N,01701.51680,E,1,06,3.86,127.9,M,40.5,M,,*51", 1) == 1)
+		// {
+		// 	Serial.printf("poprawna");
+		// }
+		
+
 		
 		sys.delaySync(t, 1);
 	}
