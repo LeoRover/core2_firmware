@@ -2,15 +2,14 @@
 //#include "hCloudClient.h"
 
 #include "ros.h"
-#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/UInt16MultiArray.h"
 #include "std_msgs/Empty.h"
 #include "std_msgs/Bool.h"
 #include "sensor_msgs/JointState.h"
-#include "sensor_msgs/Imu.h"
-#include "sensor_msgs/MagneticField.h"
+#include "geometry_msgs/TwistStamped.h"
+#include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Trigger.h"
 
 #include "diff_controller.h"
@@ -28,7 +27,7 @@ std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
 bool publish_battery = false;
 
-geometry_msgs::TwistWithCovarianceStamped odom;
+geometry_msgs::TwistStamped odom;
 ros::Publisher *odom_pub;
 bool publish_odom = false;
 
@@ -37,9 +36,11 @@ ros::Publisher *joint_states_pub;
 bool publish_joint = false;
 
 IMU* imu;
-sensor_msgs::Imu imu_raw_msg;
-ros::Publisher *imu_raw_pub;
-sensor_msgs::MagneticField imu_mag_msg;
+geometry_msgs::Vector3Stamped imu_gyro_msg;
+ros::Publisher *imu_gyro_pub;
+geometry_msgs::Vector3Stamped imu_accel_msg;
+ros::Publisher *imu_accel_pub;
+geometry_msgs::Vector3Stamped imu_mag_msg;
 ros::Publisher *imu_mag_pub;
 bool publish_imu = false;
 
@@ -159,13 +160,15 @@ void initROS()
 
 	if (conf.imu_enabled)
 	{
-		imu_raw_pub = new ros::Publisher("/imu/data_raw", &imu_raw_msg);
+		imu_gyro_pub = new ros::Publisher("/imu/gyro", &imu_gyro_msg);
+		imu_accel_pub = new ros::Publisher("/imu/accel", &imu_accel_msg);
 		imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
 		imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
 			("imu/calibrate_gyro_accel", &calMpuCallback);
 		imu_cal_mag_srv = new ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
 			("imu/calibrate_mag", &calMagCallback);
-		nh.advertise(*imu_raw_pub);
+		nh.advertise(*imu_gyro_pub);
+		nh.advertise(*imu_accel_pub);
 		nh.advertise(*imu_mag_pub);
 		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mpu_srv);
 		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mag_srv);
@@ -226,22 +229,14 @@ void setupImu()
 	IMU_HSENS.selectI2C();
 	imu = new IMU(IMU_HSENS.getI2C());
 	imu->begin();
-	imu_raw_msg.header.frame_id = "imu";
-	for (int i = 0; i < 3; ++i)
-	{
-		imu_raw_msg.angular_velocity_covariance[i*3 + i] = 
-			IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[i];
-		imu_raw_msg.linear_acceleration_covariance[i*3 + i] = 
-			IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[i];
-	}
+	imu_gyro_msg.header.frame_id = "imu";
+	imu_accel_msg.header.frame_id = "imu";
 	imu_mag_msg.header.frame_id = "imu";
 }
 
 void setupOdom()
 {
 	odom.header.frame_id = "base_link";
-	for (int i = 0; i < 6; ++i)
-		odom.twist.covariance[i*6 + i] = ODOM_COVARIANCE_DIAGONAL[i];
 }
 
 void batteryLoop()
@@ -272,8 +267,8 @@ void odomLoop()
 			odom.header.stamp = nh.now();
 
 			std::vector<float> odo = dc->getOdom();
-			odom.twist.twist.linear.x = odo[0];
-			odom.twist.twist.angular.z = odo[1];
+			odom.twist.linear.x = odo[0];
+			odom.twist.angular.z = odo[1];
 
 			publish_odom = true;
 		}
@@ -321,31 +316,30 @@ void jointStatesLoop()
 void imuLoop()
 {
     uint32_t t = sys.getRefTime();
-    long dt = 50;
+    long dt = 25;
     while(true)
     {
 		imu->update();
 
-		imu_raw_msg.header.stamp = nh.now();
+		ros::Time stamp = nh.now();
 
-		imu_raw_msg.linear_acceleration.x = imu->ax;
-		imu_raw_msg.linear_acceleration.y = imu->ay;
-		imu_raw_msg.linear_acceleration.z = imu->az;
+		imu_gyro_msg.header.stamp = stamp;
 
-		imu_raw_msg.angular_velocity.x = imu->gx;
-		imu_raw_msg.angular_velocity.y = imu->gy;
-		imu_raw_msg.angular_velocity.z = imu->gz;
+		imu_gyro_msg.vector.x = imu->gx;
+		imu_gyro_msg.vector.y = imu->gy;
+		imu_gyro_msg.vector.z = imu->gz;
 
-		imu_raw_msg.orientation.x = imu->qx;
-		imu_raw_msg.orientation.y = imu->qy;
-		imu_raw_msg.orientation.z = imu->qz;
-		imu_raw_msg.orientation.w = imu->qw;
+		imu_accel_msg.header.stamp = stamp;
 
-		imu_mag_msg.header.stamp = nh.now();
+		imu_accel_msg.vector.x = imu->ax;
+		imu_accel_msg.vector.y = imu->ay;
+		imu_accel_msg.vector.z = imu->az;
 
-		imu_mag_msg.magnetic_field.x = imu->mx;
-		imu_mag_msg.magnetic_field.y = imu->my;
-		imu_mag_msg.magnetic_field.z = imu->mz;
+		imu_mag_msg.header.stamp = stamp;
+
+		imu_mag_msg.vector.x = imu->mx;
+		imu_mag_msg.vector.y = imu->my;
+		imu_mag_msg.vector.z = imu->mz;
 
 		publish_imu = true;
 
@@ -373,6 +367,7 @@ void hMain()
 	uint32_t t = sys.getRefTime();
 	//platform.begin(&RPi);
 	//nh.getHardware()->initWithDevice(&platform.LocalSerial);
+	RPi.setBaudrate(250000);
 	nh.getHardware()->initWithDevice(&RPi);
 	nh.initNode();
 	
@@ -412,18 +407,19 @@ void hMain()
 				publish_battery = false;
 			}
 
-			else if (publish_odom){
+			if (publish_odom){
 				odom_pub->publish(&odom);
 				publish_odom = false;
 			}
 
-			else if (publish_joint){
+			if (publish_joint){
 				joint_states_pub->publish(&joint_states);
 				publish_joint = false;
 			}
 
-			else if (publish_imu){
-				imu_raw_pub->publish(&imu_raw_msg);
+			if (publish_imu){
+				imu_gyro_pub->publish(&imu_gyro_msg);
+				imu_accel_pub->publish(&imu_accel_msg);
 				imu_mag_pub->publish(&imu_mag_msg);
 				publish_imu = false;
 			}
