@@ -42,13 +42,17 @@
 
     Current state of wheel joints. Effort is the percent of applied power (PWM duty)
 
-* **`imu/data_raw`** ([sensor_msgs/Imu]) (**only if IMU is enabled**)
+* **`imu/gyro`** ([geometry_msgs/Vector3Stamped]) (**only if IMU is enabled**)
 
-    Current IMU accelerometer and gyroscope readings
+    Current IMU gyroscope readings
 
-* **`imu/mag`** ([sensor_msgs/MagneticField]) (**only if IMU is enabled**)
+* **`imu/accel`** ([geometry_msgs/Vector3Stamped]) (**only if IMU is enabled**)
 
-    Current IMU magnetometer readings
+    Current IMU accelerometer readings
+
+* **`imu/mag`** ([geometry_msgs/Vector3Stamped]) (**only if IMU is enabled**)
+
+    Current IMU magnetometer readings in North-West-Up world frame
 
 ### Services
 
@@ -69,6 +73,5 @@
 [std_msgs/Bool]: http://docs.ros.org/api/std_msgs/html/msg/Bool.html
 [std_msgs/Empty]: http://docs.ros.org/api/std_msgs/html/msg/Empty.html
 [sensor_msgs/JointState]: http://docs.ros.org/melodic/api/sensor_msgs/html/msg/JointState.html
-[sensor_msgs/Imu]: http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html
-[sensor_msgs/MagneticField]: http://docs.ros.org/api/sensor_msgs/html/msg/MagneticField.html
+[geometry_msgs/Vector3Stamped]: http://docs.ros.org/api/geometry_msgs/html/msg/Vector3Stamped.html
 [std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
