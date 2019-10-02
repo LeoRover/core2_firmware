@@ -30,7 +30,7 @@
 
 ### Published topics
 
-* **`odom`** ([geometry_msgs/Twist])
+* **`wheel_odom`** ([geometry_msgs/TwistStamped])
 
     Current linear and angular velocities estimated from encoder readings
 
@@ -67,6 +67,7 @@
     Wave the IMU in a figure eight until done.
 
 [geometry_msgs/Twist]: http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
+[geometry_msgs/TwistStamped]: http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html
 [std_msgs/Int16]: http://docs.ros.org/melodic/api/std_msgs/html/msg/Int16.html
 [std_msgs/Float32]: http://docs.ros.org/api/std_msgs/html/msg/Float32.html
 [std_msgs/UInt16MultiArray]: http://docs.ros.org/api/std_msgs/html/msg/UInt16MultiArray.html
