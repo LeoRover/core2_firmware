@@ -34,15 +34,15 @@ void IMU::begin()
 	ax = ay = az = 0.0;
 	gx = gy = gz = 0.0;
 	qx = qy = qz = qw = 0.0;
-	abias_[0] = conf.accel_bias[0];
-	abias_[1] = conf.accel_bias[1];
-	abias_[2] = conf.accel_bias[2];
-	mscale_[0] = conf.mag_scale[0];
-	mscale_[1] = conf.mag_scale[1];
-	mscale_[2] = conf.mag_scale[2];
-	mbias_[0] = conf.mag_bias[0];
-	mbias_[1] = conf.mag_bias[1];
-	mbias_[2] = conf.mag_bias[2];
+	
+	// Load config
+	for (int i = 0; i < 3; ++i)
+	{
+		abias_[i] = conf.accel_bias[i];
+		gbias_[i] = conf.gyro_bias[i];
+		mscale_[i] = conf.mag_scale[i];
+		mbias_[i] = conf.mag_bias[i];
+	}
 }
 
 void IMU::update()
@@ -64,9 +64,9 @@ void IMU::update()
 			az *= gravitationalAcceleration;
 
 			mpu_.readGyroData(gyro);
-			gx = (float)gyro[0] * gres_;
-			gy = (float)gyro[1] * gres_;
-			gz = (float)gyro[2] * gres_;
+			gx = (float)gyro[0] * gres_ - gbias_[0];
+			gy = (float)gyro[1] * gres_ - gbias_[1];
+			gz = (float)gyro[2] * gres_ - gbias_[2];
 			gx *= degreeToRadian;
 			gy *= degreeToRadian;
 			gz *= degreeToRadian;		
@@ -90,15 +90,18 @@ void IMU::calGyroAccel()
 
 	mpu_mutex_.lock();
 
-		mpu_.calibrateMPU9250(gyroBias, abias_);
+		mpu_.calibrateMPU9250(gbias_, abias_);
 		Serial.printf("[IMU] MPU Calibration:\r\n");
-		Serial.printf("Gyro bias: %f %f %f\r\n", gyroBias[0], gyroBias[1], gyroBias[2]);
+		Serial.printf("Gyro bias: %f %f %f\r\n", gbias_[0], gbias_[1], gbias_[2]);
 		Serial.printf("Accel bias: %f %f %f\r\n", abias_[0], abias_[1], abias_[2]);
 
 		mpu_.initMPU9250(AFS_4G, GFS_500DPS, 0x02);
 
 	mpu_mutex_.unlock();
 
+	conf.gyro_bias[0] = gbias_[0];
+	conf.gyro_bias[1] = gbias_[1];
+	conf.gyro_bias[2] = gbias_[2];
 	conf.accel_bias[0] = abias_[0];
 	conf.accel_bias[1] = abias_[1];
 	conf.accel_bias[2] = abias_[2];
