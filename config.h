@@ -11,12 +11,14 @@ struct Config
     uint8_t checksum;
 
     bool imu_enabled;
+    float gyro_bias[3];
     float accel_bias[3];
     float mag_scale[3];
     float mag_bias[3];
 
     Config()
     : imu_enabled(false),
+      gyro_bias{0.0, 0.0, 0.0},
       accel_bias{0.0, 0.0, 0.0},
       mag_scale{1.0, 1.0, 1.0},
       mag_bias{0.0, 0.0, 0.0} {}

@@ -18,6 +18,8 @@ uint8_t checksum(Config* config)
 void print_config()
 {
     Serial.printf("imu_enabled: %s\r\n", conf.imu_enabled?"true":"false");
+    Serial.printf("gyro_bias: %f %f %f\r\n", 
+        conf.gyro_bias[0], conf.gyro_bias[1], conf.gyro_bias[2]);
     Serial.printf("accel_bias: %f %f %f\r\n", 
         conf.accel_bias[0], conf.accel_bias[1], conf.accel_bias[2]);
     Serial.printf("mag_scale: %f %f %f\r\n", 
