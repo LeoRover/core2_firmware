@@ -12,13 +12,14 @@ void GPS::begin()
 void GPS::read()
 {
     int lenght=0;
+    char x;
 
-    while(true)
+    while(hSens3.serial.available())
     {
-            hSens3.serial.read(&x,1);
-            if(x=='\n') break;
-            received_data[lenght]=x;
-            lenght++;
+        hSens3.serial.read(&x,1);
+        if(x=='\n') break;
+        received_data[lenght]=x;
+        lenght++;
     }
     received_data[lenght-1] = NULL;
  
@@ -35,7 +36,7 @@ static int hex2int(char c)
     return -1;
 }
 
-bool GPS::check(char *sentence, bool strict)
+bool GPS::check(char *sentence)
 {
     uint8_t sum = 0x00;
 
@@ -45,7 +46,7 @@ bool GPS::check(char *sentence, bool strict)
     if (*sentence++ != '$')
         return false;
 
-     while (*sentence && *sentence != '*'&& isprint((unsigned char) *sentence))
+    while (*sentence && *sentence != '*'&& isprint((unsigned char) *sentence))
         sum ^= *sentence++;
 
 
@@ -62,9 +63,8 @@ bool GPS::check(char *sentence, bool strict)
 
         if (sum != expected)
             return false;
-    } else if (strict) {
-        return false;
-    }
+    } 
+    
 
     if (*sentence && strcmp(sentence, "\n") && strcmp(sentence, "\r\n"))
         return false;

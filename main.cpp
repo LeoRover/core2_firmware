@@ -391,9 +391,9 @@ void gpsLoop()
 		
 		gps->read();
 		printf("%s\r\n", gps->received_data);
-		if (gps->check(gps->received_data, 0) && gps->isGGA(gps->received_data)==1)
+		if (gps->check(gps->received_data) && gps->isGGA(gps->received_data)==1)
 		{
-			if (gps->check(gps->received_data, 0) ==1)
+			if (gps->check(gps->received_data) ==1)
 			printf("okey\n");
 			else printf("nie-okey\n");
 
@@ -412,6 +412,12 @@ void gpsLoop()
         sys.delaySync(t, dt);
     }
 }
+
+void readGPSLoop()
+{
+
+}
+
 
 void hMain()
 {
@@ -448,6 +454,7 @@ void hMain()
 
 
 	sys.taskCreate(&gpsLoop);
+
 
 
 	if (conf.imu_enabled)

@@ -36,17 +36,16 @@ class GPS
 {
 public:
     gga gpgga;
-    char received_data[110];
+    char received_data[200];
     
     void begin();
     void read();
-    bool check(char *sentence, bool strict);
+    bool check(char *sentence);
     void update(char *sentence);
     bool isGGA(char *sentence);
 
 private:
-    
-    char x;
+    bool updated=false;
 
     
 };
