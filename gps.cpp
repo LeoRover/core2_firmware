@@ -72,10 +72,6 @@ bool GPS::check(char *sentence, bool strict)
     return true;
 }
 
-static inline bool minmea_isfield(char c) 
-{
-    return isprint((unsigned char) c) && c != ',' && c != '*';
-}
 
 bool GPS::isGGA(char *sentence)
 {
