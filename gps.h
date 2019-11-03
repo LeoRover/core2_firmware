@@ -36,6 +36,7 @@ private:
     bool check(char *sentence);
     bool update(char *sentence);
     bool isGGA(char *sentence);
+    float NMEAtoDec(char *pos);
 
     
 };

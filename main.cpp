@@ -392,6 +392,7 @@ void GPSpubLoop()
 			gps_fix.header.frame_id = "/gps";
 			gps_fix.latitude = gps->gpgga.latitude;
 			gps_fix.longitude = gps->gpgga.longitude;
+
 			gps_fix.altitude = gps->gpgga.altitude;
 
 			gps_fix.position_covariance[0] = ((gps->gpgga.hdop)*(gps->gpgga.hdop))/2;
@@ -489,10 +490,7 @@ void hMain()
 				publish_gps = false;
 			}
 		}
-		// if (check("GPGGA,123204.00,5106.94086,N,01701.51680,E,1,06,3.86,127.9,M,40.5,M,,*51", 1) == 1)
-		// {
-		// 	Serial.printf("poprawna");
-		// }
+	
 		
 
 		

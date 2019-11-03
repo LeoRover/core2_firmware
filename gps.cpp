@@ -81,6 +81,16 @@ bool GPS::isGGA(char *sentence)
     else return 0;
 }
 
+float GPS::NMEAtoDec(char *pos)
+{
+    float nmea=atof(pos);
+    float dec;
+
+    dec=int(nmea/100);
+    dec=dec+((nmea-dec*100)/60);
+    return dec;
+}
+
 bool GPS::update(char *sentence)
 {
     int mptr=0;
@@ -115,12 +125,13 @@ bool GPS::update(char *sentence)
         dptr++;
         mptr++;
     }
-
+#ifdef DEBUG
     for (int i=0 ; i<=13; i++)
     {
         Serial.printf("%s\n", data_raw[i]);
 
     }
+#endif
     
     if (data_raw[1]!=NULL) gpgga.time=atoi(data_raw[1]);
     else return 0;
@@ -130,10 +141,10 @@ bool GPS::update(char *sentence)
         switch (data_raw[3][0])
         {
         case 'N':
-            gpgga.latitude=atof(data_raw[2]);
+            gpgga.latitude=NMEAtoDec(data_raw[2]);
             break;
         case 'S':
-            gpgga.latitude=-atof(data_raw[2]);
+            gpgga.latitude=-NMEAtoDec(data_raw[2]);
             break;    
         default:
             return 0;
@@ -146,10 +157,10 @@ bool GPS::update(char *sentence)
         switch (data_raw[5][0])
         {
         case 'E':
-            gpgga.longitude=atof(data_raw[4]);
+            gpgga.longitude=NMEAtoDec(data_raw[4]);
             break;
         case 'W':
-            gpgga.longitude=-atof(data_raw[4]);
+            gpgga.longitude=-NMEAtoDec(data_raw[4]);
             break;    
         default:
             return 0;
@@ -171,7 +182,6 @@ void GPS::receive_msgs()
 {
     if (read() && check(received_data) && isGGA(received_data))
     {
-        Serial.printf("%s\n", received_data);
         if (update(received_data)==1) is_new_data=true;
     }
 }
@@ -179,103 +189,3 @@ void GPS::receive_msgs()
 
 
 
-/*
-void GPS::update(char *sentence)
-{
-    int ptr = 0;
-    int j = 0;
-    int data_no = 0;
-    char raw[15][15]; //[number of data raw][max lenght of data]
-    float data_f;
-    int data_i;
-    while(sentence[ptr] != '*')
-    {
-        if (sentence[ptr] == ',')
-        {
-            raw[data_no][j] = NULL;
-            ptr++;
-            j=0;
-            data_no++;
-            continue;
-        }
-        if(sentence[ptr] == ',')
-        {
-            raw[data_no][j] = NULL;
-            ptr++;
-            data_no++;
-            continue;
-        }
-        if (sentence[ptr] == '*')
-        {
-            raw[data_no][j] = NULL;
-            break;
-        }
-        raw[data_no][j] = sentence[ptr];
-        j++;
-        ptr++;
-    }
-
-   
-    if(strlen(raw[1])!=0)
-    {
-        data_i = atoi(raw[1]);
-        gpgga.time.hours = data_i/10000;
-        gpgga.time.minutes = (data_i%10000)/100;
-        gpgga.time.seconds = (data_i%100);
-    }
-    else 
-    {
-        gpgga.time.hours = 0;
-        gpgga.time.minutes = 0;
-        gpgga.time.seconds = 0;
-    }
-
-    if(strlen(raw[2])!=0)
-    {
-        data_f = atof(raw[2]);
-        if(raw[3][0] == 'N')
-            gpgga.latitude = data_f;
-        else if (raw[3][0] == 'S')
-            gpgga.latitude = -data_f;
-    }
-    else gpgga.latitude = 0;
-
-    if(strlen(raw[4])!=0)
-    {
-        data_f = atof(raw[4]);
-        if(raw[5][0] == 'E')
-            gpgga.longitude = data_f;
-        else if (raw[5][0] == 'W')
-            gpgga.longitude = -data_f;
-    }
-    else gpgga.longitude = 0;
-
-    if(strlen(raw[6])!=0)
-    {
-        data_i = atoi(raw[6]);
-        gpgga.fix_quality = data_i;
-    }
-    else gpgga.fix_quality = 0;
-
-    if(strlen(raw[7])!=0)
-    {
-        data_i = atoi(raw[7]);
-        gpgga.satellites_tracked = data_i;
-    }
-    else gpgga.satellites_tracked = 0;
-    
-    if(strlen(raw[8])!=0)
-    {
-        data_f = atof(raw[8]);
-        gpgga.hdop = data_f;
-    }
-    else gpgga.hdop = 10;
-
-
-    printf("time: %d:%d:%d\n%f %f\nfix: %d\nnumber of sat: %d\ndilution: %f\n",gpgga.time.hours,gpgga.time.minutes, gpgga.time.seconds, gpgga.latitude, gpgga.longitude, gpgga.fix_quality, gpgga.satellites_tracked, gpgga.hdop);
-
-}
-
-
-
-*/
