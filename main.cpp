@@ -1,5 +1,6 @@
 #include "hFramework.h"
 //#include "hCloudClient.h"
+#include "hMutex.h"
 
 #include "ros.h"
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
@@ -25,6 +26,8 @@
 using namespace hFramework;
 
 ros::NodeHandle nh;
+
+hFramework::hMutex mutex;
 
 std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
@@ -382,39 +385,38 @@ void LEDLoop()
     }
 }
 
-void gpsLoop()
+void GPSpubLoop()
 {
     uint32_t t = sys.getRefTime();
     long dt = 250;
     while(true)
     {
-		
-		gps->read();
-		printf("%s\r\n", gps->received_data);
-		if (gps->check(gps->received_data) && gps->isGGA(gps->received_data)==1)
+		mutex.lock();
+		if (gps->is_new_data==true)
 		{
-			if (gps->check(gps->received_data) ==1)
-			printf("okey\n");
-			else printf("nie-okey\n");
-
-			printf("%s\r\n", gps->received_data);
-			gps->update(gps->received_data);
-
+			gps_fix.header.stamp.sec = gps->gpgga.time;
+			gps_fix.header.frame_id = "/gps";
 			gps_fix.latitude = gps->gpgga.latitude;
 			gps_fix.longitude = gps->gpgga.longitude;
-			gps_fix.position_covariance[0] = gps->gpgga.hdop;
+			gps_fix.altitude = gps->gpgga.altitude;
+
+			gps_fix.position_covariance[0] = ((gps->gpgga.hdop)*(gps->gpgga.hdop))/2;
+			gps_fix.position_covariance[4] = ((gps->gpgga.hdop)*(gps->gpgga.hdop))/2;
+			gps->is_new_data=false;
 
 			publish_gps = true;
-
 		}
-		
-
+		mutex.unlock();
         sys.delaySync(t, dt);
     }
 }
 
-void readGPSLoop()
+void GPSreadLoop()
 {
+	while(true)
+	{
+		gps->receive_msgs();
+	}
 
 }
 
@@ -429,6 +431,9 @@ void hMain()
 	
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
+
+	gps = new GPS;
+	gps->begin();
 
 	load_config();
 
@@ -445,15 +450,8 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
-
-
-
-	gps = new GPS;
-	gps->begin();
-
-
-
-	sys.taskCreate(&gpsLoop);
+	sys.taskCreate(&GPSreadLoop);
+	sys.taskCreate(&GPSpubLoop);
 
 
 

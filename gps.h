@@ -5,47 +5,37 @@
 
 #define MAX_LENGTH 80
 
-struct times{
-    int hours;
-    int minutes;
-    int seconds;
-};
-
-// struct date{
-//     int day;
-//     int mounth;
-//     int year;
-// };
-
-
-
 struct gga {
-    struct times time;
-    float latitude; char latitude_units;
-    float longitude; char longitude_units;
+    int time;
+    float latitude;
+    float longitude;
     int fix_quality;
     int satellites_tracked;
     float hdop;
-    float altitude; char altitude_units;
-    float height; char height_units;
+    float altitude;
+    float height;
     float dgps_age;
+    float dgps_id;
 };
 
 
 class GPS
 {
 public:
+    bool is_new_data=false;
     gga gpgga;
-    char received_data[200];
     
     void begin();
-    void read();
-    bool check(char *sentence);
-    void update(char *sentence);
-    bool isGGA(char *sentence);
+    void receive_msgs();
+    
 
 private:
-    bool updated=false;
+    char received_data[210];
+
+    bool read();
+    bool check(char *sentence);
+    bool update(char *sentence);
+    bool isGGA(char *sentence);
 
     
 };

@@ -9,20 +9,26 @@ void GPS::begin()
     hSens3.serial.init(9600, Parity::None, StopBits::One);
 }
 
-void GPS::read()
+bool GPS::read()
 {
     int lenght=0;
     char x;
 
-    while(hSens3.serial.available())
+    while(true)
     {
-        hSens3.serial.read(&x,1);
-        if(x=='\n') break;
-        received_data[lenght]=x;
-        lenght++;
+        if(hSens3.serial.available())
+        {
+            hSens3.serial.read(&x,1);
+            if(x=='\n') break;
+            received_data[lenght]=x;
+            lenght++;
+            if(lenght>=200) return 0;
+        }
     }
+
     received_data[lenght-1] = NULL;
- 
+    return 1;  
+
 }
 
 static int hex2int(char c)
@@ -38,15 +44,12 @@ static int hex2int(char c)
 
 bool GPS::check(char *sentence)
 {
-    uint8_t sum = 0x00;
-
-    if (strlen(sentence) > MAX_LENGTH + 3)
-        return false;
+    int sum = 0x00;
 
     if (*sentence++ != '$')
         return false;
 
-    while (*sentence && *sentence != '*'&& isprint((unsigned char) *sentence))
+    while (*sentence && *sentence != '*' && isprint((unsigned char) *sentence))
         sum ^= *sentence++;
 
 
@@ -64,10 +67,6 @@ bool GPS::check(char *sentence)
         if (sum != expected)
             return false;
     } 
-    
-
-    if (*sentence && strcmp(sentence, "\n") && strcmp(sentence, "\r\n"))
-        return false;
 
     return true;
 }
@@ -75,13 +74,112 @@ bool GPS::check(char *sentence)
 
 bool GPS::isGGA(char *sentence)
 {
-    char temp[5];
+    char temp[6];
     strncpy(temp, sentence, 6);
-    if (!strcmp(temp, "$GPGGA"))
-        return 1;
-    return 0;
+    temp[6]=NULL;
+    if (!strcmp(temp, "$GPGGA")) return 1;
+    else return 0;
 }
 
+bool GPS::update(char *sentence)
+{
+    int mptr=0;
+    int dptr=0;
+    int data_no=0;
+    char data_raw[16][30];
+
+    while(true)
+    {
+        if (sentence[mptr] == ',' && sentence[mptr+1] == ',')
+        {
+            data_raw[data_no][dptr]=NULL;
+            data_raw[data_no+1][0] = NULL;
+            data_no=data_no+2;
+            mptr=mptr+2;
+        }
+        else if (sentence[mptr] == ',')
+        {
+            data_raw[data_no][dptr] = NULL;
+            data_no++;
+            mptr++;
+            dptr=0;
+        }
+        
+        if (sentence[mptr]=='*')
+        {
+            data_raw[data_no][dptr] = NULL;
+            break;
+        }
+        
+        data_raw[data_no][dptr] = sentence[mptr];
+        dptr++;
+        mptr++;
+    }
+
+    for (int i=0 ; i<=13; i++)
+    {
+        Serial.printf("%s\n", data_raw[i]);
+
+    }
+    
+    if (data_raw[1]!=NULL) gpgga.time=atoi(data_raw[1]);
+    else return 0;
+
+    if (data_raw[2]!=NULL)
+    {
+        switch (data_raw[3][0])
+        {
+        case 'N':
+            gpgga.latitude=atof(data_raw[2]);
+            break;
+        case 'S':
+            gpgga.latitude=-atof(data_raw[2]);
+            break;    
+        default:
+            return 0;
+        }
+    }
+    else return 0;
+
+    if (data_raw[4]!=NULL)
+    {
+        switch (data_raw[5][0])
+        {
+        case 'E':
+            gpgga.longitude=atof(data_raw[4]);
+            break;
+        case 'W':
+            gpgga.longitude=-atof(data_raw[4]);
+            break;    
+        default:
+            return 0;
+        }
+    }
+    else return 0;
+
+    if (data_raw[9]!=NULL) gpgga.altitude=atof(data_raw[9]);
+    else return 0;
+
+    if (data_raw[8]!=NULL) gpgga.hdop=atof(data_raw[8]);
+    else return 0;
+
+    return 1;
+
+}   
+
+void GPS::receive_msgs()
+{
+    if (read() && check(received_data) && isGGA(received_data))
+    {
+        Serial.printf("%s\n", received_data);
+        if (update(received_data)==1) is_new_data=true;
+    }
+}
+
+
+
+
+/*
 void GPS::update(char *sentence)
 {
     int ptr = 0;
@@ -180,3 +278,4 @@ void GPS::update(char *sentence)
 
 
 
+*/
