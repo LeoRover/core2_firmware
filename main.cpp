@@ -8,6 +8,7 @@
 #include "std_msgs/UInt16MultiArray.h"
 #include "std_msgs/Empty.h"
 #include "std_msgs/Bool.h"
+#include "sensor_msgs/NavSatFix.h"
 #include "sensor_msgs/JointState.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
