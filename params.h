@@ -74,13 +74,8 @@ const uint16_t SERVO_6_WIDTH_MAX = 2000;
 const float WHEEL_RADIUS = 0.0625; //in meters
 const float ROBOT_WIDTH = 0.33; //in meters
 
-// Odom
-const float ODOM_COVARIANCE_DIAGONAL[6] = {0.001, 0, 0, 0, 0, 0.1};
-
 // Imu
 static hFramework::hSensor_i2c& IMU_HSENS = hSens2; // set to hSens1 or hSens2
-const float IMU_ANGULAR_VELOCITY_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
-const float IMU_LINEAR_ACCELERATION_COVARIANCE_DIAGONAL[3] = {0.01, 0.01, 0.01};
 
 // Value between 0 and 1000 describing power limit
 // e.g. 1000 means no limit, 800 corresponds to 80%
