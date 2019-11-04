@@ -11,7 +11,7 @@ void GPS::begin()
 
 bool GPS::read()
 {
-    int lenght=0;
+    int length=0;
     char x;
 
     while(true)
@@ -20,15 +20,18 @@ bool GPS::read()
         {
             hSens3.serial.read(&x,1);
             if(x=='\n') break;
-            received_data[lenght]=x;
-            lenght++;
-            if(lenght>=200) return 0;
+            received_data[length]=x;
+            length++;
+            if(length>=200) return false;
         }
+        else sys.delay(10);
     }
 
-    received_data[lenght-1] = NULL;
-    return 1;  
+    if (length == 0)
+        return false;
 
+    received_data[length-1] = 0;
+    return true;  
 }
 
 static int hex2int(char c)
@@ -56,6 +59,9 @@ bool GPS::check(char *sentence)
     if (*sentence == '*')
     {
         sentence++;
+        if (strlen(sentence) != 2)
+            return false;
+
         int upper = hex2int(*sentence++);
         if (upper == -1)
             return false;
@@ -67,6 +73,7 @@ bool GPS::check(char *sentence)
         if (sum != expected)
             return false;
     } 
+    else return false;
 
     return true;
 }
@@ -76,9 +83,9 @@ bool GPS::isGGA(char *sentence)
 {
     char temp[6];
     strncpy(temp, sentence, 6);
-    temp[6]=NULL;
-    if (!strcmp(temp, "$GPGGA")) return 1;
-    else return 0;
+    temp[6] = 0;
+    if (strcmp(temp, "$GPGGA") == 0) return true;
+    else return false;
 }
 
 float GPS::NMEAtoDec(char *pos)
@@ -100,43 +107,41 @@ bool GPS::update(char *sentence)
 
     while(true)
     {
-        if (sentence[mptr] == ',' && sentence[mptr+1] == ',')
+        if (sentence[mptr] == ',')
         {
-            data_raw[data_no][dptr]=NULL;
-            data_raw[data_no+1][0] = NULL;
-            data_no=data_no+2;
-            mptr=mptr+2;
-        }
-        else if (sentence[mptr] == ',')
-        {
-            data_raw[data_no][dptr] = NULL;
+            data_raw[data_no][dptr] = 0;
             data_no++;
             mptr++;
             dptr=0;
         }
-        
-        if (sentence[mptr]=='*')
+        else if (sentence[mptr] == '*')
         {
-            data_raw[data_no][dptr] = NULL;
+            data_raw[data_no][dptr] = 0;
+            data_no++;
             break;
         }
-        
-        data_raw[data_no][dptr] = sentence[mptr];
-        dptr++;
-        mptr++;
+        else
+        {
+            data_raw[data_no][dptr] = sentence[mptr];
+            dptr++;
+            mptr++;
+        }
     }
+
 #ifdef DEBUG
-    for (int i=0 ; i<=13; i++)
+    for (int i=0; i<data_no; i++)
     {
         Serial.printf("%s\n", data_raw[i]);
-
     }
 #endif
     
-    if (data_raw[1]!=NULL) gpgga.time=atoi(data_raw[1]);
-    else return 0;
+    if (data_no < 10)
+        return false;
 
-    if (data_raw[2]!=NULL)
+    if (data_raw[1][0] != 0) gpgga.time=atoi(data_raw[1]);
+    else return false;
+
+    if (data_raw[2][0] != 0)
     {
         switch (data_raw[3][0])
         {
@@ -147,12 +152,12 @@ bool GPS::update(char *sentence)
             gpgga.latitude=-NMEAtoDec(data_raw[2]);
             break;    
         default:
-            return 0;
+            return false;
         }
     }
-    else return 0;
+    else return false;
 
-    if (data_raw[4]!=NULL)
+    if (data_raw[4][0] != 0)
     {
         switch (data_raw[5][0])
         {
@@ -163,27 +168,25 @@ bool GPS::update(char *sentence)
             gpgga.longitude=-NMEAtoDec(data_raw[4]);
             break;    
         default:
-            return 0;
+            return false;
         }
     }
-    else return 0;
+    else return false;
 
-    if (data_raw[9]!=NULL) gpgga.altitude=atof(data_raw[9]);
-    else return 0;
+    if (data_raw[9][0] != 0) gpgga.altitude=atof(data_raw[9]);
+    else return false;
 
-    if (data_raw[8]!=NULL) gpgga.hdop=atof(data_raw[8]);
-    else return 0;
+    if (data_raw[8][0] != 0) gpgga.hdop=atof(data_raw[8]);
+    else return false;
 
-    return 1;
+    return true;
 
 }   
 
 void GPS::receive_msgs()
 {
-    if (read() && check(received_data) && isGGA(received_data))
-    {
-        if (update(received_data)==1) is_new_data=true;
-    }
+    if (read() && check(received_data) && isGGA(received_data) && update(received_data))
+        is_new_data=true;
 }
 
 
