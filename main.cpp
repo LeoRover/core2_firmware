@@ -54,8 +54,6 @@ sensor_msgs::NavSatFix gps_fix;
 ros::Publisher *gps_pub;
 bool publish_gps = false;
 
-
-
 ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 
 ros::Subscriber<std_msgs::Empty> *reset_board_sub;
@@ -379,16 +377,15 @@ void LEDLoop()
     }
 }
 
-void GPSpubLoop()
+void GPSLoop()
 {
-    uint32_t t = sys.getRefTime();
-    long dt = 250;
     while(true)
     {
-		mutex.lock();
-		if (gps->is_new_data==true)
+		gps->receive_next_msg(); // Wait for next GGA message
+
+		if (!publish_gps)
 		{
-			gps_fix.header.stamp.sec = gps->gpgga.time;
+			gps_fix.header.stamp = nh.now();
 			gps_fix.header.frame_id = "/gps";
 			gps_fix.latitude = gps->gpgga.latitude;
 			gps_fix.longitude = gps->gpgga.longitude;
@@ -397,25 +394,12 @@ void GPSpubLoop()
 
 			gps_fix.position_covariance[0] = ((gps->gpgga.hdop)*(gps->gpgga.hdop))/2;
 			gps_fix.position_covariance[4] = ((gps->gpgga.hdop)*(gps->gpgga.hdop))/2;
-			gps->is_new_data=false;
 
 			publish_gps = true;
 		}
-		mutex.unlock();
-        sys.delaySync(t, dt);
     }
 }
-
-void GPSreadLoop()
-{
-	while(true)
-	{
-		gps->receive_msgs();
-	}
-
-}
-
-
+ 
 void hMain()
 {
 	uint32_t t = sys.getRefTime();
@@ -446,10 +430,7 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
-	sys.taskCreate(&GPSreadLoop);
-	sys.taskCreate(&GPSpubLoop);
-
-
+	sys.taskCreate(&GPSLoop);
 
 	if (conf.imu_enabled)
 	{
@@ -485,17 +466,12 @@ void hMain()
 				publish_imu = false;
 			}
 
-			else if (publish_gps){
+			if (publish_gps){
 				gps_pub->publish(&gps_fix);
 				publish_gps = false;
 			}
 		}
 	
-		
-
-		
 		sys.delaySync(t, 1);
 	}
-
-
 }

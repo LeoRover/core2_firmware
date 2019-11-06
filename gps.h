@@ -9,13 +9,8 @@ struct gga {
     int time;
     float latitude;
     float longitude;
-    int fix_quality;
-    int satellites_tracked;
     float hdop;
     float altitude;
-    float height;
-    float dgps_age;
-    float dgps_id;
 };
 
 
@@ -26,8 +21,7 @@ public:
     gga gpgga;
     
     void begin();
-    void receive_msgs();
-    
+    void receive_next_msg();
 
 private:
     char received_data[210];
@@ -37,8 +31,6 @@ private:
     bool update(char *sentence);
     bool isGGA(char *sentence);
     float NMEAtoDec(char *pos);
-
-    
 };
 
 #endif

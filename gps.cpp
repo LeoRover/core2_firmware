@@ -127,13 +127,6 @@ bool GPS::update(char *sentence)
             mptr++;
         }
     }
-
-#ifdef DEBUG
-    for (int i=0; i<data_no; i++)
-    {
-        Serial.printf("%s\n", data_raw[i]);
-    }
-#endif
     
     if (data_no < 10)
         return false;
@@ -183,10 +176,13 @@ bool GPS::update(char *sentence)
 
 }   
 
-void GPS::receive_msgs()
+void GPS::receive_next_msg()
 {
-    if (read() && check(received_data) && isGGA(received_data) && update(received_data))
-        is_new_data=true;
+    while (true)
+    {
+        if (read() && check(received_data) && isGGA(received_data) && update(received_data))
+            break;
+    }
 }
 
 
