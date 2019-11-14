@@ -59,6 +59,7 @@ ros::Subscriber<geometry_msgs::Twist> *twist_sub;
 ros::Subscriber<std_msgs::Empty> *reset_board_sub;
 ros::Subscriber<std_msgs::Empty> *reset_config_sub;
 ros::Subscriber<std_msgs::Bool> *set_imu_sub;
+ros::Subscriber<std_msgs::Bool> *set_gps_sub;
 
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mpu_srv;
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>* imu_cal_mag_srv;
@@ -96,6 +97,12 @@ void setImuCallback(const std_msgs::Bool& msg)
 	store_config();
 }
 
+void setGpsCallback(const std_msgs::Bool& msg)
+{
+	conf.gps_enabled = msg.data;
+	store_config();
+}
+
 void calMpuCallback(const std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res)
 {
 	imu->calGyroAccel();
@@ -117,13 +124,14 @@ void initROS()
     battery_pub = new ros::Publisher("/battery", &battery);
 	odom_pub = new ros::Publisher("/wheel_odom", &odom);
 	joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
-	gps_pub = new ros::Publisher("/gps_fix", &gps_fix);
+	
 
 	twist_sub = new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
 
 	reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board", &resetBoardCallback);
 	reset_config_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_config", &resetConfigCallback);
 	set_imu_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
+	set_gps_sub = new ros::Subscriber<std_msgs::Bool>("core2/set_gps", &setGpsCallback);
 
 	ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub = 
 		new ros::Subscriber<std_msgs::Int16, ServoWrapper>("servo1/angle", &ServoWrapper::angleCallback, &servo1);
@@ -155,11 +163,11 @@ void initROS()
     nh.advertise(*battery_pub);
 	nh.advertise(*odom_pub);
 	nh.advertise(*joint_states_pub);
-	nh.advertise(*gps_pub);
 	nh.subscribe(*twist_sub);
 	nh.subscribe(*reset_board_sub);
 	nh.subscribe(*reset_config_sub);
 	nh.subscribe(*set_imu_sub);
+	nh.subscribe(*set_gps_sub);
 	nh.subscribe(*servo1_angle_sub);
 	nh.subscribe(*servo2_angle_sub);
 	nh.subscribe(*servo3_angle_sub);
@@ -188,6 +196,14 @@ void initROS()
 		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mpu_srv);
 		nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(*imu_cal_mag_srv);
 	}
+
+	if (conf.gps_enabled)
+	{
+		gps_pub = new ros::Publisher("/gps_fix", &gps_fix);
+		nh.advertise(*gps_pub);
+	}
+
+
 }
 
 void setupServos()
@@ -412,8 +428,6 @@ void hMain()
 	dc = new DiffController(INPUT_TIMEOUT);
 	dc->start();
 
-	gps = new GPS;
-	gps->begin();
 
 	load_config();
 
@@ -430,13 +444,22 @@ void hMain()
 	sys.taskCreate(&batteryLoop);
 	sys.taskCreate(&odomLoop);
 	sys.taskCreate(&jointStatesLoop);
-	sys.taskCreate(&GPSLoop);
+
 
 	if (conf.imu_enabled)
 	{
 		setupImu();
 		sys.taskCreate(&imuLoop);
 	}
+
+	if (conf.gps_enabled)
+	{
+		gps = new GPS;
+		gps->begin();
+		sys.taskCreate(&GPSreadLoop);
+		sys.taskCreate(&GPSpubLoop);
+	}
+	
 
 	while (true)
 	{
