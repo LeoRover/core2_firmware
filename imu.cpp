@@ -86,8 +86,6 @@ void IMU::update()
 
 void IMU::calGyroAccel()
 {
-	float gyroBias[3];
-
 	mpu_mutex_.lock();
 
 		mpu_.calibrateMPU9250(gbias_, abias_);
