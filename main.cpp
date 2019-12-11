@@ -456,8 +456,7 @@ void hMain()
 	{
 		gps = new GPS;
 		gps->begin();
-		sys.taskCreate(&GPSreadLoop);
-		sys.taskCreate(&GPSpubLoop);
+		sys.taskCreate(&GPSLoop);
 	}
 	
 
