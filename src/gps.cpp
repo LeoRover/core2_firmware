@@ -1,7 +1,8 @@
+#include <string.h>
+
 #include "hFramework.h"
 
-#include "gps.h"
-#include <string.h>
+#include "sensors/gps.h"
 
 void GPS::begin()
 {

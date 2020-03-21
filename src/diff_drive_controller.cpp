@@ -1,37 +1,36 @@
 #include "hFramework.h"
-#include "wheel.h"
 
-#include "diff_controller.h"
+#include "diff_drive_controller.h"
 #include "params.h"
 #include "utils.h"
 
-DiffController::DiffController(uint32_t input_timeout)
+DiffDriveController::DiffDriveController(uint32_t input_timeout)
     : input_timeout_(input_timeout)
 {
-    wheelFL = new Wheel(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, 
+    wheelFL = new WheelController(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, 
         POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-    wheelRL = new Wheel(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+    wheelRL = new WheelController(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
         POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-    wheelFR = new Wheel(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+    wheelFR = new WheelController(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
         POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-    wheelRR = new Wheel(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+    wheelRR = new WheelController(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
         POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
 }
 
-void DiffController::start()
+void DiffDriveController::start()
 {
-    sys.taskCreate(std::bind(&DiffController::updateWheelLoop, this));
-    sys.taskCreate(std::bind(&DiffController::updateOdometryLoop, this));
+    sys.taskCreate(std::bind(&DiffDriveController::updateWheelLoop, this));
+    sys.taskCreate(std::bind(&DiffDriveController::updateOdometryLoop, this));
     if (input_timeout_ > 0.0) {
         last_update_ = sys.getRefTime();
-        sys.taskCreate(std::bind(&DiffController::inputWatchdog, this));
+        sys.taskCreate(std::bind(&DiffDriveController::inputWatchdog, this));
     }
 #ifdef DEBUG
-    sys.taskCreate(std::bind(&DiffController::debugLoop, this));
+    sys.taskCreate(std::bind(&DiffDriveController::debugLoop, this));
 #endif
 }
 
-void DiffController::setSpeed(float linear, float angular)
+void DiffDriveController::setSpeed(float linear, float angular)
 {
     float wheel_L_lin_vel = linear - (angular * ROBOT_WIDTH / 2);
     float wheel_R_lin_vel = linear + (angular * ROBOT_WIDTH / 2);
@@ -49,7 +48,7 @@ void DiffController::setSpeed(float linear, float angular)
         last_update_ = sys.getRefTime();
 }
 
-std::vector<float> DiffController::getOdom()
+std::vector<float> DiffDriveController::getOdom()
 {
     std::vector<float> odom;
     odom.push_back(lin_vel_);
@@ -57,7 +56,7 @@ std::vector<float> DiffController::getOdom()
     return odom;
 }
 
-std::vector<float> DiffController::getWheelPositions()
+std::vector<float> DiffDriveController::getWheelPositions()
 {
     std::vector<float> positions(4);
     positions[0] = 2 * M_PI * wheelFL->getDistance() / ENCODER_RESOLUTION;
@@ -67,7 +66,7 @@ std::vector<float> DiffController::getWheelPositions()
     return positions;
 }
 
-std::vector<float> DiffController::getWheelVelocities()
+std::vector<float> DiffDriveController::getWheelVelocities()
 {
     std::vector<float> velocities(4);
     velocities[0] = 2 * M_PI * wheelFL->getSpeed() / ENCODER_RESOLUTION;
@@ -77,7 +76,7 @@ std::vector<float> DiffController::getWheelVelocities()
     return velocities;
 }
 
-std::vector<float> DiffController::getWheelEfforts()
+std::vector<float> DiffDriveController::getWheelEfforts()
 {
     std::vector<float> efforts(4);
     efforts[0] = wheelFL->getPower() * 0.1;
@@ -87,7 +86,7 @@ std::vector<float> DiffController::getWheelEfforts()
     return efforts;
 }
 
-void DiffController::updateWheelLoop()
+void DiffDriveController::updateWheelLoop()
 {
     uint32_t t = sys.getRefTime();
     uint32_t dt = 10;
@@ -101,7 +100,7 @@ void DiffController::updateWheelLoop()
     }
 }
 
-void DiffController::updateOdometryLoop()
+void DiffDriveController::updateOdometryLoop()
 {
     uint32_t t = sys.getRefTime();
     uint32_t dt = 10;
@@ -133,7 +132,7 @@ void DiffController::updateOdometryLoop()
     }
 }
 
-void DiffController::debugLoop()
+void DiffDriveController::debugLoop()
 {
     uint32_t t = sys.getRefTime();
     uint32_t dt = 100;
@@ -150,7 +149,7 @@ void DiffController::debugLoop()
     }
 }
 
-void DiffController::inputWatchdog()
+void DiffDriveController::inputWatchdog()
 {
     while (true)
     {

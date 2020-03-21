@@ -1,8 +1,9 @@
 #include "hFramework.h"
-#include "imu/MPU9250.h"
-#include "imu/RegisterMap.h"
 
-#include "imu.h"
+#include "sensors/imu.h"
+#include "sensors/imu/MPU9250.h"
+#include "sensors/imu/RegisterMap.h"
+
 #include "config.h"
 
 static const float gravitationalAcceleration = 9.80665;

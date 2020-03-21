@@ -1,7 +1,7 @@
 #ifndef _IMU_H_
 #define _IMU_H_
 
-#include "imu/MPU9250.h"
+#include "sensors/imu/MPU9250.h"
 
 class IMU
 {

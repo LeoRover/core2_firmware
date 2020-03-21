@@ -1,7 +1,7 @@
-#include "wheel.h"
+#include "wheel_controller.h"
 #include "utils.h"
 
-Wheel::Wheel(hMotor &motor, const bool polarity, const float max_speed, 
+WheelController::WheelController(hMotor &motor, const bool polarity, const float max_speed, 
 		  	 const float kp, const float ki, const float kd, 
 		  	 uint16_t power_limit, uint16_t torque_limit,
 		  	 const bool encoder_pullup)
@@ -37,7 +37,7 @@ Wheel::Wheel(hMotor &motor, const bool polarity, const float max_speed,
 	motor_.resetEncoderCnt();
 }
 
-void Wheel::update(uint32_t dt)
+void WheelController::update(uint32_t dt)
 {
 	int32_t ticks_prev = ticks_now_;
 	ticks_now_ = motor_.getEncoderCnt();
@@ -74,7 +74,7 @@ void Wheel::update(uint32_t dt)
 	}
 }
 
-void Wheel::setSpeed(float speed)
+void WheelController::setSpeed(float speed)
 {
 	if (speed > max_speed_) {
 		v_target_ = max_speed_;
@@ -87,27 +87,27 @@ void Wheel::setSpeed(float speed)
 	}
 }
 
-float Wheel::getSpeed()
+float WheelController::getSpeed()
 {
 	return v_now_;
 }
 
-int16_t Wheel::getPower()
+int16_t WheelController::getPower()
 {
 	return power_;
 }
 
-int32_t Wheel::getDistance()
+int32_t WheelController::getDistance()
 {
 	return ticks_now_;
 }
 
-void Wheel::resetDistance()
+void WheelController::resetDistance()
 {
 	motor_.resetEncoderCnt();
 }
 
-void Wheel::reset()
+void WheelController::reset()
 {
 	motor_.resetEncoderCnt();
 	v_reg_.reset();
@@ -116,12 +116,12 @@ void Wheel::reset()
 	motor_.setPower(0);
 }
 
-void Wheel::turnOff()
+void WheelController::turnOff()
 {
 	turned_on_ = false;
 	motor_.setPower(0);
 }
-void Wheel::turnOn()
+void WheelController::turnOn()
 {
 	turned_on_ = true;
 }

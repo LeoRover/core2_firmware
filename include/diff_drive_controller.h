@@ -3,12 +3,12 @@
 
 #include <vector>
 
-#include "wheel.h"
+#include "wheel_controller.h"
 
-class DiffController
+class DiffDriveController
 {
 public:
-    DiffController(uint32_t input_timeout = 0);
+    DiffDriveController(uint32_t input_timeout = 0);
     void start();
     void setSpeed(float linear, float angular);
     std::vector<float> getOdom();
@@ -22,10 +22,10 @@ private:
     void debugLoop();
     void inputWatchdog();
 
-    Wheel *wheelFL;
-    Wheel *wheelRL;
-    Wheel *wheelFR;
-    Wheel *wheelRR;
+    WheelController *wheelFL;
+    WheelController *wheelRL;
+    WheelController *wheelFR;
+    WheelController *wheelRR;
 
     float lin_vel_;
     float ang_vel_;

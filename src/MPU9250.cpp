@@ -12,8 +12,8 @@
 */
 
 #include "Arduino.h"
-#include "MPU9250.h"
-#include "RegisterMap.h"
+#include "sensors/imu/MPU9250.h"
+#include "sensors/imu/RegisterMap.h"
 
 hFramework::ArduinoSerial Serial(hFramework::Serial);
 
