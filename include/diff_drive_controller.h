@@ -5,33 +5,32 @@
 
 #include "wheel_controller.h"
 
-class DiffDriveController
-{
-public:
-    DiffDriveController(uint32_t input_timeout = 0);
-    void start();
-    void setSpeed(float linear, float angular);
-    std::vector<float> getOdom();
-    std::vector<float> getWheelPositions();
-    std::vector<float> getWheelVelocities();
-    std::vector<float> getWheelEfforts();
+class DiffDriveController {
+ public:
+  DiffDriveController(uint32_t input_timeout = 0);
+  void start();
+  void setSpeed(float linear, float angular);
+  std::vector<float> getOdom();
+  std::vector<float> getWheelPositions();
+  std::vector<float> getWheelVelocities();
+  std::vector<float> getWheelEfforts();
 
-private:
-    void updateWheelLoop();
-    void updateOdometryLoop();
-    void debugLoop();
-    void inputWatchdog();
+ private:
+  void updateWheelLoop();
+  void updateOdometryLoop();
+  void debugLoop();
+  void inputWatchdog();
 
-    WheelController *wheelFL;
-    WheelController *wheelRL;
-    WheelController *wheelFR;
-    WheelController *wheelRR;
+  WheelController *wheelFL;
+  WheelController *wheelRL;
+  WheelController *wheelFR;
+  WheelController *wheelRR;
 
-    float lin_vel_;
-    float ang_vel_;
+  float lin_vel_;
+  float ang_vel_;
 
-    uint32_t input_timeout_;
-    uint32_t last_update_;
+  uint32_t input_timeout_;
+  uint32_t last_update_;
 };
 
 #endif

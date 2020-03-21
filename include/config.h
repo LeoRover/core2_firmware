@@ -6,26 +6,25 @@
 
 #define CONFIG_ADDRESS 0x01
 
-struct Config
-{
-    uint8_t checksum;
+struct Config {
+  uint8_t checksum;
 
-    bool imu_enabled;
-    bool gps_enabled;
-    float gyro_bias[3];
-    float accel_bias[3];
-    float mag_scale[3];
-    float mag_bias[3];
+  bool imu_enabled;
+  bool gps_enabled;
+  float gyro_bias[3];
+  float accel_bias[3];
+  float mag_scale[3];
+  float mag_bias[3];
 
-    Config()
-    : imu_enabled(false),
-      gps_enabled(false),
-      gyro_bias{0.0, 0.0, 0.0},
-      accel_bias{0.0, 0.0, 0.0},
-      mag_scale{1.0, 1.0, 1.0},
-      mag_bias{0.0, 0.0, 0.0} {}
-    
-} __attribute__ ((packed));
+  Config()
+      : imu_enabled(false),
+        gps_enabled(false),
+        gyro_bias{0.0, 0.0, 0.0},
+        accel_bias{0.0, 0.0, 0.0},
+        mag_scale{1.0, 1.0, 1.0},
+        mag_bias{0.0, 0.0, 0.0} {}
+
+} __attribute__((packed));
 
 extern Config conf;
 
