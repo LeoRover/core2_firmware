@@ -13,15 +13,18 @@ struct gga {
 
 class GPS {
  public:
+  explicit GPS(hFramework::hSerial &serial) : serial_(serial) {}
+
   void init();
   void pollNextMessage();
-  const gga& getMessage() { return gpgga_; }
+  const gga &getMessage() { return gpgga_; }
 
  private:
   bool read();
-  bool update(const char* sentence);
+  bool update(const char *sentence);
 
   gga gpgga_;
+  hFramework::hSerial &serial_;
 };
 
 #endif  // INCLUDE_SENSORS_GPS_H_

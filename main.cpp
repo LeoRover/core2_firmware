@@ -267,7 +267,8 @@ void setupIMU() {
 }
 
 void setupGPS() {
-  gps = new GPS;
+  GPS_HSENS.selectSerial();
+  gps = new GPS(GPS_HSENS.getSerial());
   gps->init();
   gps_fix.header.frame_id = "gps";
 }

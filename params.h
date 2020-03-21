@@ -72,8 +72,13 @@ const float PID_D = 0.0;
 const float WHEEL_RADIUS = 0.0625;  // in meters
 const float ROBOT_WIDTH = 0.33;     // in meters
 
-// Imu
-static hFramework::hSensor_i2c& IMU_HSENS = hSens2;  // set to hSens1 or hSens2
+// The hSens port to which the IMU is connected
+// Set to either hSens1 or hSens2
+static hFramework::hSensor_i2c &IMU_HSENS = hSens2;
+
+// The hSens port to which the GPS is connected
+// Set to either hSens3 or hSens4
+static hFramework::hSensor_serial &GPS_HSENS = hSens3;
 
 // Value between 0 and 1000 describing power limit
 // e.g. 1000 means no limit, 800 corresponds to 80%
@@ -94,6 +99,6 @@ const uint32_t INPUT_TIMEOUT = 500;
 
 // The pin which will be used to drive the informative LED on the power switch
 // By default it is set to pin1 on hExt port
-static hFramework::hGPIO& LED = hExt.pin1;
+static hFramework::hGPIO &LED = hExt.pin1;
 
 #endif  // INCLUDE_PARAMS_H_

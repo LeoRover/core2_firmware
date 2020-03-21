@@ -61,8 +61,7 @@ static float NMEAtoDec(const char *pos) {
 }
 
 void GPS::init() {
-  hSens3.selectSerial();
-  hSens3.serial.init(9600, Parity::None, StopBits::One);
+  serial_.init(9600, Parity::None, StopBits::One);
 }
 
 bool GPS::read() {
@@ -70,8 +69,8 @@ bool GPS::read() {
   char x;
 
   while (true) {
-    if (hSens3.serial.available()) {
-      hSens3.serial.read(&x, 1);
+    if (serial_.available()) {
+      serial_.read(&x, 1);
       if (x == '\n') break;
       message_buffer[length] = x;
       length++;

@@ -45,10 +45,10 @@ void DiffDriveController::setSpeed(float linear, float angular) {
   float wheel_R_lin_vel = linear + (angular * robot_width_ / 2);
   float wheel_L_ang_vel = wheel_L_lin_vel / wheel_radius_;
   float wheel_R_ang_vel = wheel_R_lin_vel / wheel_radius_;
-  float enc_L_speed =
-      clamp(encoder_resolution_ * wheel_L_ang_vel / (2 * M_PI), wheel_max_speed_);
-  float enc_R_speed =
-      clamp(encoder_resolution_ * wheel_R_ang_vel / (2 * M_PI), wheel_max_speed_);
+  float enc_L_speed = clamp(encoder_resolution_ * wheel_L_ang_vel / (2 * M_PI),
+                            wheel_max_speed_);
+  float enc_R_speed = clamp(encoder_resolution_ * wheel_R_ang_vel / (2 * M_PI),
+                            wheel_max_speed_);
 
   wheel_FL_->setSpeed(enc_L_speed);
   wheel_RL_->setSpeed(enc_L_speed);

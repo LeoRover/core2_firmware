@@ -5,7 +5,7 @@
 
 class IMU {
  public:
-  explicit IMU(hFramework::hI2C& i2c) : mpu_(i2c) {}
+  explicit IMU(hFramework::hI2C &i2c) : mpu_(i2c) {}
 
   void init();
   void update();
