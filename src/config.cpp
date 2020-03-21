@@ -1,5 +1,7 @@
-#include "config.h"
 #include "hFramework.h"
+
+#include "config.h"
+#include "logging.h"
 
 Config conf;
 hStorage storage;
@@ -14,16 +16,18 @@ uint8_t checksum(Config* config) {
 }
 
 void print_config() {
-  Serial.printf("imu_enabled: %s\r\n", conf.imu_enabled ? "true" : "false");
-  Serial.printf("gyro_bias: %f %f %f\r\n", conf.gyro_bias[0], conf.gyro_bias[1],
-                conf.gyro_bias[2]);
-  Serial.printf("accel_bias: %f %f %f\r\n", conf.accel_bias[0],
-                conf.accel_bias[1], conf.accel_bias[2]);
-  Serial.printf("mag_scale: %f %f %f\r\n", conf.mag_scale[0], conf.mag_scale[1],
-                conf.mag_scale[2]);
-  Serial.printf("mag_bias: %f %f %f\r\n", conf.mag_bias[0], conf.mag_bias[1],
-                conf.mag_bias[2]);
-  Serial.printf("checksum: %d\r\n", conf.checksum);
+  logInfo("debug_logging: %s", conf.debug_logging ? "true" : "false");
+  logInfo("imu_enabled: %s", conf.imu_enabled ? "true" : "false");
+  logInfo("gps_enabled: %s", conf.gps_enabled ? "true" : "false");
+  logInfo("gyro_bias: %f %f %f", conf.gyro_bias[0], conf.gyro_bias[1],
+          conf.gyro_bias[2]);
+  logInfo("accel_bias: %f %f %f", conf.accel_bias[0], conf.accel_bias[1],
+          conf.accel_bias[2]);
+  logInfo("mag_scale: %f %f %f", conf.mag_scale[0], conf.mag_scale[1],
+          conf.mag_scale[2]);
+  logInfo("mag_bias: %f %f %f", conf.mag_bias[0], conf.mag_bias[1],
+          conf.mag_bias[2]);
+  logInfo("checksum: %d", conf.checksum);
 }
 
 void load_config() {
@@ -31,12 +35,11 @@ void load_config() {
   storage.load(CONFIG_ADDRESS, tmp_conf);
 
   if (tmp_conf.checksum != checksum(&tmp_conf)) {
-    Serial.printf(
-        "Config checksum incorrect! Default configuration will be used\r\n");
-    print_config();
+    logWarn("Config checksum incorrect! Default configuration will be used");
+    store_config();
   } else {
     conf = tmp_conf;
-    Serial.printf("Loaded config: \r\n");
+    logInfo("Loaded config:");
     print_config();
   }
 }
@@ -44,7 +47,7 @@ void load_config() {
 void store_config() {
   conf.checksum = checksum(&conf);
   storage.store(CONFIG_ADDRESS, conf);
-  Serial.printf("Stored config: \r\n");
+  logInfo("Stored config:");
   print_config();
 }
 

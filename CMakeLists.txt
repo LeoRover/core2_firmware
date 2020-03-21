@@ -13,6 +13,7 @@ add_hexecutable(leo_firmware
     src/diff_drive_controller.cpp 
     src/wheel_controller.cpp
     src/config.cpp
+    src/logging.cpp
     src/imu.cpp
     src/MPU9250.cpp
     src/gps.cpp)

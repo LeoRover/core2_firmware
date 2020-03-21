@@ -7,6 +7,8 @@
 #include "std_msgs/Int16.h"
 #include "std_msgs/UInt16MultiArray.h"
 
+#include "logging.h"
+
 inline float clamp(float value, float limit) {
   if (value > limit)
     return limit;
@@ -50,9 +52,7 @@ class ServoWrapper {
       current_period_ = servo_period_;
     }
     servo_.rotAbs(msg.data);
-#ifdef DEBUG
-    Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num_, msg.data);
-#endif
+    logDebug("[servo%dAngleCallback] angle: %d", num_, msg.data);
   }
 
   void pwmCallback(const std_msgs::UInt16MultiArray& msg) {
@@ -60,14 +60,10 @@ class ServoWrapper {
       current_period_ = msg.data[0];
       servo_.setPeriod(current_period_);
       servo_.setWidth(msg.data[1]);
-#ifdef DEBUG
-      Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num_,
-                    msg.data[0], msg.data[1]);
+      logDebug("[servo%dPWMCallback] period: %d width: %d", num_, msg.data[0],
+               msg.data[1]);
     } else {
-      Serial.printf(
-          "ERROR: [servo%dPWMCallback] data array should have 2 members\r\n",
-          num_);
-#endif
+      logError("[servo%dPWMCallback] data array should have 2 members", num_);
     }
   }
 };

@@ -1,6 +1,7 @@
 #include "hFramework.h"
 
 #include "diff_drive_controller.h"
+#include "logging.h"
 #include "utils.h"
 
 DiffDriveController::DiffDriveController(
@@ -35,9 +36,7 @@ void DiffDriveController::start() {
     last_update_ = sys.getRefTime();
     sys.taskCreate(std::bind(&DiffDriveController::inputWatchdog, this));
   }
-#ifdef DEBUG
   sys.taskCreate(std::bind(&DiffDriveController::debugLoop, this));
-#endif
 }
 
 void DiffDriveController::setSpeed(float linear, float angular) {
@@ -139,12 +138,12 @@ void DiffDriveController::debugLoop() {
   uint32_t dt = 100;
 
   while (true) {
-    Serial.printf("Motor powers: %d %d %d %d\r\n", wheel_FL_->getPower(),
-                  wheel_RL_->getPower(), wheel_FR_->getPower(),
-                  wheel_RR_->getPower());
-    Serial.printf("Motor speeds: %f %f %f %f\r\n", wheel_FL_->getSpeed(),
-                  wheel_RL_->getSpeed(), wheel_FR_->getSpeed(),
-                  wheel_RR_->getSpeed());
+    logDebug("Motor powers: %d %d %d %d", wheel_FL_->getPower(),
+             wheel_RL_->getPower(), wheel_FR_->getPower(),
+             wheel_RR_->getPower());
+    logDebug("Motor speeds: %f %f %f %f", wheel_FL_->getSpeed(),
+             wheel_RL_->getSpeed(), wheel_FR_->getSpeed(),
+             wheel_RR_->getSpeed());
     sys.delaySync(t, dt);
   }
 }

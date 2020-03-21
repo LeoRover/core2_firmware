@@ -5,6 +5,7 @@
 #include "sensors/imu/RegisterMap.h"
 
 #include "config.h"
+#include "logging.h"
 
 static const float gravitationalAcceleration = 9.80665;
 static const float degreeToRadian = 2.0 * M_PI / 360.0;
@@ -16,21 +17,18 @@ void IMU::init() {
   uint8_t c = mpu_.getMPU9250ID();
 
   if (c != 0x71)
-    Serial.printf(
-        "ERROR: [IMU] MPU9250 WHO_AM_I register is 0x%02x, should be 0x71\r\n",
-        c);
+    logError("[IMU] MPU9250 WHO_AM_I register is 0x%02x, should be 0x71", c);
 
   c = mpu_.getAK8963CID();
 
   if (c != 0x48)
-    Serial.printf(
-        "ERROR: [IMU] AK8963 WHO_AM_I register is 0x%02x, should be 0x48\r\n",
-        c);
+    logError("[IMU] AK8963 WHO_AM_I register is 0x%02x, should be 0x48", c);
 
   mpu_.initMPU9250(AFS_4G, GFS_500DPS, 0x02);
   mpu_.initAK8963Slave(MFS_14BITS, M_100Hz, magCal_);
-  Serial.printf("[IMU] Magnetometer calibration data: %f %f %f\r\n", magCal_[0],
-                magCal_[1], magCal_[2]);
+
+  logInfo("[IMU] Magnetometer calibration data: %f %f %f", magCal_[0],
+          magCal_[1], magCal_[2]);
 
   ares_ = mpu_.getAres(AFS_4G);
   gres_ = mpu_.getGres(GFS_500DPS);
@@ -91,9 +89,9 @@ void IMU::calGyroAccel() {
   mpu_mutex_.lock();
 
   mpu_.calibrateMPU9250(gbias_, abias_);
-  Serial.printf("[IMU] MPU Calibration:\r\n");
-  Serial.printf("Gyro bias: %f %f %f\r\n", gbias_[0], gbias_[1], gbias_[2]);
-  Serial.printf("Accel bias: %f %f %f\r\n", abias_[0], abias_[1], abias_[2]);
+  logInfo("[IMU] MPU Calibration:");
+  logInfo("Gyro bias: %f %f %f", gbias_[0], gbias_[1], gbias_[2]);
+  logInfo("Accel bias: %f %f %f", abias_[0], abias_[1], abias_[2]);
 
   mpu_.initMPU9250(AFS_4G, GFS_500DPS, 0x02);
 
@@ -112,9 +110,9 @@ void IMU::calMag() {
   mpu_mutex_.lock();
 
   mpu_.magcalMPU9250(mbias_, mscale_);
-  Serial.printf("[IMU] mag Calibration:\r\n");
-  Serial.printf("Mag bias: %f %f %f\r\n", mbias_[0], mbias_[1], mbias_[2]);
-  Serial.printf("Mag scale: %f %f %f\r\n", mscale_[0], mscale_[1], mscale_[2]);
+  logInfo("[IMU] mag Calibration:");
+  logInfo("Mag bias: %f %f %f", mbias_[0], mbias_[1], mbias_[2]);
+  logInfo("Mag scale: %f %f %f", mscale_[0], mscale_[1], mscale_[2]);
 
   mpu_mutex_.unlock();
 

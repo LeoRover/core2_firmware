@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include "diff_drive_controller.h"
+#include "logging.h"
 #include "sensors/gps.h"
 #include "sensors/imu.h"
 #include "utils.h"
@@ -59,6 +60,7 @@ ros::Subscriber<std_msgs::Empty> *reset_board_sub;
 ros::Subscriber<std_msgs::Empty> *reset_config_sub;
 ros::Subscriber<std_msgs::Bool> *set_imu_sub;
 ros::Subscriber<std_msgs::Bool> *set_gps_sub;
+ros::Subscriber<std_msgs::Bool> *set_debug_sub;
 
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
     *imu_cal_mpu_srv;
@@ -75,29 +77,42 @@ ServoWrapper servo5(5, hServo.servo5, SERVO_PERIOD);
 ServoWrapper servo6(6, hServo.servo6, SERVO_PERIOD);
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
+  logDebug("[cmdVelCallback] linear: %f angular %f", msg.linear.x,
+           msg.angular.z);
   dc->setSpeed(msg.linear.x, msg.angular.z);
-#ifdef DEBUG
-  Serial.printf("[cmdVelCallback] linear: %f angular %f\r\n", msg.linear.x,
-                msg.angular.z);
-#endif
 }
 
-void resetBoardCallback(const std_msgs::Empty &msg) { sys.reset(); }
+void resetBoardCallback(const std_msgs::Empty &msg) {
+  logDebug("[resetBoardCallback]");
+  sys.reset();
+}
 
-void resetConfigCallback(const std_msgs::Empty &msg) { reset_config(); }
+void resetConfigCallback(const std_msgs::Empty &msg) {
+  logDebug("[resetConfigCallback]");
+  reset_config();
+}
 
 void setImuCallback(const std_msgs::Bool &msg) {
+  logDebug("[setImuCallback] %s", msg.data ? "true" : "false");
   conf.imu_enabled = msg.data;
   store_config();
 }
 
 void setGpsCallback(const std_msgs::Bool &msg) {
+  logDebug("[setGpsCallback] %s", msg.data ? "true" : "false");
   conf.gps_enabled = msg.data;
+  store_config();
+}
+
+void setDebugCallback(const std_msgs::Bool &msg) {
+  logDebug("[setDebugCallback] %s", msg.data ? "true" : "false");
+  conf.debug_logging = msg.data;
   store_config();
 }
 
 void calMpuCallback(const std_srvs::TriggerRequest &req,
                     std_srvs::TriggerResponse &res) {
+  logDebug("[calMpuCallback]");
   imu->calGyroAccel();
   res.message = "Succesfully calibrated gyroscope and accelerometer biases";
   res.success = true;
@@ -105,6 +120,7 @@ void calMpuCallback(const std_srvs::TriggerRequest &req,
 
 void calMagCallback(const std_srvs::TriggerRequest &req,
                     std_srvs::TriggerResponse &res) {
+  logDebug("[calMagCallback]");
   imu->calMag();
   res.message = "Succesfully calibrated magnetometer";
   res.success = true;
@@ -126,6 +142,8 @@ void initROS() {
       new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
   set_gps_sub =
       new ros::Subscriber<std_msgs::Bool>("core2/set_gps", &setGpsCallback);
+  set_debug_sub =
+      new ros::Subscriber<std_msgs::Bool>("core2/set_debug", &setDebugCallback);
 
   ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub =
       new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
@@ -173,6 +191,7 @@ void initROS() {
   nh.subscribe(*reset_config_sub);
   nh.subscribe(*set_imu_sub);
   nh.subscribe(*set_gps_sub);
+  nh.subscribe(*set_debug_sub);
   nh.subscribe(*servo1_angle_sub);
   nh.subscribe(*servo2_angle_sub);
   nh.subscribe(*servo3_angle_sub);
@@ -405,13 +424,21 @@ void hMain() {
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();
 
+  LED.setOut();
+  sys.taskCreate(&LEDLoop);
+
+  // Wait for rosserial connection
+  while (!nh.connected()) {
+    nh.spinOnce();
+  }
+
+  load_config();
+
   dc =
       new DiffDriveController(WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT,
                               TORQUE_LIMIT, ENCODER_PULLUP, ENCODER_RESOLUTION,
                               WHEEL_RADIUS, ROBOT_WIDTH, INPUT_TIMEOUT);
   dc->start();
-
-  load_config();
 
   setupOdom();
   setupServos();
@@ -419,9 +446,6 @@ void hMain() {
   initROS();
 
   sys.setLogDev(&Serial);
-
-  LED.setOut();
-  sys.taskCreate(&LEDLoop);
 
   sys.taskCreate(&batteryLoop);
   sys.taskCreate(&odomLoop);

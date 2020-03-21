@@ -7,12 +7,13 @@
 
 class DiffDriveController {
  public:
-  explicit DiffDriveController(
-      const float &wheel_max_speed, const float &pid_p, const float &pid_i,
-      const float &pid_d, const uint16_t &power_limit,
-      const uint16_t &torque_limit, const bool &encoder_pullup,
-      const float &encoder_resolution, const float &wheel_radius,
-      const float &robot_width, const uint32_t &input_timeout);
+  DiffDriveController(const float &wheel_max_speed, const float &pid_p,
+                      const float &pid_i, const float &pid_d,
+                      const uint16_t &power_limit, const uint16_t &torque_limit,
+                      const bool &encoder_pullup,
+                      const float &encoder_resolution,
+                      const float &wheel_radius, const float &robot_width,
+                      const uint32_t &input_timeout);
   void start();
   void setSpeed(float linear, float angular);
   std::vector<float> getOdom();

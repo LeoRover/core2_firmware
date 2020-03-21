@@ -9,6 +9,7 @@
 struct Config {
   uint8_t checksum;
 
+  bool debug_logging;
   bool imu_enabled;
   bool gps_enabled;
   float gyro_bias[3];
@@ -17,7 +18,8 @@ struct Config {
   float mag_bias[3];
 
   Config()
-      : imu_enabled(false),
+      : debug_logging(false),
+        imu_enabled(false),
         gps_enabled(false),
         gyro_bias{0.0, 0.0, 0.0},
         accel_bias{0.0, 0.0, 0.0},
