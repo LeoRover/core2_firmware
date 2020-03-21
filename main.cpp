@@ -378,19 +378,18 @@ void LEDLoop() {
 
 void GPSLoop() {
   while (true) {
-    gps->receive_next_msg();  // Wait for next GGA message
+    gps->pollNextMessage();  // Wait for next GGA message
+    const gga &gpgga = gps->getMessage();
 
     if (!publish_gps) {
       gps_fix.header.stamp = nh.now();
-      gps_fix.latitude = gps->gpgga.latitude;
-      gps_fix.longitude = gps->gpgga.longitude;
+      gps_fix.latitude = gpgga.latitude;
+      gps_fix.longitude = gpgga.longitude;
 
-      gps_fix.altitude = gps->gpgga.altitude;
+      gps_fix.altitude = gpgga.altitude;
 
-      gps_fix.position_covariance[0] =
-          ((gps->gpgga.hdop) * (gps->gpgga.hdop)) / 2;
-      gps_fix.position_covariance[4] =
-          ((gps->gpgga.hdop) * (gps->gpgga.hdop)) / 2;
+      gps_fix.position_covariance[0] = ((gpgga.hdop) * (gpgga.hdop)) / 2;
+      gps_fix.position_covariance[4] = ((gpgga.hdop) * (gpgga.hdop)) / 2;
 
       publish_gps = true;
     }

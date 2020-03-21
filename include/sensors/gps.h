@@ -3,8 +3,6 @@
 
 #include "hFramework.h"
 
-#define MAX_LENGTH 80
-
 struct gga {
   int time;
   float latitude;
@@ -15,20 +13,15 @@ struct gga {
 
 class GPS {
  public:
-  bool is_new_data = false;
-  gga gpgga;
-
   void init();
-  void receive_next_msg();
+  void pollNextMessage();
+  const gga& getMessage() { return gpgga_; }
 
  private:
-  char received_data[210];
-
   bool read();
-  bool check(char *sentence);
-  bool update(char *sentence);
-  bool isGGA(char *sentence);
-  float NMEAtoDec(char *pos);
+  bool update(const char* sentence);
+
+  gga gpgga_;
 };
 
 #endif  // INCLUDE_SENSORS_GPS_H_

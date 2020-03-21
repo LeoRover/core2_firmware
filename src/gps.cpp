@@ -4,32 +4,9 @@
 
 #include "sensors/gps.h"
 
-void GPS::init() {
-  hSens3.selectSerial();
-  hSens3.serial.init(9600, Parity::None, StopBits::One);
-}
+#define MAX_LENGTH 200
 
-bool GPS::read() {
-  int length = 0;
-  char x;
-
-  while (true) {
-    if (hSens3.serial.available()) {
-      hSens3.serial.read(&x, 1);
-      if (x == '\n') break;
-      received_data[length] = x;
-      length++;
-      if (length >= 200) return false;
-    } else {
-      sys.delay(10);
-    }
-  }
-
-  if (length == 0) return false;
-
-  received_data[length - 1] = 0;
-  return true;
-}
+static char message_buffer[MAX_LENGTH];
 
 static int hex2int(char c) {
   if (c >= '0' && c <= '9') return c - '0';
@@ -38,7 +15,7 @@ static int hex2int(char c) {
   return -1;
 }
 
-bool GPS::check(char *sentence) {
+static bool check(const char *sentence) {
   int sum = 0x00;
 
   if (*sentence++ != '$') return false;
@@ -64,7 +41,7 @@ bool GPS::check(char *sentence) {
   return true;
 }
 
-bool GPS::isGGA(char *sentence) {
+static bool isGGA(const char *sentence) {
   char temp[6];
   strncpy(temp, sentence, 6);
   temp[6] = 0;
@@ -74,7 +51,7 @@ bool GPS::isGGA(char *sentence) {
     return false;
 }
 
-float GPS::NMEAtoDec(char *pos) {
+static float NMEAtoDec(const char *pos) {
   float nmea = atof(pos);
   float dec;
 
@@ -83,7 +60,34 @@ float GPS::NMEAtoDec(char *pos) {
   return dec;
 }
 
-bool GPS::update(char *sentence) {
+void GPS::init() {
+  hSens3.selectSerial();
+  hSens3.serial.init(9600, Parity::None, StopBits::One);
+}
+
+bool GPS::read() {
+  int length = 0;
+  char x;
+
+  while (true) {
+    if (hSens3.serial.available()) {
+      hSens3.serial.read(&x, 1);
+      if (x == '\n') break;
+      message_buffer[length] = x;
+      length++;
+      if (length >= MAX_LENGTH) return false;
+    } else {
+      sys.delay(10);
+    }
+  }
+
+  if (length == 0) return false;
+
+  message_buffer[length - 1] = 0;
+  return true;
+}
+
+bool GPS::update(const char *sentence) {
   int mptr = 0;
   int dptr = 0;
   int data_no = 0;
@@ -109,17 +113,17 @@ bool GPS::update(char *sentence) {
   if (data_no < 10) return false;
 
   if (data_raw[1][0] != 0)
-    gpgga.time = atoi(data_raw[1]);
+    gpgga_.time = atoi(data_raw[1]);
   else
     return false;
 
   if (data_raw[2][0] != 0) {
     switch (data_raw[3][0]) {
       case 'N':
-        gpgga.latitude = NMEAtoDec(data_raw[2]);
+        gpgga_.latitude = NMEAtoDec(data_raw[2]);
         break;
       case 'S':
-        gpgga.latitude = -NMEAtoDec(data_raw[2]);
+        gpgga_.latitude = -NMEAtoDec(data_raw[2]);
         break;
       default:
         return false;
@@ -131,10 +135,10 @@ bool GPS::update(char *sentence) {
   if (data_raw[4][0] != 0) {
     switch (data_raw[5][0]) {
       case 'E':
-        gpgga.longitude = NMEAtoDec(data_raw[4]);
+        gpgga_.longitude = NMEAtoDec(data_raw[4]);
         break;
       case 'W':
-        gpgga.longitude = -NMEAtoDec(data_raw[4]);
+        gpgga_.longitude = -NMEAtoDec(data_raw[4]);
         break;
       default:
         return false;
@@ -144,22 +148,22 @@ bool GPS::update(char *sentence) {
   }
 
   if (data_raw[9][0] != 0)
-    gpgga.altitude = atof(data_raw[9]);
+    gpgga_.altitude = atof(data_raw[9]);
   else
     return false;
 
   if (data_raw[8][0] != 0)
-    gpgga.hdop = atof(data_raw[8]);
+    gpgga_.hdop = atof(data_raw[8]);
   else
     return false;
 
   return true;
 }
 
-void GPS::receive_next_msg() {
+void GPS::pollNextMessage() {
   while (true) {
-    if (read() && check(received_data) && isGGA(received_data) &&
-        update(received_data))
+    if (read() && check(message_buffer) && isGGA(message_buffer) &&
+        update(message_buffer))
       break;
   }
 }
