@@ -58,8 +58,8 @@ void WheelController::update(uint32_t dt) {
   float pid_out = v_reg_.update(v_err, dt);
 
   float est_power = (std::abs(v_now_) / max_speed_) * 1000.0;
-  float max_power =
-      std::min(est_power + static_cast<float>(torque_limit_), (float)1000.0);
+  float max_power = std::min(est_power + static_cast<float>(torque_limit_),
+                             static_cast<float>(1000.0));
 
   if (turned_on_ == true) {
     if (v_now_ == 0.0 && v_target_ == 0.0) {

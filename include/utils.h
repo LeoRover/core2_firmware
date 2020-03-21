@@ -1,5 +1,5 @@
-#ifndef LEO_FIRMWARE_UTILS_H_
-#define LEO_FIRMWARE_UTILS_H_
+#ifndef INCLUDE_UTILS_H_
+#define INCLUDE_UTILS_H_
 
 #include "hFramework.h"
 
@@ -25,7 +25,8 @@ class CircularBuffer {
   size_t iter_;
 
  public:
-  CircularBuffer(uint16_t size) : size_(size), iter_(0), values_(new T[size]) {}
+  explicit CircularBuffer(uint16_t size)
+      : size_(size), iter_(0), values_(new T[size]) {}
 
   T push_back(T val) {
     T tmp = values_[iter_];
@@ -71,4 +72,4 @@ class ServoWrapper {
   }
 };
 
-#endif
+#endif  // INCLUDE_UTILS_H_

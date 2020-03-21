@@ -1,5 +1,5 @@
-#ifndef _GPS_H_
-#define _GPS_H_
+#ifndef INCLUDE_SENSORS_GPS_H_
+#define INCLUDE_SENSORS_GPS_H_
 
 #include "hFramework.h"
 
@@ -31,4 +31,4 @@ class GPS {
   float NMEAtoDec(char *pos);
 };
 
-#endif
+#endif  // INCLUDE_SENSORS_GPS_H_

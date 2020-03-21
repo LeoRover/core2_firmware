@@ -20,8 +20,9 @@ bool GPS::read() {
       received_data[length] = x;
       length++;
       if (length >= 200) return false;
-    } else
+    } else {
       sys.delay(10);
+    }
   }
 
   if (length == 0) return false;
@@ -56,8 +57,9 @@ bool GPS::check(char *sentence) {
     int expected = upper << 4 | lower;
 
     if (sum != expected) return false;
-  } else
+  } else {
     return false;
+  }
 
   return true;
 }
@@ -76,7 +78,7 @@ float GPS::NMEAtoDec(char *pos) {
   float nmea = atof(pos);
   float dec;
 
-  dec = int(nmea / 100);
+  dec = static_cast<int>(nmea / 100);
   dec = dec + ((nmea - dec * 100) / 60);
   return dec;
 }
@@ -122,8 +124,9 @@ bool GPS::update(char *sentence) {
       default:
         return false;
     }
-  } else
+  } else {
     return false;
+  }
 
   if (data_raw[4][0] != 0) {
     switch (data_raw[5][0]) {
@@ -136,8 +139,9 @@ bool GPS::update(char *sentence) {
       default:
         return false;
     }
-  } else
+  } else {
     return false;
+  }
 
   if (data_raw[9][0] != 0)
     gpgga.altitude = atof(data_raw[9]);

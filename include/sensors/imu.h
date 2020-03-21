@@ -1,11 +1,11 @@
-#ifndef _IMU_H_
-#define _IMU_H_
+#ifndef INCLUDE_SENSORS_IMU_H_
+#define INCLUDE_SENSORS_IMU_H_
 
 #include "sensors/imu/MPU9250.h"
 
 class IMU {
  public:
-  IMU(hFramework::hI2C& i2c) : mpu_(i2c) {}
+  explicit IMU(hFramework::hI2C& i2c) : mpu_(i2c) {}
 
   void begin();
   void update();
@@ -25,4 +25,4 @@ class IMU {
   hFramework::hMutex mpu_mutex_;
 };
 
-#endif
+#endif  // INCLUDE_SENSORS_IMU_H_

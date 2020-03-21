@@ -58,17 +58,17 @@ void IMU::update() {
 
   if (mpu_.checkNewAccelGyroData()) {
     mpu_.readAccelData(accel);
-    ax = (float)accel[0] * ares_ - abias_[0];
-    ay = (float)accel[1] * ares_ - abias_[1];
-    az = (float)accel[2] * ares_ - abias_[2];
+    ax = static_cast<float>(accel[0]) * ares_ - abias_[0];
+    ay = static_cast<float>(accel[1]) * ares_ - abias_[1];
+    az = static_cast<float>(accel[2]) * ares_ - abias_[2];
     ax *= gravitationalAcceleration;
     ay *= gravitationalAcceleration;
     az *= gravitationalAcceleration;
 
     mpu_.readGyroData(gyro);
-    gx = (float)gyro[0] * gres_ - gbias_[0];
-    gy = (float)gyro[1] * gres_ - gbias_[1];
-    gz = (float)gyro[2] * gres_ - gbias_[2];
+    gx = static_cast<float>(gyro[0]) * gres_ - gbias_[0];
+    gy = static_cast<float>(gyro[1]) * gres_ - gbias_[1];
+    gz = static_cast<float>(gyro[2]) * gres_ - gbias_[2];
     gx *= degreeToRadian;
     gy *= degreeToRadian;
     gz *= degreeToRadian;
@@ -77,9 +77,9 @@ void IMU::update() {
   mpu_.readMagData(mag);
   // Magnetometer axes are changed to (y,x,-z) to comply with North-West-Up
   // world frame
-  mx = (float)mag[1] * mres_ * magCal_[1] - mbias_[1];
-  my = (float)mag[0] * mres_ * magCal_[0] - mbias_[0];
-  mz = -((float)mag[2] * mres_ * magCal_[2] - mbias_[2]);
+  mx = static_cast<float>(mag[1]) * mres_ * magCal_[1] - mbias_[1];
+  my = static_cast<float>(mag[0]) * mres_ * magCal_[0] - mbias_[0];
+  mz = static_cast<float>(-mag[2]) * mres_ * magCal_[2] - mbias_[2];
   mx *= mscale_[1] * mGuassToGauss;
   my *= mscale_[0] * mGuassToGauss;
   mz *= mscale_[2] * mGuassToGauss;

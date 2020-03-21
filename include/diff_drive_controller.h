@@ -1,5 +1,5 @@
-#ifndef LEO_FIRMWARE_DIFF_CONTROLLER_H_
-#define LEO_FIRMWARE_DIFF_CONTROLLER_H_
+#ifndef INCLUDE_DIFF_DRIVE_CONTROLLER_H_
+#define INCLUDE_DIFF_DRIVE_CONTROLLER_H_
 
 #include <vector>
 
@@ -7,7 +7,7 @@
 
 class DiffDriveController {
  public:
-  DiffDriveController(uint32_t input_timeout = 0);
+  explicit DiffDriveController(uint32_t input_timeout = 0);
   void start();
   void setSpeed(float linear, float angular);
   std::vector<float> getOdom();
@@ -21,10 +21,10 @@ class DiffDriveController {
   void debugLoop();
   void inputWatchdog();
 
-  WheelController *wheelFL;
-  WheelController *wheelRL;
-  WheelController *wheelFR;
-  WheelController *wheelRR;
+  WheelController *wheel_FL_;
+  WheelController *wheel_RL_;
+  WheelController *wheel_FR_;
+  WheelController *wheel_RR_;
 
   float lin_vel_;
   float ang_vel_;
@@ -33,4 +33,4 @@ class DiffDriveController {
   uint32_t last_update_;
 };
 
-#endif
+#endif  // INCLUDE_DIFF_DRIVE_CONTROLLER_H_

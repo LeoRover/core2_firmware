@@ -6,14 +6,18 @@
 
 DiffDriveController::DiffDriveController(uint32_t input_timeout)
     : input_timeout_(input_timeout) {
-  wheelFL = new WheelController(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                                POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-  wheelRL = new WheelController(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                                POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-  wheelFR = new WheelController(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                                POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
-  wheelRR = new WheelController(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                                POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+  wheel_FL_ =
+      new WheelController(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+  wheel_RL_ =
+      new WheelController(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+  wheel_FR_ =
+      new WheelController(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+  wheel_RR_ =
+      new WheelController(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
+                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
 }
 
 void DiffDriveController::start() {
@@ -38,10 +42,10 @@ void DiffDriveController::setSpeed(float linear, float angular) {
   float enc_R_speed =
       clamp(ENCODER_RESOLUTION * wheel_R_ang_vel / (2 * M_PI), WHEEL_MAX_SPEED);
 
-  wheelFL->setSpeed(enc_L_speed);
-  wheelRL->setSpeed(enc_L_speed);
-  wheelFR->setSpeed(enc_R_speed);
-  wheelRR->setSpeed(enc_R_speed);
+  wheel_FL_->setSpeed(enc_L_speed);
+  wheel_RL_->setSpeed(enc_L_speed);
+  wheel_FR_->setSpeed(enc_R_speed);
+  wheel_RR_->setSpeed(enc_R_speed);
 
   if (input_timeout_ > 0.0) last_update_ = sys.getRefTime();
 }
@@ -55,28 +59,28 @@ std::vector<float> DiffDriveController::getOdom() {
 
 std::vector<float> DiffDriveController::getWheelPositions() {
   std::vector<float> positions(4);
-  positions[0] = 2 * M_PI * wheelFL->getDistance() / ENCODER_RESOLUTION;
-  positions[1] = 2 * M_PI * wheelRL->getDistance() / ENCODER_RESOLUTION;
-  positions[2] = 2 * M_PI * wheelFR->getDistance() / ENCODER_RESOLUTION;
-  positions[3] = 2 * M_PI * wheelRR->getDistance() / ENCODER_RESOLUTION;
+  positions[0] = 2 * M_PI * wheel_FL_->getDistance() / ENCODER_RESOLUTION;
+  positions[1] = 2 * M_PI * wheel_RL_->getDistance() / ENCODER_RESOLUTION;
+  positions[2] = 2 * M_PI * wheel_FR_->getDistance() / ENCODER_RESOLUTION;
+  positions[3] = 2 * M_PI * wheel_RR_->getDistance() / ENCODER_RESOLUTION;
   return positions;
 }
 
 std::vector<float> DiffDriveController::getWheelVelocities() {
   std::vector<float> velocities(4);
-  velocities[0] = 2 * M_PI * wheelFL->getSpeed() / ENCODER_RESOLUTION;
-  velocities[1] = 2 * M_PI * wheelRL->getSpeed() / ENCODER_RESOLUTION;
-  velocities[2] = 2 * M_PI * wheelFR->getSpeed() / ENCODER_RESOLUTION;
-  velocities[3] = 2 * M_PI * wheelRR->getSpeed() / ENCODER_RESOLUTION;
+  velocities[0] = 2 * M_PI * wheel_FL_->getSpeed() / ENCODER_RESOLUTION;
+  velocities[1] = 2 * M_PI * wheel_RL_->getSpeed() / ENCODER_RESOLUTION;
+  velocities[2] = 2 * M_PI * wheel_FR_->getSpeed() / ENCODER_RESOLUTION;
+  velocities[3] = 2 * M_PI * wheel_RR_->getSpeed() / ENCODER_RESOLUTION;
   return velocities;
 }
 
 std::vector<float> DiffDriveController::getWheelEfforts() {
   std::vector<float> efforts(4);
-  efforts[0] = wheelFL->getPower() * 0.1;
-  efforts[1] = wheelRL->getPower() * 0.1;
-  efforts[2] = wheelFR->getPower() * 0.1;
-  efforts[3] = wheelRR->getPower() * 0.1;
+  efforts[0] = wheel_FL_->getPower() * 0.1;
+  efforts[1] = wheel_RL_->getPower() * 0.1;
+  efforts[2] = wheel_FR_->getPower() * 0.1;
+  efforts[3] = wheel_RR_->getPower() * 0.1;
   return efforts;
 }
 
@@ -84,10 +88,10 @@ void DiffDriveController::updateWheelLoop() {
   uint32_t t = sys.getRefTime();
   uint32_t dt = 10;
   while (true) {
-    wheelFL->update(dt);
-    wheelRL->update(dt);
-    wheelFR->update(dt);
-    wheelRR->update(dt);
+    wheel_FL_->update(dt);
+    wheel_RL_->update(dt);
+    wheel_FR_->update(dt);
+    wheel_RR_->update(dt);
     sys.delaySync(t, dt);
   }
 }
@@ -98,10 +102,10 @@ void DiffDriveController::updateOdometryLoop() {
 
   while (true) {
     // speed in ticks/sec
-    float FL_speed = wheelFL->getSpeed();
-    float RL_speed = wheelRL->getSpeed();
-    float FR_speed = wheelFR->getSpeed();
-    float RR_speed = wheelRR->getSpeed();
+    float FL_speed = wheel_FL_->getSpeed();
+    float RL_speed = wheel_RL_->getSpeed();
+    float FR_speed = wheel_FR_->getSpeed();
+    float RR_speed = wheel_RR_->getSpeed();
 
     float L_speed = (FL_speed + RL_speed) / 2.0;
     float R_speed = (FR_speed + RR_speed) / 2.0;
@@ -127,12 +131,12 @@ void DiffDriveController::debugLoop() {
   uint32_t dt = 100;
 
   while (true) {
-    Serial.printf("Motor powers: %d %d %d %d\r\n", wheelFL->getPower(),
-                  wheelRL->getPower(), wheelFR->getPower(),
-                  wheelRR->getPower());
-    Serial.printf("Motor speeds: %f %f %f %f\r\n", wheelFL->getSpeed(),
-                  wheelRL->getSpeed(), wheelFR->getSpeed(),
-                  wheelRR->getSpeed());
+    Serial.printf("Motor powers: %d %d %d %d\r\n", wheel_FL_->getPower(),
+                  wheel_RL_->getPower(), wheel_FR_->getPower(),
+                  wheel_RR_->getPower());
+    Serial.printf("Motor speeds: %f %f %f %f\r\n", wheel_FL_->getSpeed(),
+                  wheel_RL_->getSpeed(), wheel_FR_->getSpeed(),
+                  wheel_RR_->getSpeed());
     sys.delaySync(t, dt);
   }
 }

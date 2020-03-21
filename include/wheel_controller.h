@@ -1,8 +1,9 @@
-#ifndef LEO_FIRMWARE_WHEEL_CONTROLLER_H_
-#define LEO_FIRMWARE_WHEEL_CONTROLLER_H_
+#ifndef INCLUDE_WHEEL_CONTROLLER_H_
+#define INCLUDE_WHEEL_CONTROLLER_H_
 
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 
 #include "hFramework.h"
 #include "utils.h"
@@ -52,4 +53,4 @@ class WheelController {
   static constexpr float v_range_ = 1000.0;
 };
 
-#endif
+#endif  // INCLUDE_WHEEL_CONTROLLER_H_

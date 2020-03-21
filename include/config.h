@@ -1,6 +1,6 @@
 
-#ifndef LEO_FIRMWARE_CONFIG_H_
-#define LEO_FIRMWARE_CONFIG_H_
+#ifndef INCLUDE_CONFIG_H_
+#define INCLUDE_CONFIG_H_
 
 #include <cstdint>
 
@@ -23,7 +23,6 @@ struct Config {
         accel_bias{0.0, 0.0, 0.0},
         mag_scale{1.0, 1.0, 1.0},
         mag_bias{0.0, 0.0, 0.0} {}
-
 } __attribute__((packed));
 
 extern Config conf;
@@ -32,4 +31,4 @@ void load_config();
 void store_config();
 void reset_config();
 
-#endif
+#endif  // INCLUDE_CONFIG_H_

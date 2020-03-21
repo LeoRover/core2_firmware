@@ -1,5 +1,5 @@
-#ifndef LEO_FIRMWARE_PARAMS_H
-#define LEO_FIRMWARE_PARAMS_H
+#ifndef INCLUDE_PARAMS_H_
+#define INCLUDE_PARAMS_H_
 
 #include <cstdint>
 #include "hFramework.h"
@@ -42,7 +42,7 @@ const uint16_t SERVO_6_WIDTH_MAX = 2000;
 
 // Uncomment the line according to your wheel motors configuration
 #define POLOLU
-//#define BUEHLER
+// #define BUEHLER
 
 #ifdef POLOLU
 
@@ -96,4 +96,4 @@ const uint32_t INPUT_TIMEOUT = 500;
 // By default it is set to pin1 on hExt port
 static hFramework::hGPIO& LED = hExt.pin1;
 
-#endif
+#endif  // INCLUDE_PARAMS_H_
