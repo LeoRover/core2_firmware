@@ -4,7 +4,7 @@
 
 #include "sensors/gps.h"
 
-void GPS::begin() {
+void GPS::init() {
   hSens3.selectSerial();
   hSens3.serial.init(9600, Parity::None, StopBits::One);
 }

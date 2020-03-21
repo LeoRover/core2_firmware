@@ -29,7 +29,7 @@ class WheelController {
   void turnOn();
 
  private:
-  hMotor& motor_;
+  hMotor &motor_;
   hPIDRegulator v_reg_;
   CircularBuffer<std::pair<int32_t, uint32_t>> encoder_buffer_;
 

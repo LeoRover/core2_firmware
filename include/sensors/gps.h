@@ -18,7 +18,7 @@ class GPS {
   bool is_new_data = false;
   gga gpgga;
 
-  void begin();
+  void init();
   void receive_next_msg();
 
  private:

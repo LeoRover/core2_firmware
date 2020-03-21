@@ -7,7 +7,7 @@ class IMU {
  public:
   explicit IMU(hFramework::hI2C& i2c) : mpu_(i2c) {}
 
-  void begin();
+  void init();
   void update();
   void calGyroAccel();
   void calMag();

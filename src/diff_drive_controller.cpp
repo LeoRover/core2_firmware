@@ -1,23 +1,31 @@
 #include "hFramework.h"
 
 #include "diff_drive_controller.h"
-#include "params.h"
 #include "utils.h"
 
-DiffDriveController::DiffDriveController(uint32_t input_timeout)
-    : input_timeout_(input_timeout) {
+DiffDriveController::DiffDriveController(
+    const float &wheel_max_speed, const float &pid_p, const float &pid_i,
+    const float &pid_d, const uint16_t &power_limit,
+    const uint16_t &torque_limit, const bool &encoder_pullup,
+    const float &encoder_resolution, const float &wheel_radius,
+    const float &robot_width, const uint32_t &input_timeout = 0)
+    : wheel_max_speed_(wheel_max_speed),
+      encoder_resolution_(encoder_resolution),
+      wheel_radius_(wheel_radius),
+      robot_width_(robot_width),
+      input_timeout_(input_timeout) {
   wheel_FL_ =
-      new WheelController(hMotC, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+      new WheelController(hMotC, 1, wheel_max_speed, pid_p, pid_i, pid_d,
+                          power_limit, torque_limit, encoder_pullup);
   wheel_RL_ =
-      new WheelController(hMotD, 1, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+      new WheelController(hMotD, 1, wheel_max_speed, pid_p, pid_i, pid_d,
+                          power_limit, torque_limit, encoder_pullup);
   wheel_FR_ =
-      new WheelController(hMotA, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+      new WheelController(hMotA, 0, wheel_max_speed, pid_p, pid_i, pid_d,
+                          power_limit, torque_limit, encoder_pullup);
   wheel_RR_ =
-      new WheelController(hMotB, 0, WHEEL_MAX_SPEED, PID_P, PID_I, PID_D,
-                          POWER_LIMIT, TORQUE_LIMIT, ENCODER_PULLUP);
+      new WheelController(hMotB, 0, wheel_max_speed, pid_p, pid_i, pid_d,
+                          power_limit, torque_limit, encoder_pullup);
 }
 
 void DiffDriveController::start() {
@@ -33,14 +41,14 @@ void DiffDriveController::start() {
 }
 
 void DiffDriveController::setSpeed(float linear, float angular) {
-  float wheel_L_lin_vel = linear - (angular * ROBOT_WIDTH / 2);
-  float wheel_R_lin_vel = linear + (angular * ROBOT_WIDTH / 2);
-  float wheel_L_ang_vel = wheel_L_lin_vel / WHEEL_RADIUS;
-  float wheel_R_ang_vel = wheel_R_lin_vel / WHEEL_RADIUS;
+  float wheel_L_lin_vel = linear - (angular * robot_width_ / 2);
+  float wheel_R_lin_vel = linear + (angular * robot_width_ / 2);
+  float wheel_L_ang_vel = wheel_L_lin_vel / wheel_radius_;
+  float wheel_R_ang_vel = wheel_R_lin_vel / wheel_radius_;
   float enc_L_speed =
-      clamp(ENCODER_RESOLUTION * wheel_L_ang_vel / (2 * M_PI), WHEEL_MAX_SPEED);
+      clamp(encoder_resolution_ * wheel_L_ang_vel / (2 * M_PI), wheel_max_speed_);
   float enc_R_speed =
-      clamp(ENCODER_RESOLUTION * wheel_R_ang_vel / (2 * M_PI), WHEEL_MAX_SPEED);
+      clamp(encoder_resolution_ * wheel_R_ang_vel / (2 * M_PI), wheel_max_speed_);
 
   wheel_FL_->setSpeed(enc_L_speed);
   wheel_RL_->setSpeed(enc_L_speed);
@@ -59,19 +67,19 @@ std::vector<float> DiffDriveController::getOdom() {
 
 std::vector<float> DiffDriveController::getWheelPositions() {
   std::vector<float> positions(4);
-  positions[0] = 2 * M_PI * wheel_FL_->getDistance() / ENCODER_RESOLUTION;
-  positions[1] = 2 * M_PI * wheel_RL_->getDistance() / ENCODER_RESOLUTION;
-  positions[2] = 2 * M_PI * wheel_FR_->getDistance() / ENCODER_RESOLUTION;
-  positions[3] = 2 * M_PI * wheel_RR_->getDistance() / ENCODER_RESOLUTION;
+  positions[0] = 2 * M_PI * wheel_FL_->getDistance() / encoder_resolution_;
+  positions[1] = 2 * M_PI * wheel_RL_->getDistance() / encoder_resolution_;
+  positions[2] = 2 * M_PI * wheel_FR_->getDistance() / encoder_resolution_;
+  positions[3] = 2 * M_PI * wheel_RR_->getDistance() / encoder_resolution_;
   return positions;
 }
 
 std::vector<float> DiffDriveController::getWheelVelocities() {
   std::vector<float> velocities(4);
-  velocities[0] = 2 * M_PI * wheel_FL_->getSpeed() / ENCODER_RESOLUTION;
-  velocities[1] = 2 * M_PI * wheel_RL_->getSpeed() / ENCODER_RESOLUTION;
-  velocities[2] = 2 * M_PI * wheel_FR_->getSpeed() / ENCODER_RESOLUTION;
-  velocities[3] = 2 * M_PI * wheel_RR_->getSpeed() / ENCODER_RESOLUTION;
+  velocities[0] = 2 * M_PI * wheel_FL_->getSpeed() / encoder_resolution_;
+  velocities[1] = 2 * M_PI * wheel_RL_->getSpeed() / encoder_resolution_;
+  velocities[2] = 2 * M_PI * wheel_FR_->getSpeed() / encoder_resolution_;
+  velocities[3] = 2 * M_PI * wheel_RR_->getSpeed() / encoder_resolution_;
   return velocities;
 }
 
@@ -111,16 +119,16 @@ void DiffDriveController::updateOdometryLoop() {
     float R_speed = (FR_speed + RR_speed) / 2.0;
 
     // velocity in radians per second
-    float L_ang_vel = 2 * M_PI * L_speed / ENCODER_RESOLUTION;
-    float R_ang_vel = 2 * M_PI * R_speed / ENCODER_RESOLUTION;
+    float L_ang_vel = 2 * M_PI * L_speed / encoder_resolution_;
+    float R_ang_vel = 2 * M_PI * R_speed / encoder_resolution_;
 
     // velocity in meters per second
-    float L_lin_vel = L_ang_vel * WHEEL_RADIUS;
-    float R_lin_vel = R_ang_vel * WHEEL_RADIUS;
+    float L_lin_vel = L_ang_vel * wheel_radius_;
+    float R_lin_vel = R_ang_vel * wheel_radius_;
 
     // linear (m/s) and angular (r/s) velocities of the robot
     lin_vel_ = (L_lin_vel + R_lin_vel) / 2;
-    ang_vel_ = (R_lin_vel - L_lin_vel) / ROBOT_WIDTH;
+    ang_vel_ = (R_lin_vel - L_lin_vel) / robot_width_;
 
     sys.delaySync(t, dt);
   }

@@ -7,8 +7,6 @@
 #include "std_msgs/Int16.h"
 #include "std_msgs/UInt16MultiArray.h"
 
-#include "params.h"
-
 inline float clamp(float value, float limit) {
   if (value > limit)
     return limit;
@@ -37,36 +35,38 @@ class CircularBuffer {
 };
 
 class ServoWrapper {
-  int num;
-  int per;
-  IServo& servo;
+  int num_;
+  uint16_t current_period_;
+  uint16_t servo_period_;
+  IServo& servo_;
 
  public:
-  ServoWrapper(int num, IServo& servo) : num(num), servo(servo) {}
+  ServoWrapper(int num, IServo& servo, uint16_t period)
+      : num_(num), servo_(servo), servo_period_(period) {}
 
   void angleCallback(const std_msgs::Int16& msg) {
-    if (per != SERVO_PERIOD) {
-      servo.setPeriod(SERVO_PERIOD);
-      per = SERVO_PERIOD;
+    if (current_period_ != servo_period_) {
+      servo_.setPeriod(servo_period_);
+      current_period_ = servo_period_;
     }
-    servo.rotAbs(msg.data);
+    servo_.rotAbs(msg.data);
 #ifdef DEBUG
-    Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num, msg.data);
+    Serial.printf("[servo%dAngleCallback] angle: %d\r\n", num_, msg.data);
 #endif
   }
 
   void pwmCallback(const std_msgs::UInt16MultiArray& msg) {
     if (msg.data_length >= 2) {
-      per = msg.data[0];
-      servo.setPeriod(msg.data[0]);
-      servo.setWidth(msg.data[1]);
+      current_period_ = msg.data[0];
+      servo_.setPeriod(current_period_);
+      servo_.setWidth(msg.data[1]);
 #ifdef DEBUG
-      Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num,
+      Serial.printf("[servo%dPWMCallback] period: %d width: %d\r\n", num_,
                     msg.data[0], msg.data[1]);
     } else {
       Serial.printf(
           "ERROR: [servo%dPWMCallback] data array should have 2 members\r\n",
-          num);
+          num_);
 #endif
     }
   }

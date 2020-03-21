@@ -10,7 +10,7 @@ static const float gravitationalAcceleration = 9.80665;
 static const float degreeToRadian = 2.0 * M_PI / 360.0;
 static const float mGuassToGauss = 0.001;
 
-void IMU::begin() {
+void IMU::init() {
   mpu_.begin(100000);
 
   uint8_t c = mpu_.getMPU9250ID();

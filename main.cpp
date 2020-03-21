@@ -2,9 +2,10 @@
 // #include "hCloudClient.h"
 #include "hMutex.h"
 
+#include "ros.h"
+
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
-#include "ros.h"
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "std_msgs/Bool.h"
@@ -16,11 +17,11 @@
 
 #include "config.h"
 #include "diff_drive_controller.h"
-#include "params.h"
-#include "utils.h"
-
 #include "sensors/gps.h"
 #include "sensors/imu.h"
+#include "utils.h"
+
+#include "params.h"
 
 ros::NodeHandle nh;
 
@@ -66,12 +67,12 @@ ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
 
 DiffDriveController *dc;
 
-ServoWrapper servo1(1, hServo.servo1);
-ServoWrapper servo2(2, hServo.servo2);
-ServoWrapper servo3(3, hServo.servo3);
-ServoWrapper servo4(4, hServo.servo4);
-ServoWrapper servo5(5, hServo.servo5);
-ServoWrapper servo6(6, hServo.servo6);
+ServoWrapper servo1(1, hServo.servo1, SERVO_PERIOD);
+ServoWrapper servo2(2, hServo.servo2, SERVO_PERIOD);
+ServoWrapper servo3(3, hServo.servo3, SERVO_PERIOD);
+ServoWrapper servo4(4, hServo.servo4, SERVO_PERIOD);
+ServoWrapper servo5(5, hServo.servo5, SERVO_PERIOD);
+ServoWrapper servo6(6, hServo.servo6, SERVO_PERIOD);
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc->setSpeed(msg.linear.x, msg.angular.z);
@@ -256,13 +257,19 @@ void setupJoints() {
   joint_states.effort_length = 4;
 }
 
-void setupImu() {
+void setupIMU() {
   IMU_HSENS.selectI2C();
   imu = new IMU(IMU_HSENS.getI2C());
-  imu->begin();
+  imu->init();
   imu_gyro_msg.header.frame_id = "imu";
   imu_accel_msg.header.frame_id = "imu";
   imu_mag_msg.header.frame_id = "imu";
+}
+
+void setupGPS() {
+  gps = new GPS;
+  gps->init();
+  gps_fix.header.frame_id = "gps";
 }
 
 void setupOdom() { odom.header.frame_id = "base_link"; }
@@ -375,7 +382,6 @@ void GPSLoop() {
 
     if (!publish_gps) {
       gps_fix.header.stamp = nh.now();
-      gps_fix.header.frame_id = "/gps";
       gps_fix.latitude = gps->gpgga.latitude;
       gps_fix.longitude = gps->gpgga.longitude;
 
@@ -399,7 +405,10 @@ void hMain() {
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();
 
-  dc = new DiffDriveController(INPUT_TIMEOUT);
+  dc =
+      new DiffDriveController(WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT,
+                              TORQUE_LIMIT, ENCODER_PULLUP, ENCODER_RESOLUTION,
+                              WHEEL_RADIUS, ROBOT_WIDTH, INPUT_TIMEOUT);
   dc->start();
 
   load_config();
@@ -419,13 +428,12 @@ void hMain() {
   sys.taskCreate(&jointStatesLoop);
 
   if (conf.imu_enabled) {
-    setupImu();
+    setupIMU();
     sys.taskCreate(&imuLoop);
   }
 
   if (conf.gps_enabled) {
-    gps = new GPS;
-    gps->begin();
+    setupGPS();
     sys.taskCreate(&GPSLoop);
   }
 
