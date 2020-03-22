@@ -1,5 +1,5 @@
-#ifndef INCLUDE_SENSORS_IMU_H_
-#define INCLUDE_SENSORS_IMU_H_
+#ifndef LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
+#define LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
 
 #include "sensors/imu/MPU9250.h"
 
@@ -25,4 +25,4 @@ class IMU {
   hFramework::hMutex mpu_mutex_;
 };
 
-#endif  // INCLUDE_SENSORS_IMU_H_
+#endif  // LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_

@@ -1,6 +1,6 @@
 
-#ifndef INCLUDE_CONFIG_H_
-#define INCLUDE_CONFIG_H_
+#ifndef LEO_FIRMWARE_INCLUDE_CONFIG_H_
+#define LEO_FIRMWARE_INCLUDE_CONFIG_H_
 
 #include <cstdint>
 
@@ -33,4 +33,4 @@ void load_config();
 void store_config();
 void reset_config();
 
-#endif  // INCLUDE_CONFIG_H_
+#endif  // LEO_FIRMWARE_INCLUDE_CONFIG_H_

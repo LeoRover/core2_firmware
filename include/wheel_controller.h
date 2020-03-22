@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WHEEL_CONTROLLER_H_
-#define INCLUDE_WHEEL_CONTROLLER_H_
+#ifndef LEO_FIRMWARE_INCLUDE_WHEEL_CONTROLLER_H_
+#define LEO_FIRMWARE_INCLUDE_WHEEL_CONTROLLER_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -12,7 +12,8 @@ class WheelController {
  public:
   WheelController(hMotor& motor, const bool polarity, const float max_speed,
                   const float kp, const float ki, const float kd,
-                  uint16_t power_limit = 1000, uint16_t torque_limit = 1000,
+                  const uint16_t power_limit = 1000,
+                  const uint16_t torque_limit = 1000,
                   const bool encoder_pullup = false);
 
   void update(uint32_t dt);
@@ -29,7 +30,7 @@ class WheelController {
   void turnOn();
 
  private:
-  hMotor &motor_;
+  hMotor& motor_;
   hPIDRegulator v_reg_;
   CircularBuffer<std::pair<int32_t, uint32_t>> encoder_buffer_;
 
@@ -53,4 +54,4 @@ class WheelController {
   static constexpr float v_range_ = 1000.0;
 };
 
-#endif  // INCLUDE_WHEEL_CONTROLLER_H_
+#endif  // LEO_FIRMWARE_INCLUDE_WHEEL_CONTROLLER_H_

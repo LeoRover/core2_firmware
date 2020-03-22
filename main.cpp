@@ -67,19 +67,19 @@ ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
     *imu_cal_mag_srv;
 
-DiffDriveController *dc;
+DiffDriveController dc;
 
-ServoWrapper servo1(1, hServo.servo1, SERVO_PERIOD);
-ServoWrapper servo2(2, hServo.servo2, SERVO_PERIOD);
-ServoWrapper servo3(3, hServo.servo3, SERVO_PERIOD);
-ServoWrapper servo4(4, hServo.servo4, SERVO_PERIOD);
-ServoWrapper servo5(5, hServo.servo5, SERVO_PERIOD);
-ServoWrapper servo6(6, hServo.servo6, SERVO_PERIOD);
+ServoWrapper servo1(1, hServo.servo1);
+ServoWrapper servo2(2, hServo.servo2);
+ServoWrapper servo3(3, hServo.servo3);
+ServoWrapper servo4(4, hServo.servo4);
+ServoWrapper servo5(5, hServo.servo5);
+ServoWrapper servo6(6, hServo.servo6);
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
   logDebug("[cmdVelCallback] linear: %f angular %f", msg.linear.x,
            msg.angular.z);
-  dc->setSpeed(msg.linear.x, msg.angular.z);
+  dc.setSpeed(msg.linear.x, msg.angular.z);
 }
 
 void resetBoardCallback(const std_msgs::Empty &msg) {
@@ -232,34 +232,33 @@ void initROS() {
 
 void setupServos() {
   hServo.enablePower();
-  hServo.setPeriod(SERVO_PERIOD);
 
-  switch (SERVO_VOLTAGE) {
-    case VOLTAGE_5V:
+  int servo_voltage = 2;
+  nh.getParam("core2/servo_voltage", &servo_voltage);
+
+  switch (servo_voltage) {
+    case 0:
       hServo.setVoltage5V();
       break;
-    case VOLTAGE_6V:
+    case 1:
       hServo.setVoltage6V();
       break;
-    case VOLTAGE_7V4:
+    case 2:
       hServo.setVoltage7V4();
       break;
-    case VOLTAGE_8V6:
+    case 3:
       hServo.setVoltage8V6();
+      break;
+    default:
+      hServo.setVoltage7V4();
   }
 
-  hServo.servo1.calibrate(SERVO_1_ANGLE_MIN, SERVO_1_WIDTH_MIN,
-                          SERVO_1_ANGLE_MAX, SERVO_1_WIDTH_MAX);
-  hServo.servo2.calibrate(SERVO_2_ANGLE_MIN, SERVO_2_WIDTH_MIN,
-                          SERVO_2_ANGLE_MAX, SERVO_2_WIDTH_MAX);
-  hServo.servo3.calibrate(SERVO_3_ANGLE_MIN, SERVO_3_WIDTH_MIN,
-                          SERVO_3_ANGLE_MAX, SERVO_3_WIDTH_MAX);
-  hServo.servo4.calibrate(SERVO_4_ANGLE_MIN, SERVO_4_WIDTH_MIN,
-                          SERVO_4_ANGLE_MAX, SERVO_4_WIDTH_MAX);
-  hServo.servo5.calibrate(SERVO_5_ANGLE_MIN, SERVO_5_WIDTH_MIN,
-                          SERVO_5_ANGLE_MAX, SERVO_5_WIDTH_MAX);
-  hServo.servo6.calibrate(SERVO_6_ANGLE_MIN, SERVO_6_WIDTH_MIN,
-                          SERVO_6_ANGLE_MAX, SERVO_6_WIDTH_MAX);
+  servo1.init(&nh);
+  servo2.init(&nh);
+  servo3.init(&nh);
+  servo4.init(&nh);
+  servo5.init(&nh);
+  servo6.init(&nh);
 }
 
 void setupJoints() {
@@ -316,7 +315,7 @@ void odomLoop() {
     if (!publish_odom) {
       odom.header.stamp = nh.now();
 
-      std::vector<float> odo = dc->getOdom();
+      std::vector<float> odo = dc.getOdom();
       odom.twist.linear.x = odo[0];
       odom.twist.angular.z = odo[1];
 
@@ -333,9 +332,9 @@ void jointStatesLoop() {
 
   while (true) {
     if (!publish_joint) {
-      std::vector<float> pos = dc->getWheelPositions();
-      std::vector<float> vel = dc->getWheelVelocities();
-      std::vector<float> eff = dc->getWheelEfforts();
+      std::vector<float> pos = dc.getWheelPositions();
+      std::vector<float> vel = dc.getWheelVelocities();
+      std::vector<float> eff = dc.getWheelEfforts();
 
       joint_states.header.stamp = nh.now();
 
@@ -434,11 +433,8 @@ void hMain() {
 
   load_config();
 
-  dc =
-      new DiffDriveController(WHEEL_MAX_SPEED, PID_P, PID_I, PID_D, POWER_LIMIT,
-                              TORQUE_LIMIT, ENCODER_PULLUP, ENCODER_RESOLUTION,
-                              WHEEL_RADIUS, ROBOT_WIDTH, INPUT_TIMEOUT);
-  dc->start();
+  dc.init(&nh);
+  dc.start();
 
   setupOdom();
   setupServos();

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_SENSORS_GPS_H_
-#define INCLUDE_SENSORS_GPS_H_
+#ifndef LEO_FIRMWARE_INCLUDE_SENSORS_GPS_H_
+#define LEO_FIRMWARE_INCLUDE_SENSORS_GPS_H_
 
 #include "hFramework.h"
 
@@ -27,4 +27,4 @@ class GPS {
   hFramework::hSerial &serial_;
 };
 
-#endif  // INCLUDE_SENSORS_GPS_H_
+#endif  // LEO_FIRMWARE_INCLUDE_SENSORS_GPS_H_

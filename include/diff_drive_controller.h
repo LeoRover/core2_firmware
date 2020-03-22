@@ -1,19 +1,15 @@
-#ifndef INCLUDE_DIFF_DRIVE_CONTROLLER_H_
-#define INCLUDE_DIFF_DRIVE_CONTROLLER_H_
+#ifndef LEO_FIRMWARE_INCLUDE_DIFF_DRIVE_CONTROLLER_H_
+#define LEO_FIRMWARE_INCLUDE_DIFF_DRIVE_CONTROLLER_H_
 
 #include <vector>
+
+#include "ros.h"
 
 #include "wheel_controller.h"
 
 class DiffDriveController {
  public:
-  DiffDriveController(const float &wheel_max_speed, const float &pid_p,
-                      const float &pid_i, const float &pid_d,
-                      const uint16_t &power_limit, const uint16_t &torque_limit,
-                      const bool &encoder_pullup,
-                      const float &encoder_resolution,
-                      const float &wheel_radius, const float &robot_width,
-                      const uint32_t &input_timeout);
+  void init(ros::NodeHandle *nh);
   void start();
   void setSpeed(float linear, float angular);
   std::vector<float> getOdom();
@@ -35,13 +31,14 @@ class DiffDriveController {
   float lin_vel_;
   float ang_vel_;
 
-  uint32_t last_update_;
+  uint64_t last_update_;
+  uint64_t input_timeout_;
 
-  const float wheel_max_speed_;
-  const float encoder_resolution_;
-  const float wheel_radius_;
-  const float robot_width_;
-  const uint32_t input_timeout_;
+  // Default parameters
+  float encoder_resolution_ = 878.4;
+  float wheel_radius_ = 0.0625;
+  float wheel_separation_ = 0.33;
+  float angular_velocity_multiplier_ = 2.0;
 };
 
-#endif  // INCLUDE_DIFF_DRIVE_CONTROLLER_H_
+#endif  // LEO_FIRMWARE_INCLUDE_DIFF_DRIVE_CONTROLLER_H_

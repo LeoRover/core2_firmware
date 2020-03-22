@@ -4,7 +4,8 @@
 WheelController::WheelController(hMotor &motor, const bool polarity,
                                  const float max_speed, const float kp,
                                  const float ki, const float kd,
-                                 uint16_t power_limit, uint16_t torque_limit,
+                                 const uint16_t power_limit,
+                                 const uint16_t torque_limit,
                                  const bool encoder_pullup)
     : motor_(motor),
       polarity_(polarity),
