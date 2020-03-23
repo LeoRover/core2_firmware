@@ -38,7 +38,7 @@ class DiffDriveController {
   float encoder_resolution_ = 878.4;
   float wheel_radius_ = 0.0625;
   float wheel_separation_ = 0.33;
-  float angular_velocity_multiplier_ = 2.0;
+  float angular_velocity_multiplier_ = 1.91;
 };
 
 #endif  // LEO_FIRMWARE_INCLUDE_DIFF_DRIVE_CONTROLLER_H_
