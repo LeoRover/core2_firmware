@@ -1,7 +1,7 @@
 #ifndef LEO_FIRMWARE_INCLUDE_SENSORS_GPS_H_
 #define LEO_FIRMWARE_INCLUDE_SENSORS_GPS_H_
 
-#include "hFramework.h"
+#include <hFramework.h>
 
 struct gga {
   int time;

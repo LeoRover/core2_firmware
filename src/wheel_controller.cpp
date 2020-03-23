@@ -1,5 +1,5 @@
-#include "wheel_controller.h"
-#include "utils.h"
+#include <leo_firmware/utils.h>
+#include <leo_firmware/wheel_controller.h>
 
 WheelController::WheelController(hMotor &motor, const bool polarity,
                                  const float max_speed, const float kp,

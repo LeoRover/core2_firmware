@@ -1,8 +1,8 @@
 #include <string.h>
 
-#include "hFramework.h"
+#include <hFramework.h>
 
-#include "sensors/gps.h"
+#include <leo_firmware/sensors/gps.h>
 
 #define MAX_LENGTH 200
 

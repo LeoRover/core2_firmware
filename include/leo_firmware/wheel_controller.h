@@ -5,8 +5,9 @@
 #include <cstdint>
 #include <utility>
 
-#include "hFramework.h"
-#include "utils.h"
+#include <hFramework.h>
+
+#include <leo_firmware/utils.h>
 
 class WheelController {
  public:

@@ -1,10 +1,10 @@
 #include <cstdio>
 
-#include "hFramework.h"
+#include <hFramework.h>
 
-#include "diff_drive_controller.h"
-#include "logging.h"
-#include "utils.h"
+#include <leo_firmware/diff_drive_controller.h>
+#include <leo_firmware/logging.h>
+#include <leo_firmware/utils.h>
 
 void DiffDriveController::init(ros::NodeHandle *nh) {
   // Default parameters

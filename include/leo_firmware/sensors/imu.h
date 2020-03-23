@@ -1,7 +1,7 @@
 #ifndef LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
 #define LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
 
-#include "sensors/imu/MPU9250.h"
+#include <leo_firmware/sensors/imu/MPU9250.h>
 
 class IMU {
  public:

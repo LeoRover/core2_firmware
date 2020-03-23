@@ -1,7 +1,7 @@
-#include "hFramework.h"
+#include <hFramework.h>
 
-#include "config.h"
-#include "logging.h"
+#include <leo_firmware/config.h>
+#include <leo_firmware/logging.h>
 
 Config conf;
 hStorage storage;

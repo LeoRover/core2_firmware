@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "ros.h"
+#include <ros.h>
 
-#include "wheel_controller.h"
+#include <leo_firmware/wheel_controller.h>
 
 class DiffDriveController {
  public:

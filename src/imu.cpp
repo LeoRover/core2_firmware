@@ -1,11 +1,10 @@
-#include "hFramework.h"
+#include <hFramework.h>
 
-#include "sensors/imu.h"
-#include "sensors/imu/MPU9250.h"
-#include "sensors/imu/RegisterMap.h"
-
-#include "config.h"
-#include "logging.h"
+#include <leo_firmware/config.h>
+#include <leo_firmware/logging.h>
+#include <leo_firmware/sensors/imu.h>
+#include <leo_firmware/sensors/imu/MPU9250.h>
+#include <leo_firmware/sensors/imu/RegisterMap.h>
 
 static const float gravitationalAcceleration = 9.80665;
 static const float degreeToRadian = 2.0 * M_PI / 360.0;

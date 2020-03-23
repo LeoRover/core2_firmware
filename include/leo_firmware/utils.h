@@ -3,13 +3,13 @@
 
 #include <cstdio>
 
-#include "hFramework.h"
+#include <hFramework.h>
 
-#include "ros.h"
-#include "std_msgs/Int16.h"
-#include "std_msgs/UInt16MultiArray.h"
+#include <ros.h>
+#include <std_msgs/Int16.h>
+#include <std_msgs/UInt16MultiArray.h>
 
-#include "logging.h"
+#include <leo_firmware/logging.h>
 
 inline float clamp(float value, float limit) {
   if (value > limit)
