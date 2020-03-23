@@ -127,9 +127,9 @@ void calMagCallback(const std_srvs::TriggerRequest &req,
 }
 
 void initROS() {
-  battery_pub = new ros::Publisher("/battery", &battery);
-  odom_pub = new ros::Publisher("/wheel_odom", &odom);
-  joint_states_pub = new ros::Publisher("/joint_states", &joint_states);
+  battery_pub = new ros::Publisher("battery", &battery);
+  odom_pub = new ros::Publisher("wheel_odom", &odom);
+  joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
   twist_sub =
       new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
@@ -206,9 +206,9 @@ void initROS() {
   nh.subscribe(*servo6_pwm_sub);
 
   if (conf.imu_enabled) {
-    imu_gyro_pub = new ros::Publisher("/imu/gyro", &imu_gyro_msg);
-    imu_accel_pub = new ros::Publisher("/imu/accel", &imu_accel_msg);
-    imu_mag_pub = new ros::Publisher("/imu/mag", &imu_mag_msg);
+    imu_gyro_pub = new ros::Publisher("imu/gyro", &imu_gyro_msg);
+    imu_accel_pub = new ros::Publisher("imu/accel", &imu_accel_msg);
+    imu_mag_pub = new ros::Publisher("imu/mag", &imu_mag_msg);
     imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                              std_srvs::TriggerResponse>(
         "imu/calibrate_gyro_accel", &calMpuCallback);
@@ -225,7 +225,7 @@ void initROS() {
   }
 
   if (conf.gps_enabled) {
-    gps_pub = new ros::Publisher("/gps_fix", &gps_fix);
+    gps_pub = new ros::Publisher("gps_fix", &gps_fix);
     nh.advertise(*gps_pub);
   }
 }
@@ -279,16 +279,26 @@ void setupIMU() {
   IMU_HSENS.selectI2C();
   imu = new IMU(IMU_HSENS.getI2C());
   imu->init();
-  imu_gyro_msg.header.frame_id = "imu";
-  imu_accel_msg.header.frame_id = "imu";
-  imu_mag_msg.header.frame_id = "imu";
+
+  static char frame_id[50] = "imu";
+  char *imu_frame_id = &frame_id[0];
+  nh.getParam("core2/imu_frame_id", &imu_frame_id);
+
+  imu_gyro_msg.header.frame_id = frame_id;
+  imu_accel_msg.header.frame_id = frame_id;
+  imu_mag_msg.header.frame_id = frame_id;
 }
 
 void setupGPS() {
   GPS_HSENS.selectSerial();
   gps = new GPS(GPS_HSENS.getSerial());
   gps->init();
-  gps_fix.header.frame_id = "gps";
+
+  static char frame_id[50] = "gps";
+  char *gps_frame_id = &frame_id[0];
+  nh.getParam("core2/gps_frame_id", &gps_frame_id);
+
+  gps_fix.header.frame_id = frame_id;
 }
 
 void setupOdom() { odom.header.frame_id = "base_link"; }
