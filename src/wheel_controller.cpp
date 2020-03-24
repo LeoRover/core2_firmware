@@ -75,13 +75,7 @@ void WheelController::update(uint32_t dt) {
 }
 
 void WheelController::setSpeed(float speed) {
-  if (speed > max_speed_) {
-    v_target_ = max_speed_;
-  } else if (speed < -max_speed_) {
-    v_target_ = -max_speed_;
-  } else {
-    v_target_ = speed;
-  }
+  v_target_ = clamp(speed, max_speed_);
 }
 
 float WheelController::getSpeed() { return v_now_; }
