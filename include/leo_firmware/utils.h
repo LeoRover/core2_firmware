@@ -2,6 +2,7 @@
 #define LEO_FIRMWARE_INCLUDE_UTILS_H_
 
 #include <cstdio>
+#include <sstream>
 
 #include <hFramework.h>
 
@@ -56,7 +57,9 @@ class ServoWrapper {
     int width_min = 1000;
     int width_max = 2000;
 
-    std::string param_prefix = "core2/servo" + std::to_string(num_) + "/";
+    std::ostringstream ss;
+    ss << "core2/servo" << num_ << "/";
+    std::string param_prefix = ss.str();
     nh->getParam((param_prefix + "period").c_str(), &servo_period);
     nh->getParam((param_prefix + "angle_min").c_str(), &angle_min);
     nh->getParam((param_prefix + "angle_max").c_str(), &angle_max);
