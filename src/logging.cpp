@@ -5,23 +5,20 @@
 
 #include <ros.h>
 
-#include <leo_firmware/config.h>
 #include <leo_firmware/logging.h>
 
 extern ros::NodeHandle nh;
 
 void logDebug(const char *format, ...) {
-  if (conf.debug_logging) {
+#ifdef DEBUG
     char buffer[256];
     va_list arg;
     va_start(arg, format);
     vsnprintf(buffer, sizeof(buffer), format, arg);
     va_end(arg);
     nh.logdebug(buffer);
-#ifdef DEBUG
     sys.log("[DEBUG] %s\r\n", buffer);
 #endif
-  }
 }
 
 void logInfo(const char *format, ...) {
