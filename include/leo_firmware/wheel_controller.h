@@ -9,6 +9,8 @@
 
 #include <leo_firmware/utils.h>
 
+#define WHEEL_VELOCITY_REJECTION_THRESHOLD 2.0
+
 class WheelController {
  public:
   WheelController(hMotor& motor, const bool polarity, const float max_speed,
@@ -40,6 +42,7 @@ class WheelController {
   bool turned_on_;
 
   int32_t ticks_now_;
+  int32_t ticks_offset_;
   int32_t ticks_sum_;
   uint32_t dt_sum_;
 
