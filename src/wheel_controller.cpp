@@ -100,6 +100,8 @@ void WheelController::reset() {
   v_now_ = 0;
   v_target_ = 0;
   motor_.setPower(0);
+  ticks_now_ = 0;
+  ticks_offset_ = 0;
 }
 
 void WheelController::turnOff() {
