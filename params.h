@@ -3,6 +3,8 @@
 
 #include "hFramework.h"
 
+static const char *FIRMWARE_VERSION = "1.1.0";
+
 // The hSens port to which the IMU is connected
 // Set to either hSens1 or hSens2
 static hFramework::hSensor_i2c &IMU_HSENS = hSens2;
