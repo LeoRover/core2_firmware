@@ -9,6 +9,7 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/UInt16MultiArray.h>
+#include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 
@@ -66,15 +67,8 @@ void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc.setSpeed(msg.linear.x, msg.angular.z);
 }
 
-void getFirmwareCallback(const std_srvs::TriggerRequest &req,
-                         std_srvs::TriggerResponse &res) {
-  logDebug("[getFirmwareCallback]");
-  res.message = FIRMWARE_VERSION;
-  res.success = true;
-}
-
-void resetBoardCallback(const std_srvs::TriggerRequest &req,
-                        std_srvs::TriggerResponse &res) {
+void resetBoardCallback(const std_srvs::EmptyRequest &req,
+                        std_srvs::EmptyResponse &res) {
   logDebug("[resetBoardCallback]");
   sys.reset();
 }
@@ -83,6 +77,13 @@ void resetConfigCallback(const std_srvs::TriggerRequest &req,
                          std_srvs::TriggerResponse &res) {
   logDebug("[resetConfigCallback]");
   reset_config();
+  res.success = true;
+}
+
+void getFirmwareCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[getFirmwareCallback]");
+  res.message = FIRMWARE_VERSION;
   res.success = true;
 }
 
@@ -187,15 +188,15 @@ void initROS() {
   nh.subscribe(*servo6_pwm_sub);
 
   // Services
-  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
-                                                     std_srvs::TriggerResponse>(
-      "core2/get_firmware_version", &getFirmwareCallback);
-  auto reset_board_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
-                                                std_srvs::TriggerResponse>(
-      "core2/reset_board", &resetBoardCallback);
+  auto reset_board_srv =
+      new ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
+          "core2/reset_board", &resetBoardCallback);
   auto reset_config_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                                  std_srvs::TriggerResponse>(
       "core2/reset_config", &resetConfigCallback);
+  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                     std_srvs::TriggerResponse>(
+      "core2/get_firmware_version", &getFirmwareCallback);
   auto set_imu_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
                                             std_srvs::SetBoolResponse>(
       "core2/set_imu", &setImuCallback);
@@ -206,12 +207,12 @@ void initROS() {
                                               std_srvs::SetBoolResponse>(
       "core2/set_debug", &setDebugCallback);
 
-  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
-      *firmware_version_srv);
-  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+  nh.advertiseService<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
       *reset_board_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
       *reset_config_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *firmware_version_srv);
   nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
       *set_imu_srv);
   nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
@@ -219,6 +220,7 @@ void initROS() {
   nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
       *set_debug_srv);
 
+  // IMU
   if (conf.imu_enabled) {
     imu_gyro_pub = new ros::Publisher("imu/gyro", &imu_gyro_msg);
     imu_accel_pub = new ros::Publisher("imu/accel", &imu_accel_msg);
@@ -238,6 +240,7 @@ void initROS() {
         *imu_cal_mag_srv);
   }
 
+  // GPS
   if (conf.gps_enabled) {
     gps_pub = new ros::Publisher("gps_fix", &gps_fix);
     nh.advertise(*gps_pub);
