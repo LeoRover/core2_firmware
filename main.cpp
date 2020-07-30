@@ -6,11 +6,11 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/NavSatFix.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/UInt16MultiArray.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 
 #include <leo_firmware/config.h>
@@ -52,19 +52,6 @@ sensor_msgs::NavSatFix gps_fix;
 ros::Publisher *gps_pub;
 bool publish_gps = false;
 
-ros::Subscriber<geometry_msgs::Twist> *twist_sub;
-
-ros::Subscriber<std_msgs::Empty> *reset_board_sub;
-ros::Subscriber<std_msgs::Empty> *reset_config_sub;
-ros::Subscriber<std_msgs::Bool> *set_imu_sub;
-ros::Subscriber<std_msgs::Bool> *set_gps_sub;
-ros::Subscriber<std_msgs::Bool> *set_debug_sub;
-
-ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
-    *imu_cal_mpu_srv;
-ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>
-    *imu_cal_mag_srv;
-
 DiffDriveController dc;
 
 ServoWrapper servo1(1, hServo.servo1);
@@ -80,32 +67,48 @@ void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc.setSpeed(msg.linear.x, msg.angular.z);
 }
 
-void resetBoardCallback(const std_msgs::Empty &msg) {
+void resetBoardCallback(const std_srvs::EmptyRequest &req,
+                        std_srvs::EmptyResponse &res) {
   logDebug("[resetBoardCallback]");
   sys.reset();
 }
 
-void resetConfigCallback(const std_msgs::Empty &msg) {
+void resetConfigCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
   logDebug("[resetConfigCallback]");
   reset_config();
+  res.success = true;
 }
 
-void setImuCallback(const std_msgs::Bool &msg) {
-  logDebug("[setImuCallback] %s", msg.data ? "true" : "false");
-  conf.imu_enabled = msg.data;
-  store_config();
+void getFirmwareCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[getFirmwareCallback]");
+  res.message = FIRMWARE_VERSION;
+  res.success = true;
 }
 
-void setGpsCallback(const std_msgs::Bool &msg) {
-  logDebug("[setGpsCallback] %s", msg.data ? "true" : "false");
-  conf.gps_enabled = msg.data;
+void setImuCallback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setImuCallback] %s", req.data ? "true" : "false");
+  conf.imu_enabled = req.data;
   store_config();
+  res.success = true;
 }
 
-void setDebugCallback(const std_msgs::Bool &msg) {
-  logDebug("[setDebugCallback] %s", msg.data ? "true" : "false");
-  conf.debug_logging = msg.data;
+void setGpsCallback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setGpsCallback] %s", req.data ? "true" : "false");
+  conf.gps_enabled = req.data;
   store_config();
+  res.success = true;
+}
+
+void setDebugCallback(const std_srvs::SetBoolRequest &req,
+                      std_srvs::SetBoolResponse &res) {
+  logDebug("[setDebugCallback] %s", req.data ? "true" : "false");
+  conf.debug_logging = req.data;
+  store_config();
+  res.success = true;
 }
 
 void calMpuCallback(const std_srvs::TriggerRequest &req,
@@ -125,71 +128,52 @@ void calMagCallback(const std_srvs::TriggerRequest &req,
 }
 
 void initROS() {
+  // Publishers
   battery_pub = new ros::Publisher("battery", &battery);
   odom_pub = new ros::Publisher("wheel_odom", &odom);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
-  twist_sub =
-      new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
-
-  reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board",
-                                                         &resetBoardCallback);
-  reset_config_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_config",
-                                                          &resetConfigCallback);
-  set_imu_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
-  set_gps_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_gps", &setGpsCallback);
-  set_debug_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_debug", &setDebugCallback);
-
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo1_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo1/angle", &ServoWrapper::angleCallback, &servo1);
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo2_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo2/angle", &ServoWrapper::angleCallback, &servo2);
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo3_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo3/angle", &ServoWrapper::angleCallback, &servo3);
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo4_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo4/angle", &ServoWrapper::angleCallback, &servo4);
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo5_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo5/angle", &ServoWrapper::angleCallback, &servo5);
-  ros::Subscriber<std_msgs::Int16, ServoWrapper> *servo6_angle_sub =
-      new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
-          "servo6/angle", &ServoWrapper::angleCallback, &servo6);
-
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo1_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo2_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo3_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo4_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo5_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
-  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> *servo6_pwm_sub =
-      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
-          "servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
-
   nh.advertise(*battery_pub);
   nh.advertise(*odom_pub);
   nh.advertise(*joint_states_pub);
+
+  // Subscribers
+  auto twist_sub =
+      new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
+
+  auto servo1_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo1/angle", &ServoWrapper::angleCallback, &servo1);
+  auto servo2_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo2/angle", &ServoWrapper::angleCallback, &servo2);
+  auto servo3_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo3/angle", &ServoWrapper::angleCallback, &servo3);
+  auto servo4_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo4/angle", &ServoWrapper::angleCallback, &servo4);
+  auto servo5_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo5/angle", &ServoWrapper::angleCallback, &servo5);
+  auto servo6_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
+      "servo6/angle", &ServoWrapper::angleCallback, &servo6);
+
+  auto servo1_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo1/pwm", &ServoWrapper::pwmCallback, &servo1);
+  auto servo2_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo2/pwm", &ServoWrapper::pwmCallback, &servo2);
+  auto servo3_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo3/pwm", &ServoWrapper::pwmCallback, &servo3);
+  auto servo4_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo4/pwm", &ServoWrapper::pwmCallback, &servo4);
+  auto servo5_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo5/pwm", &ServoWrapper::pwmCallback, &servo5);
+  auto servo6_pwm_sub =
+      new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
+          "servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
+
   nh.subscribe(*twist_sub);
-  nh.subscribe(*reset_board_sub);
-  nh.subscribe(*reset_config_sub);
-  nh.subscribe(*set_imu_sub);
-  nh.subscribe(*set_gps_sub);
-  nh.subscribe(*set_debug_sub);
   nh.subscribe(*servo1_angle_sub);
   nh.subscribe(*servo2_angle_sub);
   nh.subscribe(*servo3_angle_sub);
@@ -203,15 +187,49 @@ void initROS() {
   nh.subscribe(*servo5_pwm_sub);
   nh.subscribe(*servo6_pwm_sub);
 
+  // Services
+  auto reset_board_srv =
+      new ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
+          "core2/reset_board", &resetBoardCallback);
+  auto reset_config_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                 std_srvs::TriggerResponse>(
+      "core2/reset_config", &resetConfigCallback);
+  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                     std_srvs::TriggerResponse>(
+      "core2/get_firmware_version", &getFirmwareCallback);
+  auto set_imu_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+      "core2/set_imu", &setImuCallback);
+  auto set_gps_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+      "core2/set_gps", &setGpsCallback);
+  auto set_debug_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                              std_srvs::SetBoolResponse>(
+      "core2/set_debug", &setDebugCallback);
+
+  nh.advertiseService<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
+      *reset_board_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *reset_config_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *firmware_version_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_imu_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_gps_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_debug_srv);
+
+  // IMU
   if (conf.imu_enabled) {
     imu_gyro_pub = new ros::Publisher("imu/gyro", &imu_gyro_msg);
     imu_accel_pub = new ros::Publisher("imu/accel", &imu_accel_msg);
     imu_mag_pub = new ros::Publisher("imu/mag", &imu_mag_msg);
-    imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
-                                             std_srvs::TriggerResponse>(
+    auto imu_cal_mpu_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                  std_srvs::TriggerResponse>(
         "imu/calibrate_gyro_accel", &calMpuCallback);
-    imu_cal_mag_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
-                                             std_srvs::TriggerResponse>(
+    auto imu_cal_mag_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                  std_srvs::TriggerResponse>(
         "imu/calibrate_mag", &calMagCallback);
     nh.advertise(*imu_gyro_pub);
     nh.advertise(*imu_accel_pub);
@@ -222,6 +240,7 @@ void initROS() {
         *imu_cal_mag_srv);
   }
 
+  // GPS
   if (conf.gps_enabled) {
     gps_pub = new ros::Publisher("gps_fix", &gps_fix);
     nh.advertise(*gps_pub);

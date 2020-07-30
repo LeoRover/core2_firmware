@@ -52,7 +52,6 @@ void DiffDriveController::start() {
     last_update_ = sys.getRefTime();
     sys.taskCreate(std::bind(&DiffDriveController::inputWatchdog, this));
   }
-  sys.taskCreate(std::bind(&DiffDriveController::debugLoop, this));
 }
 
 void DiffDriveController::setSpeed(float linear, float angular) {
@@ -146,21 +145,6 @@ void DiffDriveController::updateOdometryLoop() {
 
     ang_vel_ /= angular_velocity_multiplier_;
 
-    sys.delaySync(t, dt);
-  }
-}
-
-void DiffDriveController::debugLoop() {
-  uint32_t t = sys.getRefTime();
-  uint32_t dt = 100;
-
-  while (true) {
-    logDebug("[Motor power] FL: %d RL: %d FR: %d RR: %d", wheel_FL_->getPower(),
-             wheel_RL_->getPower(), wheel_FR_->getPower(),
-             wheel_RR_->getPower());
-    logDebug("[Motor speed] FL: %f RL: %f FR: %f RR: %f", wheel_FL_->getSpeed(),
-             wheel_RL_->getSpeed(), wheel_FR_->getSpeed(),
-             wheel_RR_->getSpeed());
     sys.delaySync(t, dt);
   }
 }

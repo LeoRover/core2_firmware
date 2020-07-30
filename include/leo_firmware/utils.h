@@ -56,7 +56,7 @@ class ServoWrapper {
     int width_min = 1000;
     int width_max = 2000;
 
-    std::string param_prefix = "core2/servo" + std::to_string(num_) + "/";
+    std::string param_prefix = std::string("core2/servo") + static_cast<char>(num_ + '0') + '/';
     nh->getParam((param_prefix + "period").c_str(), &servo_period);
     nh->getParam((param_prefix + "angle_min").c_str(), &angle_min);
     nh->getParam((param_prefix + "angle_max").c_str(), &angle_max);

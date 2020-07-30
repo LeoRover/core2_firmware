@@ -14,6 +14,7 @@ WheelController::WheelController(hMotor &motor, const bool polarity,
       torque_limit_(torque_limit),
       turned_on_(true),
       ticks_now_(0),
+      ticks_offset_(0),
       ticks_sum_(0),
       dt_sum_(0),
       v_now_(0.0),
@@ -40,9 +41,16 @@ WheelController::WheelController(hMotor &motor, const bool polarity,
 
 void WheelController::update(uint32_t dt) {
   int32_t ticks_prev = ticks_now_;
-  ticks_now_ = motor_.getEncoderCnt();
+  ticks_now_ = motor_.getEncoderCnt() - ticks_offset_;
 
   int32_t new_ticks = ticks_now_ - ticks_prev;
+
+  float ins_vel = static_cast<float>(std::abs(new_ticks)) / (dt * 0.001);
+  if (ins_vel > WHEEL_VELOCITY_REJECTION_THRESHOLD * max_speed_) {
+    ticks_offset_ += new_ticks;
+    ticks_now_ -= new_ticks;
+    new_ticks = 0;
+  }
 
   std::pair<int32_t, uint32_t> encoder_old =
       encoder_buffer_.push_back(std::pair<int32_t, uint32_t>(new_ticks, dt));
@@ -92,6 +100,8 @@ void WheelController::reset() {
   v_now_ = 0;
   v_target_ = 0;
   motor_.setPower(0);
+  ticks_now_ = 0;
+  ticks_offset_ = 0;
 }
 
 void WheelController::turnOff() {

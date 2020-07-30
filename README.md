@@ -18,29 +18,6 @@
     Pulse duration and period (in nanoseconds) of servo X.  
     The values are passed through `data` array. Publishing to pwm topic overrides angle value and vice versa.
 
-* **`core2/reset_board`** ([std_msgs/Empty])
-
-    Performs software reset on the CORE2 board.
-
-* **`core2/reset_config`** ([std_msgs/Empty])
-
-    Loads the default config and saves it to persistant storage.
-
-* **`core2/set_imu`** ([std_msgs/Bool])
-
-    Enables or disables the IMU sensor and saves the configuration to persistent storage.  
-    Requires a reset to apply.
-
-* **`core2/set_gps`** ([std_msgs/Bool])
-
-    Enables or disables the GPS sensor and saves the configuration to persistent storage.  
-    Requires a reset to apply.
-
-* **`core2/set_debug`** ([std_msgs/Bool])
-
-    Enables or disables debug messages.  
-    For the messages to be sent to rosout, you also need to set the logger level of rosserial node to Debug. When enabled, it can cause issues with the rosserial communication due to high throughput.
-
 ### Published topics
 
 * **`wheel_odom`** ([geometry_msgs/TwistStamped])
@@ -75,6 +52,33 @@
     A Navigation Satellite fix returned by the GPS sensor.
 
 ### Services
+
+* **`core2/reset_board`** ([std_srvs/Empty])
+
+    Performs software reset on the CORE2 board.
+
+* **`core2/reset_config`** ([std_srvs/Trigger])
+
+    Loads the default config and saves it to persistant storage.
+
+* **`core2/get_firmware_version`** ([std_srvs/Trigger])
+
+    Performs software reset on the CORE2 board.
+
+* **`core2/set_imu`** ([std_srvs/SetBool])
+
+    Enables or disables the IMU sensor and saves the configuration to persistent storage.  
+    Requires a reset to apply.
+
+* **`core2/set_gps`** ([std_srvs/SetBool])
+
+    Enables or disables the GPS sensor and saves the configuration to persistent storage.  
+    Requires a reset to apply.
+
+* **`core2/set_debug`** ([std_srvs/SetBool])
+
+    Enables or disables debug messages.  
+    For the messages to be sent to rosout, you also need to set the logger level of rosserial node to Debug. When enabled, it can cause issues with the rosserial communication due to high throughput.
 
 * **`imu/calibrate_gyro_accel`** ([std_srvs/Trigger]) (**only if IMU is enabled**)
 
@@ -182,8 +186,9 @@
 [std_msgs/Int16]: http://docs.ros.org/api/std_msgs/html/msg/Int16.html
 [std_msgs/Float32]: http://docs.ros.org/api/std_msgs/html/msg/Float32.html
 [std_msgs/UInt16MultiArray]: http://docs.ros.org/api/std_msgs/html/msg/UInt16MultiArray.html
-[std_msgs/Bool]: http://docs.ros.org/api/std_msgs/html/msg/Bool.html
-[std_msgs/Empty]: http://docs.ros.org/api/std_msgs/html/msg/Empty.html
+[std_srvs/Empty]: http://docs.ros.org/api/std_srvs/html/srv/Empty.html
+[std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
+[std_srvs/SetBool]: http://docs.ros.org/api/std_srvs/html/srv/SetBool.html
 [sensor_msgs/JointState]: http://docs.ros.org/api/sensor_msgs/html/msg/JointState.html
 [geometry_msgs/Vector3Stamped]: http://docs.ros.org/api/geometry_msgs/html/msg/Vector3Stamped.html
 [std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
