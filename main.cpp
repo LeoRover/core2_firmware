@@ -6,11 +6,10 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/NavSatFix.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Empty.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/UInt16MultiArray.h>
+#include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 
 #include <leo_firmware/config.h>
@@ -67,38 +66,47 @@ void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc.setSpeed(msg.linear.x, msg.angular.z);
 }
 
-void resetBoardCallback(const std_msgs::Empty &msg) {
-  logDebug("[resetBoardCallback]");
-  sys.reset();
-}
-
-void resetConfigCallback(const std_msgs::Empty &msg) {
-  logDebug("[resetConfigCallback]");
-  reset_config();
-}
-
-void setImuCallback(const std_msgs::Bool &msg) {
-  logDebug("[setImuCallback] %s", msg.data ? "true" : "false");
-  conf.imu_enabled = msg.data;
-  store_config();
-}
-
-void setGpsCallback(const std_msgs::Bool &msg) {
-  logDebug("[setGpsCallback] %s", msg.data ? "true" : "false");
-  conf.gps_enabled = msg.data;
-  store_config();
-}
-
-void setDebugCallback(const std_msgs::Bool &msg) {
-  logDebug("[setDebugCallback] %s", msg.data ? "true" : "false");
-  conf.debug_logging = msg.data;
-  store_config();
-}
-
 void getFirmwareCallback(const std_srvs::TriggerRequest &req,
                          std_srvs::TriggerResponse &res) {
   logDebug("[getFirmwareCallback]");
   res.message = FIRMWARE_VERSION;
+  res.success = true;
+}
+
+void resetBoardCallback(const std_srvs::TriggerRequest &req,
+                        std_srvs::TriggerResponse &res) {
+  logDebug("[resetBoardCallback]");
+  sys.reset();
+}
+
+void resetConfigCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[resetConfigCallback]");
+  reset_config();
+  res.success = true;
+}
+
+void setImuCallback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setImuCallback] %s", req.data ? "true" : "false");
+  conf.imu_enabled = req.data;
+  store_config();
+  res.success = true;
+}
+
+void setGpsCallback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setGpsCallback] %s", req.data ? "true" : "false");
+  conf.gps_enabled = req.data;
+  store_config();
+  res.success = true;
+}
+
+void setDebugCallback(const std_srvs::SetBoolRequest &req,
+                      std_srvs::SetBoolResponse &res) {
+  logDebug("[setDebugCallback] %s", req.data ? "true" : "false");
+  conf.debug_logging = req.data;
+  store_config();
   res.success = true;
 }
 
@@ -119,23 +127,18 @@ void calMagCallback(const std_srvs::TriggerRequest &req,
 }
 
 void initROS() {
+  // Publishers
   battery_pub = new ros::Publisher("battery", &battery);
   odom_pub = new ros::Publisher("wheel_odom", &odom);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
+  nh.advertise(*battery_pub);
+  nh.advertise(*odom_pub);
+  nh.advertise(*joint_states_pub);
+
+  // Subscribers
   auto twist_sub =
       new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
-
-  auto reset_board_sub = new ros::Subscriber<std_msgs::Empty>(
-      "core2/reset_board", &resetBoardCallback);
-  auto reset_config_sub = new ros::Subscriber<std_msgs::Empty>(
-      "core2/reset_config", &resetConfigCallback);
-  auto set_imu_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_imu", &setImuCallback);
-  auto set_gps_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_gps", &setGpsCallback);
-  auto set_debug_sub =
-      new ros::Subscriber<std_msgs::Bool>("core2/set_debug", &setDebugCallback);
 
   auto servo1_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
       "servo1/angle", &ServoWrapper::angleCallback, &servo1);
@@ -169,19 +172,7 @@ void initROS() {
       new ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper>(
           "servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
-  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
-                                                     std_srvs::TriggerResponse>(
-      "core2/get_firmware_version", &getFirmwareCallback);
-
-  nh.advertise(*battery_pub);
-  nh.advertise(*odom_pub);
-  nh.advertise(*joint_states_pub);
   nh.subscribe(*twist_sub);
-  nh.subscribe(*reset_board_sub);
-  nh.subscribe(*reset_config_sub);
-  nh.subscribe(*set_imu_sub);
-  nh.subscribe(*set_gps_sub);
-  nh.subscribe(*set_debug_sub);
   nh.subscribe(*servo1_angle_sub);
   nh.subscribe(*servo2_angle_sub);
   nh.subscribe(*servo3_angle_sub);
@@ -194,8 +185,39 @@ void initROS() {
   nh.subscribe(*servo4_pwm_sub);
   nh.subscribe(*servo5_pwm_sub);
   nh.subscribe(*servo6_pwm_sub);
+
+  // Services
+  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                     std_srvs::TriggerResponse>(
+      "core2/get_firmware_version", &getFirmwareCallback);
+  auto reset_board_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                std_srvs::TriggerResponse>(
+      "core2/reset_board", &resetBoardCallback);
+  auto reset_config_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                 std_srvs::TriggerResponse>(
+      "core2/reset_config", &resetConfigCallback);
+  auto set_imu_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+      "core2/set_imu", &setImuCallback);
+  auto set_gps_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+      "core2/set_gps", &setGpsCallback);
+  auto set_debug_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                              std_srvs::SetBoolResponse>(
+      "core2/set_debug", &setDebugCallback);
+
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
-        *firmware_version_srv);
+      *firmware_version_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *reset_board_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *reset_config_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_imu_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_gps_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_debug_srv);
 
   if (conf.imu_enabled) {
     imu_gyro_pub = new ros::Publisher("imu/gyro", &imu_gyro_msg);
