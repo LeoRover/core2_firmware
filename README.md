@@ -9,10 +9,6 @@
     Target velocity of the Rover.  
     Only linear.x (m/s) and angular.z (r/s) are used.
 
-* **`core2/reset_board`** ([std_msgs/Empty])
-
-    Performs software reset on the CORE2 board.
-
 ### Published topics
 
 * **`wheel_odom`** ([geometry_msgs/TwistStamped])
@@ -28,6 +24,16 @@
     Current state of the wheel joints.  
     The units of measurements are as follows:  
     position in radians, velocity in radians per second, effort in the PWM duty cycle (percent).
+
+### Services
+
+* **`core2/reset_board`** ([std_srvs/Empty])
+
+    Performs software reset on the CORE2 board.
+
+* **`core2/get_firmware_version`** ([std_srvs/Trigger])
+
+    Performs software reset on the CORE2 board.
 
 ### Parameters
 
@@ -90,8 +96,9 @@
 [std_msgs/Int16]: http://docs.ros.org/api/std_msgs/html/msg/Int16.html
 [std_msgs/Float32]: http://docs.ros.org/api/std_msgs/html/msg/Float32.html
 [std_msgs/UInt16MultiArray]: http://docs.ros.org/api/std_msgs/html/msg/UInt16MultiArray.html
-[std_msgs/Bool]: http://docs.ros.org/api/std_msgs/html/msg/Bool.html
-[std_msgs/Empty]: http://docs.ros.org/api/std_msgs/html/msg/Empty.html
+[std_srvs/Empty]: http://docs.ros.org/api/std_srvs/html/srv/Empty.html
+[std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
+[std_srvs/SetBool]: http://docs.ros.org/api/std_srvs/html/srv/SetBool.html
 [sensor_msgs/JointState]: http://docs.ros.org/api/sensor_msgs/html/msg/JointState.html
 [geometry_msgs/Vector3Stamped]: http://docs.ros.org/api/geometry_msgs/html/msg/Vector3Stamped.html
 [std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html

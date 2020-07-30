@@ -4,8 +4,9 @@
 
 #include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/JointState.h>
-#include <std_msgs/Empty.h>
 #include <std_msgs/Float32.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
 
 #include <leo_firmware/diff_drive_controller.h>
 #include <leo_firmware/logging.h>
@@ -29,9 +30,6 @@ sensor_msgs::JointState joint_states;
 ros::Publisher *joint_states_pub;
 bool publish_joint = false;
 
-ros::Subscriber<geometry_msgs::Twist> *twist_sub;
-ros::Subscriber<std_msgs::Empty> *reset_board_sub;
-
 DiffDriveController dc;
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
@@ -40,27 +38,47 @@ void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc.setSpeed(msg.linear.x, msg.angular.z);
 }
 
-void resetBoardCallback(const std_msgs::Empty &msg) {
+void resetBoardCallback(const std_srvs::EmptyRequest &req,
+                        std_srvs::EmptyResponse &res) {
   logDebug("[resetBoardCallback]");
   sys.reset();
 }
 
+void getFirmwareCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[getFirmwareCallback]");
+  res.message = FIRMWARE_VERSION;
+  res.success = true;
+}
+
 void initROS() {
+  // Publishers
   battery_pub = new ros::Publisher("battery", &battery);
   odom_pub = new ros::Publisher("wheel_odom", &odom);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
-  twist_sub =
-      new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
-
-  reset_board_sub = new ros::Subscriber<std_msgs::Empty>("core2/reset_board",
-                                                         &resetBoardCallback);
-
   nh.advertise(*battery_pub);
   nh.advertise(*odom_pub);
   nh.advertise(*joint_states_pub);
+
+  // Subscribers
+  auto twist_sub =
+      new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
+
   nh.subscribe(*twist_sub);
-  nh.subscribe(*reset_board_sub);
+
+  // Services
+  auto reset_board_srv =
+      new ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
+          "core2/reset_board", &resetBoardCallback);
+  auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                     std_srvs::TriggerResponse>(
+      "core2/get_firmware_version", &getFirmwareCallback);
+
+  nh.advertiseService<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
+      *reset_board_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *firmware_version_srv);
 }
 
 void setupJoints() {
