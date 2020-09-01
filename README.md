@@ -33,7 +33,7 @@
 
 * **`core2/get_firmware_version`** ([std_srvs/Trigger])
 
-    Performs software reset on the CORE2 board.
+    Returns the current firmware version.
 
 ### Parameters
 
