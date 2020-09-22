@@ -11,9 +11,9 @@
  
 */
 
-#include "Arduino.h"
-#include "MPU9250.h"
-#include "RegisterMap.h"
+#include <Arduino.h>
+#include <leo_firmware/sensors/imu/MPU9250.h>
+#include <leo_firmware/sensors/imu/RegisterMap.h>
 
 hFramework::ArduinoSerial Serial(hFramework::Serial);
 
@@ -545,12 +545,12 @@ void MPU9250::calibrateMPU9250(float * dest1, float * dest2)
   data[5] = (-gyro_bias[2]/4)       & 0xFF;
   
 // Push gyro biases to hardware registers
-  writeByte(MPU9250_ADDRESS, XG_OFFSET_H, data[0]);
-  writeByte(MPU9250_ADDRESS, XG_OFFSET_L, data[1]);
-  writeByte(MPU9250_ADDRESS, YG_OFFSET_H, data[2]);
-  writeByte(MPU9250_ADDRESS, YG_OFFSET_L, data[3]);
-  writeByte(MPU9250_ADDRESS, ZG_OFFSET_H, data[4]);
-  writeByte(MPU9250_ADDRESS, ZG_OFFSET_L, data[5]);
+  // writeByte(MPU9250_ADDRESS, XG_OFFSET_H, data[0]);
+  // writeByte(MPU9250_ADDRESS, XG_OFFSET_L, data[1]);
+  // writeByte(MPU9250_ADDRESS, YG_OFFSET_H, data[2]);
+  // writeByte(MPU9250_ADDRESS, YG_OFFSET_L, data[3]);
+  // writeByte(MPU9250_ADDRESS, ZG_OFFSET_H, data[4]);
+  // writeByte(MPU9250_ADDRESS, ZG_OFFSET_L, data[5]);
   
 // Output scaled gyro biases for display in the main program
   dest1[0] = (float) gyro_bias[0]/(float) gyrosensitivity;  
