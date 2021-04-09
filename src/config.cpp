@@ -15,6 +15,10 @@ uint8_t checksum(Config* config) {
   return checksum;
 }
 
+bool is_config_valid(Config& config) {
+  return checksum(&config) == config.checksum;
+}
+
 void print_config() {
   logInfo("debug_logging: %s", conf.debug_logging ? "true" : "false");
   logInfo("imu_enabled: %s", conf.imu_enabled ? "true" : "false");
@@ -32,10 +36,20 @@ void print_config() {
 
 void load_config() {
   Config tmp_conf;
-  storage.load(CONFIG_ADDRESS, tmp_conf);
 
-  if (tmp_conf.checksum != checksum(&tmp_conf)) {
-    logWarn("Config checksum incorrect! Default configuration will be used");
+  // Try to load the config 3 times before giving up
+  int tries_remaining = 3;
+  do {
+    storage.load(CONFIG_ADDRESS, tmp_conf);
+    if (is_config_valid(tmp_conf)) {
+      break;
+    } else {
+      logWarn("Loaded an invalid config! Retrying...");
+    }
+  } while (--tries_remaining);
+
+  if (tries_remaining == 0) {
+    logError("Failed to load valid config after 3 tries! Default configuration will be used");
     store_config();
   } else {
     conf = tmp_conf;
