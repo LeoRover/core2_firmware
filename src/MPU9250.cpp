@@ -11,7 +11,9 @@
  
 */
 
+#include <string>
 #include <Arduino.h>
+
 #include <leo_firmware/sensors/imu/MPU9250.h>
 #include <leo_firmware/sensors/imu/RegisterMap.h>
 

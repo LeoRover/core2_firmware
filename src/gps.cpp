@@ -1,4 +1,5 @@
-#include <string.h>
+#include <cstring>
+#include <cctype>
 
 #include <hFramework.h>
 
@@ -20,7 +21,7 @@ static bool check(const char *sentence) {
 
   if (*sentence++ != '$') return false;
 
-  while (*sentence && *sentence != '*' && isprint((unsigned char)*sentence))
+  while (*sentence && *sentence != '*' && std::isprint((unsigned char)*sentence))
     sum ^= *sentence++;
 
   if (*sentence == '*') {

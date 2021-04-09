@@ -1,6 +1,7 @@
 #ifndef LEO_FIRMWARE_INCLUDE_UTILS_H_
 #define LEO_FIRMWARE_INCLUDE_UTILS_H_
 
+#include <string>
 #include <cstdio>
 
 #include <hFramework.h>
