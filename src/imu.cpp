@@ -102,7 +102,7 @@ void IMU::calGyroAccel() {
   conf.accel_bias[0] = abias_[0];
   conf.accel_bias[1] = abias_[1];
   conf.accel_bias[2] = abias_[2];
-  store_config();
+  configStore();
 }
 
 void IMU::calMag() {
@@ -121,5 +121,5 @@ void IMU::calMag() {
   conf.mag_bias[0] = mbias_[0];
   conf.mag_bias[1] = mbias_[1];
   conf.mag_bias[2] = mbias_[2];
-  store_config();
+  configStore();
 }

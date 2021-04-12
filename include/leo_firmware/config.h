@@ -29,8 +29,9 @@ struct Config {
 
 extern Config conf;
 
-void load_config();
-void store_config();
-void reset_config();
+void configPrint();
+void configLoad();
+void configStore();
+void configReset();
 
 #endif  // LEO_FIRMWARE_INCLUDE_CONFIG_H_

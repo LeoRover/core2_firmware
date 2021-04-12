@@ -6,7 +6,7 @@
 Config conf;
 hStorage storage;
 
-uint8_t checksum(Config* config) {
+static inline uint8_t checksum(Config* config) {
   int size = sizeof(Config);
   uint8_t* data = reinterpret_cast<uint8_t*>(config);
 
@@ -15,11 +15,11 @@ uint8_t checksum(Config* config) {
   return checksum;
 }
 
-bool is_config_valid(Config& config) {
+static inline bool isValid(Config& config) {
   return checksum(&config) == config.checksum;
 }
 
-void print_config() {
+void configPrint() {
   logInfo("debug_logging: %s", conf.debug_logging ? "true" : "false");
   logInfo("imu_enabled: %s", conf.imu_enabled ? "true" : "false");
   logInfo("gps_enabled: %s", conf.gps_enabled ? "true" : "false");
@@ -34,14 +34,14 @@ void print_config() {
   logInfo("checksum: %d", conf.checksum);
 }
 
-void load_config() {
+void configLoad() {
   Config tmp_conf;
 
   // Try to load the config 3 times before giving up
   int tries_remaining = 3;
   do {
     storage.load(CONFIG_ADDRESS, tmp_conf);
-    if (is_config_valid(tmp_conf)) {
+    if (isValid(tmp_conf)) {
       break;
     } else {
       logWarn("Loaded an invalid config! Retrying...");
@@ -50,22 +50,22 @@ void load_config() {
 
   if (tries_remaining == 0) {
     logError("Failed to load valid config after 3 tries! Default configuration will be used");
-    store_config();
+    configStore();
   } else {
     conf = tmp_conf;
     logInfo("Loaded config:");
-    print_config();
+    configPrint();
   }
 }
 
-void store_config() {
+void configStore() {
   conf.checksum = checksum(&conf);
   storage.store(CONFIG_ADDRESS, conf);
   logInfo("Stored config:");
-  print_config();
+  configPrint();
 }
 
-void reset_config() {
+void configReset() {
   conf = Config();
-  store_config();
+  configStore();
 }

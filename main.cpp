@@ -76,7 +76,7 @@ void resetBoardCallback(const std_srvs::EmptyRequest &req,
 void resetConfigCallback(const std_srvs::TriggerRequest &req,
                          std_srvs::TriggerResponse &res) {
   logDebug("[resetConfigCallback]");
-  reset_config();
+  configReset();
   res.success = true;
 }
 
@@ -91,7 +91,7 @@ void setImuCallback(const std_srvs::SetBoolRequest &req,
                     std_srvs::SetBoolResponse &res) {
   logDebug("[setImuCallback] %s", req.data ? "true" : "false");
   conf.imu_enabled = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -99,7 +99,7 @@ void setGpsCallback(const std_srvs::SetBoolRequest &req,
                     std_srvs::SetBoolResponse &res) {
   logDebug("[setGpsCallback] %s", req.data ? "true" : "false");
   conf.gps_enabled = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -107,7 +107,7 @@ void setDebugCallback(const std_srvs::SetBoolRequest &req,
                       std_srvs::SetBoolResponse &res) {
   logDebug("[setDebugCallback] %s", req.data ? "true" : "false");
   conf.debug_logging = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -458,7 +458,7 @@ void hMain() {
     nh.spinOnce();
   }
 
-  load_config();
+  configLoad();
 
   dc.init(&nh);
   dc.start();
