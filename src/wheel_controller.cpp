@@ -1,7 +1,7 @@
 #include <leo_firmware/utils.h>
 #include <leo_firmware/wheel_controller.h>
 
-WheelController::WheelController(hMotor &motor, const bool polarity,
+WheelController::WheelController(hFramework::hMotor &motor, const bool polarity,
                                  const float max_speed, const float kp,
                                  const float ki, const float kd,
                                  const uint16_t power_limit,
@@ -19,10 +19,10 @@ WheelController::WheelController(hMotor &motor, const bool polarity,
       dt_sum_(0),
       v_now_(0.0),
       v_target_(0.0),
-      encoder_buffer_(encoder_buffer_size_) {
+      encoder_buffer_(ENCODER_BUFFER_SIZE) {
   v_reg_.setScale(1);
-  v_reg_.setRange(-v_range_, v_range_);
-  v_reg_.setIRange(-v_range_, v_range_);
+  v_reg_.setRange(-V_RANGE, V_RANGE);
+  v_reg_.setIRange(-V_RANGE, V_RANGE);
   v_reg_.setCoeffs(kp, ki, kd);
 
   if (polarity_) {

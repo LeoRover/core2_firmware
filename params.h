@@ -1,7 +1,7 @@
 #ifndef LEO_FIRMWARE_PARAMS_H_
 #define LEO_FIRMWARE_PARAMS_H_
 
-#include "hFramework.h"
+#include <hSensor.h>
 
 static const char *FIRMWARE_VERSION = "1.1.0";
 

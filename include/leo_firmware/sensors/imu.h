@@ -1,11 +1,14 @@
 #ifndef LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
 #define LEO_FIRMWARE_INCLUDE_SENSORS_IMU_H_
 
+#include <II2C.h>
+#include <hMutex.h>
+
 #include <leo_firmware/sensors/imu/MPU9250.h>
 
 class IMU {
  public:
-  explicit IMU(hFramework::hI2C &i2c) : mpu_(i2c) {}
+  explicit IMU(hFramework::II2C &i2c) : mpu_(i2c) {}
 
   void init();
   void update();

@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-#define CONFIG_ADDRESS 0x01
+static const uint16_t CONFIG_ADDRESS = 0x01;
 
 struct Config {
   uint8_t checksum;

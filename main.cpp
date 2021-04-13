@@ -22,9 +22,10 @@
 
 #include "params.h"
 
-ros::NodeHandle nh;
+using hFramework::hServo;
+using hFramework::sys;
 
-hFramework::hMutex mutex;
+ros::NodeHandle nh;
 
 std_msgs::Float32 battery;
 ros::Publisher *battery_pub;
@@ -444,8 +445,6 @@ void GPSLoop() {
 
 void hMain() {
   uint32_t t = sys.getRefTime();
-  // platform.begin(&RPi);
-  // nh.getHardware()->initWithDevice(&platform.LocalSerial);
   RPi.setBaudrate(250000);
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();

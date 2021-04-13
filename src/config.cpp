@@ -1,10 +1,10 @@
-#include <hFramework.h>
+#include <hStorage.h>
 
 #include <leo_firmware/config.h>
 #include <leo_firmware/logging.h>
 
 Config conf;
-hStorage storage;
+hFramework::hStorage storage;
 
 static inline uint8_t checksum(Config* config) {
   int size = sizeof(Config);
@@ -49,7 +49,9 @@ void configLoad() {
   } while (--tries_remaining);
 
   if (tries_remaining == 0) {
-    logError("Failed to load valid config after 3 tries! Default configuration will be used");
+    logError(
+        "Failed to load valid config after 3 tries! Default configuration will "
+        "be used");
     configStore();
   } else {
     conf = tmp_conf;

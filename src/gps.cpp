@@ -1,7 +1,6 @@
-#include <cstring>
 #include <cctype>
-
-#include <hFramework.h>
+#include <cstdlib>
+#include <cstring>
 
 #include <leo_firmware/sensors/gps.h>
 
@@ -21,12 +20,13 @@ static bool check(const char *sentence) {
 
   if (*sentence++ != '$') return false;
 
-  while (*sentence && *sentence != '*' && std::isprint((unsigned char)*sentence))
+  while (*sentence && *sentence != '*' &&
+         std::isprint((unsigned char)*sentence))
     sum ^= *sentence++;
 
   if (*sentence == '*') {
     sentence++;
-    if (strlen(sentence) != 2) return false;
+    if (std::strlen(sentence) != 2) return false;
 
     int upper = hex2int(*sentence++);
     if (upper == -1) return false;
@@ -43,17 +43,17 @@ static bool check(const char *sentence) {
 }
 
 static bool isGGA(const char *sentence) {
-  char temp[6];
-  strncpy(temp, sentence, 6);
-  temp[6] = 0;
-  if (strcmp(temp, "$GPGGA") == 0)
+  char temp[7];
+  std::strncpy(temp, sentence, 6);
+  temp[6] = '\0';
+  if (std::strcmp(temp, "$GPGGA") == 0)
     return true;
   else
     return false;
 }
 
 static float NMEAtoDec(const char *pos) {
-  float nmea = atof(pos);
+  float nmea = std::atof(pos);
   float dec;
 
   dec = static_cast<int>(nmea / 100);
@@ -61,23 +61,19 @@ static float NMEAtoDec(const char *pos) {
   return dec;
 }
 
-void GPS::init() {
-  serial_.init(9600, Parity::None, StopBits::One);
-}
+void GPS::init() { serial_.init(9600, Parity::None, StopBits::One); }
 
 bool GPS::read() {
   int length = 0;
   char x;
 
   while (true) {
-    if (serial_.available()) {
+    if (serial_.waitForData(UINT32_MAX)) {
       serial_.read(&x, 1);
       if (x == '\n') break;
       message_buffer[length] = x;
       length++;
       if (length >= MAX_LENGTH) return false;
-    } else {
-      sys.delay(10);
     }
   }
 
@@ -113,7 +109,7 @@ bool GPS::update(const char *sentence) {
   if (data_no < 10) return false;
 
   if (data_raw[1][0] != 0)
-    gpgga_.time = atoi(data_raw[1]);
+    gpgga_.time = std::atoi(data_raw[1]);
   else
     return false;
 
@@ -148,12 +144,12 @@ bool GPS::update(const char *sentence) {
   }
 
   if (data_raw[9][0] != 0)
-    gpgga_.altitude = atof(data_raw[9]);
+    gpgga_.altitude = std::atof(data_raw[9]);
   else
     return false;
 
   if (data_raw[8][0] != 0)
-    gpgga_.hdop = atof(data_raw[8]);
+    gpgga_.hdop = std::atof(data_raw[8]);
   else
     return false;
 
