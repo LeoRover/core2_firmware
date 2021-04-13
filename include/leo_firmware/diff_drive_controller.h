@@ -18,8 +18,7 @@ class DiffDriveController {
   std::vector<float> getWheelEfforts();
 
  private:
-  void updateWheelLoop();
-  void updateOdometryLoop();
+  void updateLoop();
   void debugLoop();
   void inputWatchdog();
 

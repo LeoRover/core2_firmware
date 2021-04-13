@@ -1,10 +1,12 @@
 #include <cstdio>
 
-#include <hFramework.h>
+#include <hSystem.h>
 
 #include <leo_firmware/diff_drive_controller.h>
 #include <leo_firmware/logging.h>
 #include <leo_firmware/utils.h>
+
+using hFramework::sys;
 
 void DiffDriveController::init(ros::NodeHandle *nh) {
   // Default parameters
@@ -35,19 +37,22 @@ void DiffDriveController::init(ros::NodeHandle *nh) {
   input_timeout_ = static_cast<uint64_t>(timeout);
   bool pullup = encoder_pullup == 1 ? true : false;
 
-  wheel_FL_ = new WheelController(hMotC, 1, wheel_max_speed, pid_p, pid_i,
-                                  pid_d, power_limit, torque_limit, pullup);
-  wheel_RL_ = new WheelController(hMotD, 1, wheel_max_speed, pid_p, pid_i,
-                                  pid_d, power_limit, torque_limit, pullup);
-  wheel_FR_ = new WheelController(hMotA, 0, wheel_max_speed, pid_p, pid_i,
-                                  pid_d, power_limit, torque_limit, pullup);
-  wheel_RR_ = new WheelController(hMotB, 0, wheel_max_speed, pid_p, pid_i,
-                                  pid_d, power_limit, torque_limit, pullup);
+  wheel_FL_ =
+      new WheelController(hFramework::hMotC, 1, wheel_max_speed, pid_p, pid_i,
+                          pid_d, power_limit, torque_limit, pullup);
+  wheel_RL_ =
+      new WheelController(hFramework::hMotD, 1, wheel_max_speed, pid_p, pid_i,
+                          pid_d, power_limit, torque_limit, pullup);
+  wheel_FR_ =
+      new WheelController(hFramework::hMotA, 0, wheel_max_speed, pid_p, pid_i,
+                          pid_d, power_limit, torque_limit, pullup);
+  wheel_RR_ =
+      new WheelController(hFramework::hMotB, 0, wheel_max_speed, pid_p, pid_i,
+                          pid_d, power_limit, torque_limit, pullup);
 }
 
 void DiffDriveController::start() {
-  sys.taskCreate(std::bind(&DiffDriveController::updateWheelLoop, this));
-  sys.taskCreate(std::bind(&DiffDriveController::updateOdometryLoop, this));
+  sys.taskCreate(std::bind(&DiffDriveController::updateLoop, this));
   if (input_timeout_ > 0.0) {
     last_update_ = sys.getRefTime();
     sys.taskCreate(std::bind(&DiffDriveController::inputWatchdog, this));
@@ -105,7 +110,7 @@ std::vector<float> DiffDriveController::getWheelEfforts() {
   return efforts;
 }
 
-void DiffDriveController::updateWheelLoop() {
+void DiffDriveController::updateLoop() {
   uint32_t t = sys.getRefTime();
   uint32_t dt = 10;
   while (true) {
@@ -113,15 +118,7 @@ void DiffDriveController::updateWheelLoop() {
     wheel_RL_->update(dt);
     wheel_FR_->update(dt);
     wheel_RR_->update(dt);
-    sys.delaySync(t, dt);
-  }
-}
 
-void DiffDriveController::updateOdometryLoop() {
-  uint32_t t = sys.getRefTime();
-  uint32_t dt = 10;
-
-  while (true) {
     // speed in ticks/sec
     float FL_speed = wheel_FL_->getSpeed();
     float RL_speed = wheel_RL_->getSpeed();
