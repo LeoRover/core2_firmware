@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <hMotor.h>
+#include <hPIDRegulator.h>
 
 #include <leo_firmware/utils.h>
 
