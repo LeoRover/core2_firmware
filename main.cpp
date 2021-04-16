@@ -19,6 +19,7 @@
 #include <leo_firmware/sensors/gps.h>
 #include <leo_firmware/sensors/imu.h>
 #include <leo_firmware/utils.h>
+#include <leo_firmware/parameters.h>
 
 #include "params.h"
 
@@ -251,10 +252,7 @@ void initROS() {
 void setupServos() {
   hServo.enablePower();
 
-  int servo_voltage = 2;
-  nh.getParam("core2/servo_voltage", &servo_voltage);
-
-  switch (servo_voltage) {
+  switch (params.servo_voltage) {
     case 0:
       hServo.setVoltage5V();
       break;
@@ -284,9 +282,9 @@ void setupJoints() {
   joint_states.name = new char *[4] {
     "wheel_FL_joint", "wheel_RL_joint", "wheel_FR_joint", "wheel_RR_joint"
   };
-  joint_states.position = new float[4];
-  joint_states.velocity = new float[4];
-  joint_states.effort = new float[4];
+  joint_states.position = new double[4];
+  joint_states.velocity = new double[4];
+  joint_states.effort = new double[4];
   joint_states.name_length = 4;
   joint_states.position_length = 4;
   joint_states.velocity_length = 4;
@@ -298,13 +296,9 @@ void setupIMU() {
   imu = new IMU(IMU_HSENS.getI2C());
   imu->init();
 
-  static char frame_id[50] = "imu";
-  char *imu_frame_id = &frame_id[0];
-  nh.getParam("core2/imu_frame_id", &imu_frame_id);
-
-  imu_gyro_msg.header.frame_id = frame_id;
-  imu_accel_msg.header.frame_id = frame_id;
-  imu_mag_msg.header.frame_id = frame_id;
+  imu_gyro_msg.header.frame_id = params.imu_frame_id;
+  imu_accel_msg.header.frame_id = params.imu_frame_id;
+  imu_mag_msg.header.frame_id = params.imu_frame_id;
 }
 
 void setupGPS() {
@@ -312,11 +306,7 @@ void setupGPS() {
   gps = new GPS(GPS_HSENS.getSerial());
   gps->init();
 
-  static char frame_id[50] = "gps";
-  char *gps_frame_id = &frame_id[0];
-  nh.getParam("core2/gps_frame_id", &gps_frame_id);
-
-  gps_fix.header.frame_id = frame_id;
+  gps_fix.header.frame_id = params.gps_frame_id;
 }
 
 void setupOdom() { odom.header.frame_id = "base_link"; }
@@ -458,9 +448,9 @@ void hMain() {
   }
 
   configLoad();
+  params.load(nh);
 
-  dc.init(&nh);
-  dc.start();
+  dc.init();
 
   setupOdom();
   setupServos();

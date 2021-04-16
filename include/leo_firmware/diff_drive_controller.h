@@ -4,15 +4,16 @@
 #include <vector>
 
 #include <ros.h>
+#include <hMutex.h>
 
 #include <leo_firmware/wheel_controller.h>
 
 class DiffDriveController {
  public:
-  void init(ros::NodeHandle *nh);
-  void start();
+  void init();
   void setSpeed(float linear, float angular);
   std::vector<float> getOdom();
+  std::vector<float> getPose();
   std::vector<float> getWheelPositions();
   std::vector<float> getWheelVelocities();
   std::vector<float> getWheelEfforts();
@@ -22,6 +23,9 @@ class DiffDriveController {
   void debugLoop();
   void inputWatchdog();
 
+  hFramework::hMutex mutex_wheel_;
+  hFramework::hMutex mutex_odom_;
+
   WheelController *wheel_FL_;
   WheelController *wheel_RL_;
   WheelController *wheel_FR_;
@@ -29,15 +33,10 @@ class DiffDriveController {
 
   float lin_vel_;
   float ang_vel_;
+  float lin_pose_;
+  float ang_pose_;
 
   uint64_t last_update_;
-  uint64_t input_timeout_;
-
-  // Default parameters
-  float encoder_resolution_ = 878.4;
-  float wheel_radius_ = 0.0625;
-  float wheel_separation_ = 0.33;
-  float angular_velocity_multiplier_ = 1.91;
 };
 
 #endif  // LEO_FIRMWARE_INCLUDE_DIFF_DRIVE_CONTROLLER_H_

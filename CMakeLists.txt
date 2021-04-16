@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.0.2)
 project(LeoFirmware NONE)
 
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
-enable_module(hROS)
 
 include_directories(
     include/
+    rosserial/
 )
 
 add_hexecutable(leo_firmware 
@@ -16,4 +16,7 @@ add_hexecutable(leo_firmware
     src/logging.cpp
     src/imu.cpp
     src/MPU9250.cpp
-    src/gps.cpp)
+    src/gps.cpp
+    src/parameters.cpp
+    rosserial/time.cpp
+    rosserial/duration.cpp)

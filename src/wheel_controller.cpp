@@ -1,17 +1,10 @@
+#include <leo_firmware/parameters.h>
 #include <leo_firmware/utils.h>
 #include <leo_firmware/wheel_controller.h>
 
-WheelController::WheelController(hFramework::hMotor &motor, const bool polarity,
-                                 const float max_speed, const float kp,
-                                 const float ki, const float kd,
-                                 const uint16_t power_limit,
-                                 const uint16_t torque_limit,
-                                 const bool encoder_pullup)
+WheelController::WheelController(hFramework::hMotor &motor, const bool polarity)
     : motor_(motor),
       polarity_(polarity),
-      max_speed_(max_speed),
-      power_limit_(power_limit),
-      torque_limit_(torque_limit),
       turned_on_(true),
       ticks_now_(0),
       ticks_offset_(0),
@@ -23,19 +16,19 @@ WheelController::WheelController(hFramework::hMotor &motor, const bool polarity,
   v_reg_.setScale(1);
   v_reg_.setRange(-V_RANGE, V_RANGE);
   v_reg_.setIRange(-V_RANGE, V_RANGE);
-  v_reg_.setCoeffs(kp, ki, kd);
+  v_reg_.setCoeffs(params.motor_pid_p, params.motor_pid_i, params.motor_pid_d);
 
   if (polarity_) {
     motor_.setMotorPolarity(Polarity::Reversed);
     motor_.setEncoderPolarity(Polarity::Reversed);
   }
 
-  if (encoder_pullup)
+  if (params.motor_encoder_pullup)
     motor_.setEncoderPu();
   else
     motor_.setEncoderPd();
 
-  motor_.setPowerLimit(power_limit);
+  motor_.setPowerLimit(params.motor_power_limit);
   motor_.resetEncoderCnt();
 }
 
@@ -46,7 +39,7 @@ void WheelController::update(uint32_t dt) {
   int32_t new_ticks = ticks_now_ - ticks_prev;
 
   float ins_vel = static_cast<float>(std::abs(new_ticks)) / (dt * 0.001);
-  if (ins_vel > WHEEL_VELOCITY_REJECTION_THRESHOLD * max_speed_) {
+  if (ins_vel > WHEEL_VELOCITY_REJECTION_THRESHOLD * params.motor_max_speed) {
     ticks_offset_ += new_ticks;
     ticks_now_ -= new_ticks;
     new_ticks = 0;
@@ -66,8 +59,8 @@ void WheelController::update(uint32_t dt) {
   float v_err = v_now_ - v_target_;
   float pid_out = v_reg_.update(v_err, dt);
 
-  float est_power = (std::abs(v_now_) / max_speed_) * 1000.0;
-  float max_power = std::min(est_power + static_cast<float>(torque_limit_),
+  float est_power = (std::abs(v_now_) / params.motor_max_speed) * 1000.0;
+  float max_power = std::min(est_power + static_cast<float>(params.motor_torque_limit),
                              static_cast<float>(1000.0));
 
   if (turned_on_ == true) {
@@ -83,7 +76,7 @@ void WheelController::update(uint32_t dt) {
 }
 
 void WheelController::setSpeed(float speed) {
-  v_target_ = clamp(speed, max_speed_);
+  v_target_ = clamp(speed, params.motor_max_speed);
 }
 
 float WheelController::getSpeed() { return v_now_; }

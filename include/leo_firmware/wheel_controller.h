@@ -12,14 +12,8 @@
 
 class WheelController {
  public:
-  WheelController(hFramework::hMotor& motor, const bool polarity,
-                  const float max_speed, const float kp, const float ki,
-                  const float kd, const uint16_t power_limit = 1000,
-                  const uint16_t torque_limit = 1000,
-                  const bool encoder_pullup = false);
-
+  WheelController(hFramework::hMotor& motor, const bool polarity);
   void update(uint32_t dt);
-
   void setSpeed(float speed);
   float getSpeed();
   int16_t getPower();
@@ -49,9 +43,6 @@ class WheelController {
   float v_now_;
 
   const bool polarity_;
-  const float max_speed_;
-  const uint16_t power_limit_;
-  const uint16_t torque_limit_;
 
   static constexpr int ENCODER_BUFFER_SIZE = 10;
   static constexpr float V_RANGE = 1000.0;

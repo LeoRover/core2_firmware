@@ -9,22 +9,13 @@ static const uint16_t CONFIG_ADDRESS = 0x01;
 struct Config {
   uint8_t checksum;
 
-  bool debug_logging;
-  bool imu_enabled;
-  bool gps_enabled;
-  float gyro_bias[3];
-  float accel_bias[3];
-  float mag_scale[3];
-  float mag_bias[3];
-
-  Config()
-      : debug_logging(false),
-        imu_enabled(false),
-        gps_enabled(false),
-        gyro_bias{0.0, 0.0, 0.0},
-        accel_bias{0.0, 0.0, 0.0},
-        mag_scale{1.0, 1.0, 1.0},
-        mag_bias{0.0, 0.0, 0.0} {}
+  bool debug_logging = false;
+  bool imu_enabled = false;
+  bool gps_enabled = false;
+  float gyro_bias[3] = {0.0, 0.0, 0.0};
+  float accel_bias[3] = {0.0, 0.0, 0.0};
+  float mag_scale[3] = {1.0, 1.0, 1.0};
+  float mag_bias[3] = {0.0, 0.0, 0.0};
 } __attribute__((packed));
 
 extern Config conf;
