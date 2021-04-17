@@ -2,6 +2,7 @@
 
 #include <ros.h>
 
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/JointState.h>
@@ -28,40 +29,42 @@ using hFramework::sys;
 
 ros::NodeHandle nh;
 
-std_msgs::Float32 battery;
-ros::Publisher *battery_pub;
-bool publish_battery = false;
+static std_msgs::Float32 battery;
+static ros::Publisher *battery_pub;
+static bool publish_battery = false;
 
-geometry_msgs::TwistStamped odom;
-ros::Publisher *odom_pub;
-bool publish_odom = false;
+static geometry_msgs::TwistStamped odom;
+static ros::Publisher *odom_pub;
+static geometry_msgs::PoseStamped pose;
+static ros::Publisher *pose_pub;
+static bool publish_odom = false;
 
-sensor_msgs::JointState joint_states;
-ros::Publisher *joint_states_pub;
-bool publish_joint = false;
+static sensor_msgs::JointState joint_states;
+static ros::Publisher *joint_states_pub;
+static bool publish_joint = false;
 
-IMU *imu;
-geometry_msgs::Vector3Stamped imu_gyro_msg;
-ros::Publisher *imu_gyro_pub;
-geometry_msgs::Vector3Stamped imu_accel_msg;
-ros::Publisher *imu_accel_pub;
-geometry_msgs::Vector3Stamped imu_mag_msg;
-ros::Publisher *imu_mag_pub;
-bool publish_imu = false;
+static IMU *imu;
+static geometry_msgs::Vector3Stamped imu_gyro_msg;
+static ros::Publisher *imu_gyro_pub;
+static geometry_msgs::Vector3Stamped imu_accel_msg;
+static ros::Publisher *imu_accel_pub;
+static geometry_msgs::Vector3Stamped imu_mag_msg;
+static ros::Publisher *imu_mag_pub;
+static bool publish_imu = false;
 
-GPS *gps;
-sensor_msgs::NavSatFix gps_fix;
-ros::Publisher *gps_pub;
-bool publish_gps = false;
+static GPS *gps;
+static sensor_msgs::NavSatFix gps_fix;
+static ros::Publisher *gps_pub;
+static bool publish_gps = false;
 
-DiffDriveController dc;
+static DiffDriveController dc;
 
-ServoWrapper servo1(1, hServo.servo1);
-ServoWrapper servo2(2, hServo.servo2);
-ServoWrapper servo3(3, hServo.servo3);
-ServoWrapper servo4(4, hServo.servo4);
-ServoWrapper servo5(5, hServo.servo5);
-ServoWrapper servo6(6, hServo.servo6);
+static ServoWrapper servo1(1, hServo.servo1);
+static ServoWrapper servo2(2, hServo.servo2);
+static ServoWrapper servo3(3, hServo.servo3);
+static ServoWrapper servo4(4, hServo.servo4);
+static ServoWrapper servo5(5, hServo.servo5);
+static ServoWrapper servo6(6, hServo.servo6);
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
   logDebug("[cmdVelCallback] linear: %f angular %f", msg.linear.x,
@@ -133,10 +136,12 @@ void initROS() {
   // Publishers
   battery_pub = new ros::Publisher("battery", &battery);
   odom_pub = new ros::Publisher("wheel_odom", &odom);
+  pose_pub = new ros::Publisher("wheel_pose", &pose);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
   nh.advertise(*battery_pub);
   nh.advertise(*odom_pub);
+  nh.advertise(*pose_pub);
   nh.advertise(*joint_states_pub);
 
   // Subscribers
@@ -279,16 +284,16 @@ void setupServos() {
 
 void setupJoints() {
   joint_states.header.frame_id = "base_link";
+  joint_states.name_length = 4;
   joint_states.name = new char *[4] {
     "wheel_FL_joint", "wheel_RL_joint", "wheel_FR_joint", "wheel_RR_joint"
   };
-  joint_states.position = new double[4];
-  joint_states.velocity = new double[4];
-  joint_states.effort = new double[4];
-  joint_states.name_length = 4;
   joint_states.position_length = 4;
+  joint_states.position = dc.positions;
   joint_states.velocity_length = 4;
+  joint_states.velocity = dc.velocities;
   joint_states.effort_length = 4;
+  joint_states.effort = dc.efforts;
 }
 
 void setupIMU() {
@@ -309,7 +314,11 @@ void setupGPS() {
   gps_fix.header.frame_id = params.gps_frame_id;
 }
 
-void setupOdom() { odom.header.frame_id = "base_link"; }
+void setupOdom() {
+  const char *frame = "base_link";
+  odom.header.frame_id = frame;
+  pose.header.frame_id = frame;
+}
 
 void batteryLoop() {
   uint32_t t = sys.getRefTime();
@@ -350,15 +359,8 @@ void jointStatesLoop() {
 
   while (true) {
     if (!publish_joint) {
-      std::vector<float> pos = dc.getWheelPositions();
-      std::vector<float> vel = dc.getWheelVelocities();
-      std::vector<float> eff = dc.getWheelEfforts();
-
       joint_states.header.stamp = nh.now();
-
-      std::copy(pos.begin(), pos.end(), joint_states.position);
-      std::copy(vel.begin(), vel.end(), joint_states.velocity);
-      std::copy(eff.begin(), eff.end(), joint_states.effort);
+      dc.updateWheelStates();
 
       publish_joint = true;
     }

@@ -11,12 +11,14 @@
 class DiffDriveController {
  public:
   void init();
-  void setSpeed(float linear, float angular);
+  void setSpeed(const float linear, const float angular);
   std::vector<float> getOdom();
   std::vector<float> getPose();
-  std::vector<float> getWheelPositions();
-  std::vector<float> getWheelVelocities();
-  std::vector<float> getWheelEfforts();
+  void updateWheelStates();
+
+  double positions[4];
+  double velocities[4];
+  double efforts[4];
 
  private:
   void updateLoop();

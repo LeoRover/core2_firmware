@@ -63,9 +63,8 @@ std::vector<float> DiffDriveController::getPose() {
   return pose;
 }
 
-std::vector<float> DiffDriveController::getWheelPositions() {
+void DiffDriveController::updateWheelStates() {
   hFramework::hMutexGuard m(mutex_wheel_);
-  std::vector<float> positions(4);
   positions[0] =
       2 * PI * wheel_FL_->getDistance() / params.motor_encoder_resolution;
   positions[1] =
@@ -74,12 +73,7 @@ std::vector<float> DiffDriveController::getWheelPositions() {
       2 * PI * wheel_FR_->getDistance() / params.motor_encoder_resolution;
   positions[3] =
       2 * PI * wheel_RR_->getDistance() / params.motor_encoder_resolution;
-  return positions;
-}
 
-std::vector<float> DiffDriveController::getWheelVelocities() {
-  hFramework::hMutexGuard m(mutex_wheel_);
-  std::vector<float> velocities(4);
   velocities[0] =
       2 * PI * wheel_FL_->getSpeed() / params.motor_encoder_resolution;
   velocities[1] =
@@ -88,17 +82,11 @@ std::vector<float> DiffDriveController::getWheelVelocities() {
       2 * PI * wheel_FR_->getSpeed() / params.motor_encoder_resolution;
   velocities[3] =
       2 * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
-  return velocities;
-}
 
-std::vector<float> DiffDriveController::getWheelEfforts() {
-  hFramework::hMutexGuard m(mutex_wheel_);
-  std::vector<float> efforts(4);
   efforts[0] = wheel_FL_->getPower() * 0.1;
   efforts[1] = wheel_RL_->getPower() * 0.1;
   efforts[2] = wheel_FR_->getPower() * 0.1;
   efforts[3] = wheel_RR_->getPower() * 0.1;
-  return efforts;
 }
 
 void DiffDriveController::updateLoop() {
