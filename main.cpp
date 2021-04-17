@@ -16,10 +16,10 @@
 #include <leo_firmware/config.h>
 #include <leo_firmware/diff_drive_controller.h>
 #include <leo_firmware/logging.h>
+#include <leo_firmware/parameters.h>
 #include <leo_firmware/sensors/gps.h>
 #include <leo_firmware/sensors/imu.h>
 #include <leo_firmware/utils.h>
-#include <leo_firmware/parameters.h>
 
 #include "params.h"
 
@@ -313,7 +313,7 @@ void setupOdom() { odom.header.frame_id = "base_link"; }
 
 void batteryLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 1000;
+  const uint32_t dt = 1000;
 
   while (true) {
     if (!publish_battery) {
@@ -327,7 +327,7 @@ void batteryLoop() {
 
 void odomLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 50;
+  const uint32_t dt = 50;
 
   while (true) {
     if (!publish_odom) {
@@ -346,7 +346,7 @@ void odomLoop() {
 
 void jointStatesLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 50;
+  const uint32_t dt = 50;
 
   while (true) {
     if (!publish_joint) {
@@ -369,7 +369,7 @@ void jointStatesLoop() {
 
 void imuLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 25;
+  const uint32_t dt = 25;
   while (true) {
     imu->update();
 
@@ -401,7 +401,7 @@ void imuLoop() {
 
 void LEDLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 250;
+  const uint32_t dt = 250;
 
   while (true) {
     if (!nh.connected())

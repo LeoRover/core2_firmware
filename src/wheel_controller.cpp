@@ -32,7 +32,7 @@ WheelController::WheelController(hFramework::hMotor &motor, const bool polarity)
   motor_.resetEncoderCnt();
 }
 
-void WheelController::update(uint32_t dt) {
+void WheelController::update(const uint32_t dt) {
   int32_t ticks_prev = ticks_now_;
   ticks_now_ = motor_.getEncoderCnt() - ticks_offset_;
 
@@ -75,7 +75,7 @@ void WheelController::update(uint32_t dt) {
   }
 }
 
-void WheelController::setSpeed(float speed) {
+void WheelController::setSpeed(const float speed) {
   v_target_ = clamp(speed, params.motor_max_speed);
 }
 

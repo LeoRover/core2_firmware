@@ -13,8 +13,8 @@
 class WheelController {
  public:
   WheelController(hFramework::hMotor& motor, const bool polarity);
-  void update(uint32_t dt);
-  void setSpeed(float speed);
+  void update(const uint32_t dt);
+  void setSpeed(const float speed);
   float getSpeed();
   int16_t getPower();
 

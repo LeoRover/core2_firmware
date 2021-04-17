@@ -10,7 +10,7 @@
 
 using hFramework::sys;
 
-static const float PI = 3.14159265358979323846;
+static constexpr float PI = 3.14159265358979323846;
 
 void DiffDriveController::init() {
   wheel_FL_ = new WheelController(hFramework::hMotC, true);
@@ -25,14 +25,19 @@ void DiffDriveController::init() {
   }
 }
 
-void DiffDriveController::setSpeed(float linear, float angular) {
-  angular *= params.dd_angular_velocity_multiplier;
-  float wheel_L_lin_vel = linear - (angular * params.dd_wheel_separation / 2);
-  float wheel_R_lin_vel = linear + (angular * params.dd_wheel_separation / 2);
-  float wheel_L_ang_vel = wheel_L_lin_vel / params.dd_wheel_radius;
-  float wheel_R_ang_vel = wheel_R_lin_vel / params.dd_wheel_radius;
-  float enc_L_speed = params.motor_encoder_resolution * wheel_L_ang_vel / (2 * PI);
-  float enc_R_speed = params.motor_encoder_resolution * wheel_R_ang_vel / (2 * PI);
+void DiffDriveController::setSpeed(const float linear, const float angular) {
+  const float angular_multiplied =
+      angular * params.dd_angular_velocity_multiplier;
+  const float wheel_L_lin_vel =
+      linear - (angular_multiplied * params.dd_wheel_separation / 2);
+  const float wheel_R_lin_vel =
+      linear + (angular_multiplied * params.dd_wheel_separation / 2);
+  const float wheel_L_ang_vel = wheel_L_lin_vel / params.dd_wheel_radius;
+  const float wheel_R_ang_vel = wheel_R_lin_vel / params.dd_wheel_radius;
+  const float enc_L_speed =
+      params.motor_encoder_resolution * wheel_L_ang_vel / (2 * PI);
+  const float enc_R_speed =
+      params.motor_encoder_resolution * wheel_R_ang_vel / (2 * PI);
 
   wheel_FL_->setSpeed(enc_L_speed);
   wheel_RL_->setSpeed(enc_L_speed);
@@ -61,20 +66,28 @@ std::vector<float> DiffDriveController::getPose() {
 std::vector<float> DiffDriveController::getWheelPositions() {
   hFramework::hMutexGuard m(mutex_wheel_);
   std::vector<float> positions(4);
-  positions[0] = 2 * PI * wheel_FL_->getDistance() / params.motor_encoder_resolution;
-  positions[1] = 2 * PI * wheel_RL_->getDistance() / params.motor_encoder_resolution;
-  positions[2] = 2 * PI * wheel_FR_->getDistance() / params.motor_encoder_resolution;
-  positions[3] = 2 * PI * wheel_RR_->getDistance() / params.motor_encoder_resolution;
+  positions[0] =
+      2 * PI * wheel_FL_->getDistance() / params.motor_encoder_resolution;
+  positions[1] =
+      2 * PI * wheel_RL_->getDistance() / params.motor_encoder_resolution;
+  positions[2] =
+      2 * PI * wheel_FR_->getDistance() / params.motor_encoder_resolution;
+  positions[3] =
+      2 * PI * wheel_RR_->getDistance() / params.motor_encoder_resolution;
   return positions;
 }
 
 std::vector<float> DiffDriveController::getWheelVelocities() {
   hFramework::hMutexGuard m(mutex_wheel_);
   std::vector<float> velocities(4);
-  velocities[0] = 2 * PI * wheel_FL_->getSpeed() / params.motor_encoder_resolution;
-  velocities[1] = 2 * PI * wheel_RL_->getSpeed() / params.motor_encoder_resolution;
-  velocities[2] = 2 * PI * wheel_FR_->getSpeed() / params.motor_encoder_resolution;
-  velocities[3] = 2 * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
+  velocities[0] =
+      2 * PI * wheel_FL_->getSpeed() / params.motor_encoder_resolution;
+  velocities[1] =
+      2 * PI * wheel_RL_->getSpeed() / params.motor_encoder_resolution;
+  velocities[2] =
+      2 * PI * wheel_FR_->getSpeed() / params.motor_encoder_resolution;
+  velocities[3] =
+      2 * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
   return velocities;
 }
 
@@ -90,7 +103,7 @@ std::vector<float> DiffDriveController::getWheelEfforts() {
 
 void DiffDriveController::updateLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 10;
+  const uint32_t dt = 10;
   while (true) {
     mutex_wheel_.lock();
     {
@@ -102,21 +115,21 @@ void DiffDriveController::updateLoop() {
     mutex_wheel_.unlock();
 
     // speed in ticks/sec
-    float FL_speed = wheel_FL_->getSpeed();
-    float RL_speed = wheel_RL_->getSpeed();
-    float FR_speed = wheel_FR_->getSpeed();
-    float RR_speed = wheel_RR_->getSpeed();
+    const float FL_speed = wheel_FL_->getSpeed();
+    const float RL_speed = wheel_RL_->getSpeed();
+    const float FR_speed = wheel_FR_->getSpeed();
+    const float RR_speed = wheel_RR_->getSpeed();
 
-    float L_speed = (FL_speed + RL_speed) / 2.0;
-    float R_speed = (FR_speed + RR_speed) / 2.0;
+    const float L_speed = (FL_speed + RL_speed) / 2.0;
+    const float R_speed = (FR_speed + RR_speed) / 2.0;
 
     // velocity in radians per second
-    float L_ang_vel = 2 * PI * L_speed / params.motor_encoder_resolution;
-    float R_ang_vel = 2 * PI * R_speed / params.motor_encoder_resolution;
+    const float L_ang_vel = 2 * PI * L_speed / params.motor_encoder_resolution;
+    const float R_ang_vel = 2 * PI * R_speed / params.motor_encoder_resolution;
 
     // velocity in meters per second
-    float L_lin_vel = L_ang_vel * params.dd_wheel_radius;
-    float R_lin_vel = R_ang_vel * params.dd_wheel_radius;
+    const float L_lin_vel = L_ang_vel * params.dd_wheel_radius;
+    const float R_lin_vel = R_ang_vel * params.dd_wheel_radius;
 
     mutex_odom_.lock();
     {

@@ -12,7 +12,7 @@
 #include <leo_firmware/logging.h>
 #include <leo_firmware/parameters.h>
 
-inline float clamp(float value, float limit) {
+inline float clamp(const float value, const float limit) {
   if (value > limit)
     return limit;
   else if (value < -limit)
