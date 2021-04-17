@@ -18,7 +18,7 @@ void DiffDriveController::init() {
   wheel_FR_ = new WheelController(hFramework::hMotA, false);
   wheel_RR_ = new WheelController(hFramework::hMotB, false);
 
-  sys.taskCreate(std::bind(&DiffDriveController::updateLoop, this));
+  sys.taskCreate(std::bind(&DiffDriveController::controllerLoop, this));
   if (params.dd_input_timeout > 0.0) {
     last_update_ = sys.getRefTime();
     sys.taskCreate(std::bind(&DiffDriveController::inputWatchdog, this));
@@ -83,13 +83,13 @@ void DiffDriveController::updateWheelStates() {
   velocities[3] =
       2 * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
 
-  efforts[0] = wheel_FL_->getPower() * 0.1;
-  efforts[1] = wheel_RL_->getPower() * 0.1;
-  efforts[2] = wheel_FR_->getPower() * 0.1;
-  efforts[3] = wheel_RR_->getPower() * 0.1;
+  efforts[0] = wheel_FL_->getPower() * -0.1;
+  efforts[1] = wheel_RL_->getPower() * -0.1;
+  efforts[2] = wheel_FR_->getPower() * -0.1;
+  efforts[3] = wheel_RR_->getPower() * -0.1;
 }
 
-void DiffDriveController::updateLoop() {
+void DiffDriveController::controllerLoop() {
   uint32_t t = sys.getRefTime();
   const uint32_t dt = 10;
   while (true) {

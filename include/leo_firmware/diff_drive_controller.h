@@ -21,8 +21,7 @@ class DiffDriveController {
   double efforts[4];
 
  private:
-  void updateLoop();
-  void debugLoop();
+  void controllerLoop();
   void inputWatchdog();
 
   hFramework::hMutex mutex_wheel_;
