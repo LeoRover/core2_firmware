@@ -1,6 +1,7 @@
 #include <hFramework.h>
 
 #include <ros.h>
+#include <tf/tf.h>
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -346,6 +347,11 @@ void odomLoop() {
       odom.twist.linear.x = odo[0];
       odom.twist.angular.z = odo[1];
 
+      std::vector<float> pos = dc.getPose();
+      pose.pose.position.x = pos[0];
+      pose.pose.position.y = pos[1];
+      pose.pose.orientation = tf::createQuaternionFromYaw(pos[2]);
+
       publish_odom = true;
     }
 
@@ -486,6 +492,7 @@ void hMain() {
 
       if (publish_odom) {
         odom_pub->publish(&odom);
+        pose_pub->publish(&pose);
         publish_odom = false;
       }
 

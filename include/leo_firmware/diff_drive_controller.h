@@ -32,10 +32,11 @@ class DiffDriveController {
   WheelController *wheel_FR_;
   WheelController *wheel_RR_;
 
-  float lin_vel_;
-  float ang_vel_;
-  float lin_pose_;
-  float ang_pose_;
+  float vel_lin_;
+  float vel_ang_;
+  float pose_x_;
+  float pose_y_;
+  float pose_yaw_;
 
   uint64_t last_update_;
 };

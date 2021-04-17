@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 
 #include <hSystem.h>
@@ -50,16 +51,17 @@ void DiffDriveController::setSpeed(const float linear, const float angular) {
 std::vector<float> DiffDriveController::getOdom() {
   hFramework::hMutexGuard m(mutex_odom_);
   std::vector<float> odom(2);
-  odom[0] = lin_vel_;
-  odom[1] = ang_vel_;
+  odom[0] = vel_lin_;
+  odom[1] = vel_ang_;
   return odom;
 }
 
 std::vector<float> DiffDriveController::getPose() {
   hFramework::hMutexGuard m(mutex_odom_);
-  std::vector<float> pose(2);
-  pose[0] = lin_pose_;
-  pose[1] = ang_pose_;
+  std::vector<float> pose(3);
+  pose[0] = pose_x_;
+  pose[1] = pose_y_;
+  pose[2] = pose_yaw_;
   return pose;
 }
 
@@ -122,10 +124,20 @@ void DiffDriveController::controllerLoop() {
     mutex_odom_.lock();
     {
       // linear (m/s) and angular (r/s) velocities of the robot
-      lin_vel_ = (L_lin_vel + R_lin_vel) / 2;
-      ang_vel_ = (R_lin_vel - L_lin_vel) / params.dd_wheel_separation;
+      vel_lin_ = (L_lin_vel + R_lin_vel) / 2;
+      vel_ang_ = (R_lin_vel - L_lin_vel) / params.dd_wheel_separation;
 
-      ang_vel_ /= params.dd_angular_velocity_multiplier;
+      vel_ang_ /= params.dd_angular_velocity_multiplier;
+
+      // Integrate the velocity using the rectangle rule
+      pose_yaw_ += vel_ang_ * 0.01;
+      if (pose_yaw_ > 2 * PI)
+        pose_yaw_ -= 2 * PI;
+      else if (pose_yaw_ < 0.0)
+        pose_yaw_ += 2 * PI;
+
+      pose_x_ += vel_lin_ * std::cos(pose_yaw_) * 0.01;
+      pose_y_ += vel_lin_ * std::sin(pose_yaw_) * 0.01;
     }
     mutex_odom_.unlock();
 
