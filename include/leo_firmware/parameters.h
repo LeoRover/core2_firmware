@@ -4,11 +4,14 @@
 #include <ros.h>
 
 struct Parameters {
-  int servo_voltage = 2;
+  // TF frames
+  char robot_frame_id[50] = "base_link";
+  char odom_frame_id[50] = "odom";
   char imu_frame_id[50] = "imu";
   char gps_frame_id[50] = "gpu";
 
   // Servo
+  int servo_voltage = 2;
   int servo_period[6] = {20000, 20000, 20000, 20000, 20000, 20000};
   int servo_angle_min[6] = {-90, -90, -90, -90, -90, -90};
   int servo_angle_max[6] = {90, 90, 90, 90, 90, 90};
