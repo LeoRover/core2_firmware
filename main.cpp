@@ -85,6 +85,13 @@ void resetConfigCallback(const std_srvs::TriggerRequest &req,
   res.success = true;
 }
 
+void resetOdometryCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[resetOdometryCallback]");
+  dc.resetOdom();
+  res.success = true;
+}
+
 void getFirmwareCallback(const std_srvs::TriggerRequest &req,
                          std_srvs::TriggerResponse &res) {
   logDebug("[getFirmwareCallback]");
@@ -201,6 +208,9 @@ void initROS() {
   auto reset_config_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                                  std_srvs::TriggerResponse>(
       "core2/reset_config", &resetConfigCallback);
+  auto reset_odometry_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                   std_srvs::TriggerResponse>(
+      "core2/reset_odometry", &resetOdometryCallback);
   auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                                      std_srvs::TriggerResponse>(
       "core2/get_firmware_version", &getFirmwareCallback);
@@ -218,6 +228,8 @@ void initROS() {
       *reset_board_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
       *reset_config_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *reset_odometry_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
       *firmware_version_srv);
   nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(

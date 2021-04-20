@@ -53,6 +53,13 @@ Odom DiffDriveController::getOdom() {
   return odom_;
 }
 
+void DiffDriveController::resetOdom() {
+  hFramework::hMutexGuard m(mutex_odom_);
+  odom_.pose_x = 0.0F;
+  odom_.pose_y = 0.0F;
+  odom_.pose_yaw = 0.0F;
+}
+
 void DiffDriveController::updateWheelStates() {
   hFramework::hMutexGuard m(mutex_wheel_);
   positions[0] =
@@ -73,10 +80,14 @@ void DiffDriveController::updateWheelStates() {
   velocities[3] =
       2.0F * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
 
-  efforts[0] = wheel_FL_->getPower() == 0.0F ? 0.0F : wheel_FL_->getPower() * -0.1F;
-  efforts[1] = wheel_RL_->getPower() == 0.0F ? 0.0F : wheel_RL_->getPower() * -0.1F;
-  efforts[2] = wheel_FR_->getPower() == 0.0F ? 0.0F : wheel_FR_->getPower() * -0.1F;
-  efforts[3] = wheel_RR_->getPower() == 0.0F ? 0.0F : wheel_RR_->getPower() * -0.1F;
+  efforts[0] =
+      wheel_FL_->getPower() == 0.0F ? 0.0F : wheel_FL_->getPower() * -0.1F;
+  efforts[1] =
+      wheel_RL_->getPower() == 0.0F ? 0.0F : wheel_RL_->getPower() * -0.1F;
+  efforts[2] =
+      wheel_FR_->getPower() == 0.0F ? 0.0F : wheel_FR_->getPower() * -0.1F;
+  efforts[3] =
+      wheel_RR_->getPower() == 0.0F ? 0.0F : wheel_RR_->getPower() * -0.1F;
 }
 
 void DiffDriveController::controllerLoop() {

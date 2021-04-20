@@ -21,6 +21,7 @@ class DiffDriveController {
   void init();
   void setSpeed(const float linear, const float angular);
   Odom getOdom();
+  void resetOdom();
   void updateWheelStates();
 
   double positions[4];
