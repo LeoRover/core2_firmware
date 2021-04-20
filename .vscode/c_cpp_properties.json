@@ -1,0 +1,64 @@
+{
+    "env": {
+        "hFrameworkPath": "/opt/hFramework",
+        "DefaultIncludePath": [
+            "${hFrameworkPath}/ports/stm32/include",
+            "${hFrameworkPath}/include",
+            "/usr/include",
+            "${workspaceFolder}/include",
+            "${workspaceFolder}/rosserial"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${DefaultIncludePath}"
+            ],
+            "defines": [
+                "BOARD_TYPE=CORE2",
+                "PORT=STM32",
+                "BOARD_VERSION=1.0.0"
+            ],
+            "intelliSenseMode": "gcc-arm",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerPath": "arm-none-eabi-gcc.exe"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${DefaultIncludePath}"
+            ],
+            "defines": [
+                "BOARD_TYPE=CORE2",
+                "PORT=STM32",
+                "BOARD_VERSION=1.0.0"
+            ],
+            "intelliSenseMode": "gcc-arm",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${DefaultIncludePath}"
+            ],
+            "defines": [
+                "BOARD_TYPE=CORE2",
+                "PORT=STM32",
+                "BOARD_VERSION=1.0.0"
+            ],
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ],
+            "intelliSenseMode": "clang-arm",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc"
+        }
+    ],
+    "version": 4
+}
