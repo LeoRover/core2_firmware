@@ -2,11 +2,12 @@
     "env": {
         "hFrameworkPath": "/opt/hFramework",
         "DefaultIncludePath": [
-            "${hFrameworkPath}/ports/stm32/include",
             "${hFrameworkPath}/include",
+            "${hFrameworkPath}/ports/stm32/include",
             "/usr/include",
             "${workspaceFolder}/include",
-            "${workspaceFolder}/rosserial"
+            "${workspaceFolder}/lib/rosserial",
+            "${workspaceFolder}/lib/sensors"
         ]
     },
     "configurations": [

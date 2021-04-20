@@ -4,7 +4,7 @@
 #include <II2C.h>
 #include <hMutex.h>
 
-#include <leo_firmware/sensors/imu/MPU9250.h>
+#include <MPU9250/MPU9250.h>
 
 class IMU {
  public:
