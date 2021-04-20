@@ -3,13 +3,14 @@
 #include <leo_firmware/config.h>
 #include <leo_firmware/logging.h>
 #include <leo_firmware/sensors/imu.h>
-#include <leo_firmware/sensors/imu/MPU9250.h>
-#include <leo_firmware/sensors/imu/RegisterMap.h>
 
-static constexpr float PI = 3.14159265358979323846;
-static constexpr float GRAVITATIONAL_ACCELERATION = 9.80665;
-static constexpr float DEGREE_TO_RADIAN = 2.0 * PI / 360.0;
-static constexpr float MGAUSS_TO_GAUSS = 0.001;
+#include <MPU9250/MPU9250.h>
+#include <MPU9250/RegisterMap.h>
+
+static constexpr float PI = 3.141592653F;
+static constexpr float GRAVITATIONAL_ACCELERATION = 9.80665F;
+static constexpr float DEGREE_TO_RADIAN = 2.0F * PI / 360.0F;
+static constexpr float MGAUSS_TO_GAUSS = 0.001F;
 
 void IMU::init() {
   mpu_.begin(100000);

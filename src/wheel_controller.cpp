@@ -10,8 +10,8 @@ WheelController::WheelController(hFramework::hMotor &motor, const bool polarity)
       ticks_offset_(0),
       ticks_sum_(0),
       dt_sum_(0),
-      v_now_(0.0),
-      v_target_(0.0),
+      v_now_(0.0F),
+      v_target_(0.0F),
       encoder_buffer_(ENCODER_BUFFER_SIZE) {
   v_reg_.setScale(1);
   v_reg_.setRange(-V_RANGE, V_RANGE);
@@ -38,7 +38,7 @@ void WheelController::update(const uint32_t dt) {
 
   int32_t new_ticks = ticks_now_ - ticks_prev;
 
-  float ins_vel = static_cast<float>(std::abs(new_ticks)) / (dt * 0.001);
+  float ins_vel = static_cast<float>(std::abs(new_ticks)) / (dt * 0.001F);
   if (ins_vel > WHEEL_VELOCITY_REJECTION_THRESHOLD * params.motor_max_speed) {
     ticks_offset_ += new_ticks;
     ticks_now_ -= new_ticks;
@@ -54,17 +54,16 @@ void WheelController::update(const uint32_t dt) {
   ticks_sum_ -= encoder_old.first;
   dt_sum_ -= encoder_old.second;
 
-  v_now_ = static_cast<float>(ticks_sum_) / (dt_sum_ * 0.001);
+  v_now_ = static_cast<float>(ticks_sum_) / (dt_sum_ * 0.001F);
 
   float v_err = v_now_ - v_target_;
   float pid_out = v_reg_.update(v_err, dt);
 
-  float est_power = (std::abs(v_now_) / params.motor_max_speed) * 1000.0;
-  float max_power = std::min(est_power + static_cast<float>(params.motor_torque_limit),
-                             static_cast<float>(1000.0));
+  float est_power = (std::abs(v_now_) / params.motor_max_speed) * 1000.0F;
+  float max_power = std::min(est_power + params.motor_torque_limit, 1000.0F);
 
   if (turned_on_ == true) {
-    if (v_now_ == 0.0 && v_target_ == 0.0) {
+    if (v_now_ == 0.0F && v_target_ == 0.0F) {
       v_reg_.reset();
       power_ = 0;
     } else {
