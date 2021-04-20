@@ -283,7 +283,6 @@ void setupServos() {
 }
 
 void setupJoints() {
-  joint_states.header.frame_id = "base_link";
   joint_states.name_length = 4;
   joint_states.name = new char *[4] {
     "wheel_FL_joint", "wheel_RL_joint", "wheel_FR_joint", "wheel_RR_joint"
@@ -315,9 +314,8 @@ void setupGPS() {
 }
 
 void setupOdom() {
-  const char *frame = "base_link";
-  odom.header.frame_id = frame;
-  pose.header.frame_id = frame;
+  odom.header.frame_id = params.robot_frame_id;
+  pose.header.frame_id = params.odom_frame_id;
 }
 
 void batteryLoop() {
@@ -421,7 +419,7 @@ void LEDLoop() {
 
 void GPSLoop() {
   while (true) {
-    gps->pollNextMessage();  // Wait for next GGA message
+    gps->pollNextMessage();  // Wait for the next GGA message
     const gga &gpgga = gps->getMessage();
 
     if (!publish_gps) {
@@ -440,20 +438,22 @@ void GPSLoop() {
 }
 
 void hMain() {
-  uint32_t t = sys.getRefTime();
   RPi.setBaudrate(250000);
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();
 
   LED.setOut();
-  sys.taskCreate(&LEDLoop);
+  sys.taskCreate(&LEDLoop, 3);
 
   // Wait for rosserial connection
   while (!nh.connected()) {
     nh.spinOnce();
   }
 
+  // Load configuration from Persistant storage
   configLoad();
+
+  // Load ROS parameters
   params.load(nh);
 
   dc.init();
@@ -465,18 +465,18 @@ void hMain() {
 
   sys.setLogDev(&Serial);
 
-  sys.taskCreate(&batteryLoop);
-  sys.taskCreate(&odomLoop);
-  sys.taskCreate(&jointStatesLoop);
+  sys.taskCreate(&batteryLoop, 3);
+  sys.taskCreate(&odomLoop, 3);
+  sys.taskCreate(&jointStatesLoop, 3);
 
   if (conf.imu_enabled) {
     setupIMU();
-    sys.taskCreate(&imuLoop);
+    sys.taskCreate(&imuLoop, 3);
   }
 
   if (conf.gps_enabled) {
     setupGPS();
-    sys.taskCreate(&GPSLoop);
+    sys.taskCreate(&GPSLoop, 3);
   }
 
   while (true) {
@@ -511,7 +511,5 @@ void hMain() {
         publish_gps = false;
       }
     }
-
-    sys.delaySync(t, 1);
   }
 }
