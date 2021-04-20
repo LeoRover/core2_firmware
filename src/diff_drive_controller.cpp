@@ -48,21 +48,9 @@ void DiffDriveController::setSpeed(const float linear, const float angular) {
   if (params.dd_input_timeout > 0.0F) last_update_ = sys.getRefTime();
 }
 
-std::vector<float> DiffDriveController::getOdom() {
+Odom DiffDriveController::getOdom() {
   hFramework::hMutexGuard m(mutex_odom_);
-  std::vector<float> odom(2);
-  odom[0] = vel_lin_;
-  odom[1] = vel_ang_;
-  return odom;
-}
-
-std::vector<float> DiffDriveController::getPose() {
-  hFramework::hMutexGuard m(mutex_odom_);
-  std::vector<float> pose(3);
-  pose[0] = pose_x_;
-  pose[1] = pose_y_;
-  pose[2] = pose_yaw_;
-  return pose;
+  return odom_;
 }
 
 void DiffDriveController::updateWheelStates() {
@@ -85,10 +73,10 @@ void DiffDriveController::updateWheelStates() {
   velocities[3] =
       2.0F * PI * wheel_RR_->getSpeed() / params.motor_encoder_resolution;
 
-  efforts[0] = wheel_FL_->getPower() * -0.1F;
-  efforts[1] = wheel_RL_->getPower() * -0.1F;
-  efforts[2] = wheel_FR_->getPower() * -0.1F;
-  efforts[3] = wheel_RR_->getPower() * -0.1F;
+  efforts[0] = wheel_FL_->getPower() == 0.0F ? 0.0F : wheel_FL_->getPower() * -0.1F;
+  efforts[1] = wheel_RL_->getPower() == 0.0F ? 0.0F : wheel_RL_->getPower() * -0.1F;
+  efforts[2] = wheel_FR_->getPower() == 0.0F ? 0.0F : wheel_FR_->getPower() * -0.1F;
+  efforts[3] = wheel_RR_->getPower() == 0.0F ? 0.0F : wheel_RR_->getPower() * -0.1F;
 }
 
 void DiffDriveController::controllerLoop() {
@@ -126,20 +114,20 @@ void DiffDriveController::controllerLoop() {
     mutex_odom_.lock();
     {
       // linear (m/s) and angular (r/s) velocities of the robot
-      vel_lin_ = (L_lin_vel + R_lin_vel) / 2.0F;
-      vel_ang_ = (R_lin_vel - L_lin_vel) / params.dd_wheel_separation;
+      odom_.vel_lin = (L_lin_vel + R_lin_vel) / 2.0F;
+      odom_.vel_ang = (R_lin_vel - L_lin_vel) / params.dd_wheel_separation;
 
-      vel_ang_ /= params.dd_angular_velocity_multiplier;
+      odom_.vel_ang /= params.dd_angular_velocity_multiplier;
 
       // Integrate the velocity using the rectangle rule
-      pose_yaw_ += vel_ang_ * 0.01F;
-      if (pose_yaw_ > 2.0F * PI)
-        pose_yaw_ -= 2.0F * PI;
-      else if (pose_yaw_ < 0.0F)
-        pose_yaw_ += 2.0F * PI;
+      odom_.pose_yaw += odom_.vel_ang * 0.01F;
+      if (odom_.pose_yaw > 2.0F * PI)
+        odom_.pose_yaw -= 2.0F * PI;
+      else if (odom_.pose_yaw < 0.0F)
+        odom_.pose_yaw += 2.0F * PI;
 
-      pose_x_ += vel_lin_ * std::cos(pose_yaw_) * 0.01F;
-      pose_y_ += vel_lin_ * std::sin(pose_yaw_) * 0.01F;
+      odom_.pose_x += odom_.vel_lin * std::cos(odom_.pose_yaw) * 0.01F;
+      odom_.pose_y += odom_.vel_lin * std::sin(odom_.pose_yaw) * 0.01F;
     }
     mutex_odom_.unlock();
 

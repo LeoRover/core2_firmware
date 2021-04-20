@@ -8,12 +8,19 @@
 
 #include <leo_firmware/wheel_controller.h>
 
+struct Odom {
+  float vel_lin;
+  float vel_ang;
+  float pose_x;
+  float pose_y;
+  float pose_yaw;
+};
+
 class DiffDriveController {
  public:
   void init();
   void setSpeed(const float linear, const float angular);
-  std::vector<float> getOdom();
-  std::vector<float> getPose();
+  Odom getOdom();
   void updateWheelStates();
 
   double positions[4];
@@ -32,11 +39,7 @@ class DiffDriveController {
   WheelController *wheel_FR_;
   WheelController *wheel_RR_;
 
-  float vel_lin_;
-  float vel_ang_;
-  float pose_x_;
-  float pose_y_;
-  float pose_yaw_;
+  Odom odom_;
 
   uint64_t last_update_;
 };
