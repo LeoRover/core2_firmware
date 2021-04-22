@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(LeoFirmware NONE)
 
-set(HFRAMEWORK_PATH "/opt/hFramework")
+set(HFRAMEWORK_PATH "/opt/hFramework" CACHE FILEPATH
+    "Path to the hFramework SDK")
 
 set(BOARD_TYPE "core2")
 set(BOARD_VERSION "1.0.0")
