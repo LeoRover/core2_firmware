@@ -9,6 +9,10 @@ set(BOARD_VERSION "1.0.0")
 
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
 
+if (RELEASE)
+    optimization(3)
+endif()
+
 include_directories(
     include/
     lib/rosserial/
