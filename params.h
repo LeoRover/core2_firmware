@@ -3,7 +3,7 @@
 
 #include <hSensor.h>
 
-static const char *FIRMWARE_VERSION = "1.1.0";
+static const char *FIRMWARE_VERSION = "1.2.0";
 
 // The hSens port to which the IMU is connected
 // Set to either hSens1 or hSens2
