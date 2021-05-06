@@ -1,11 +1,13 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include <hFramework.h>
+#include <hSystem.h>
 
 #include <ros.h>
 
 #include <leo_firmware/logging.h>
+
+using hFramework::sys;
 
 extern ros::NodeHandle nh;
 

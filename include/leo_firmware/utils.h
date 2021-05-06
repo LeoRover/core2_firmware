@@ -1,17 +1,18 @@
 #ifndef LEO_FIRMWARE_INCLUDE_UTILS_H_
 #define LEO_FIRMWARE_INCLUDE_UTILS_H_
 
-#include <cstdio>
+#include <string>
 
-#include <hFramework.h>
+#include <IServo.h>
 
 #include <ros.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/UInt16MultiArray.h>
 
 #include <leo_firmware/logging.h>
+#include <leo_firmware/parameters.h>
 
-inline float clamp(float value, float limit) {
+inline float clamp(const float value, const float limit) {
   if (value > limit)
     return limit;
   else if (value < -limit)

@@ -1,105 +1,61 @@
-# Leo_firmware
+# leo_firmware
+
+The firmware for the [Husarion CORE2] board running inside Leo Rover. 
+
+The main functionalities include:
+- steering the robot,
+- setting position on the servos connected to `hServo` ports,
+- reading battery voltage,
+- reading motor positions
+- estimating velocity of the robot
+- IMU and GPS sensor support
+
+It uses [rosserial] client library to expose its functionalities on ROS topics, services and parameters.
+
+## Building and flashing
+To build the project you will need to install cmake and GNU Arm Embedded Toolchain. On Ubuntu/Debian, you can do:
+```
+sudo apt-get install cmake gcc-arm-none-eabi
+```
+You will also need the [Husarion SDK]. Download it and unpack to the `/opt/hFramework` directory.
+
+To build, enter the following commands on the terminal:
+```
+mkdir build && cd build
+cmake ..
+make
+```
+To flash, you can either use a USB cable to connect your computer to hSerial port on CORE2 board and type:
+```
+make flash
+```
+or you can upload the `leo_firmware.bin` file to Leo Rover and use [leo_fw] package to flash it:
+```
+rosrun leo_fw flash leo_firmware.bin
+```
+
+### Using Husarion extension for VSCode
+You can also use the VSCode extension which already contains the Husarion SDK. This should work on Windows, Linux and MacOS platforms, but unfortunately break the VSCode IntelliSense configuration.
+
+ Make sure you have installed:
+- [Visual Studio Code],
+- [Husarion extension] for VSCode
+
+and followed the instructions on the [Husarion extension] page for installing the requirements.
+
+Open the project in VSCode and click `[Ctrl]+[Shift]+[B]` to build it.
+
+To flash the firmware, use a USB cable to connect your computer to hSerial port on CORE2 board. \
+Then, click `[Ctrl]+[Shift]+[B]` and select `Flash project to CORE2`.
 
 ## ROS API
 
-### Subscribed topics
+For the information about exposed ROS topics, services and parameters, visit [leo_fw] on ROS Wiki.
 
-* **`cmd_vel`** ([geometry_msgs/Twist])
 
-    Target velocity of the Rover.  
-    Only linear.x (m/s) and angular.z (r/s) are used.
-
-### Published topics
-
-* **`wheel_odom`** ([geometry_msgs/TwistStamped])
-
-    Current linear and angular velocities estimated from encoder readings.
-
-* **`battery`** ([std_msgs/Float32])
-
-    Current battery voltage reading.
-
-* **`joint_states`** ([sensor_msgs/JointState])
-
-    Current state of the wheel joints.  
-    The units of measurements are as follows:  
-    position in radians, velocity in radians per second, effort in the PWM duty cycle (percent).
-
-### Services
-
-* **`core2/reset_board`** ([std_srvs/Empty])
-
-    Performs software reset on the CORE2 board.
-
-* **`core2/get_firmware_version`** ([std_srvs/Trigger])
-
-    Returns the current firmware version.
-
-### Parameters
-
-* **`core2/diff_drive/wheel_radius`** (`float`, default: `0.0625`)
-
-    The radius of the wheel in meters.
-
-* **`core2/diff_drive/wheel_separation`** (`float`, default: `0.33`)
-
-    The distance (in meters) between the centers of the left and right wheels.
-
-* **`core2/diff_drive/angular_velocity_multiplier`** (`float`, default: `1.91`)
-
-    Upon receiving a `cmd_vel` command, the angular velocity is multiplied by this parameter and the calculated odometry has its angular velocity divided by this parameter. This is done to account for a difference between a two-wheel robot model and the real robot.
-
-* **`core2/diff_drive/input_timeout`** (`int`, default: `500`)
-
-    The timeout (in milliseconds) for the `cmd_vel` commands.  
-    The differential drive controller will stop the motors if it does not receive a command within the specified time. Set it to `0` to disable the timeout.
-
-* **`core2/motors/encoder_resolution`** (`float`, default: `878.4`)
-
-    The resolution of the wheel encoders in counts per rotation.
-
-* **`core2/motors/encoder_pullup`** (`int`, default: `1`)
-
-    Whether to use internal pull-up for the encoder logic pins.  
-    Value of `1` means `yes`, any other value means `no`
-
-* **`core2/motors/max_speed`** (`float`, default: `800.0`)
-
-    The maximum reachable speed of the motors in encoder counts per second.  
-    Used for limiting the value passed to the wheel controllers.
-
-* **`core2/motors/pid/p`** (`float`, default: `0.0`)
-
-    P constant of the motor's PID regulators.
-
-* **`core2/motors/pid/i`** (`float`, default: `0.005`)
-
-    I constant of the motor's PID regulators.
-
-* **`core2/motors/pid/d`** (`float`, default: `0.0`)
-
-    D constant of the motor's PID regulators.
-
-* **`core2/motors/power_limit`** (`float`, default: `1000.0`)
-
-    Limit of the PWM duty applied to the motors.  
-    The value should be between `0.0` (0% duty) and `1000.0` (100% duty).
-
-* **`core2/motors/torque_limit`** (`float`, default: `1000.0`)
-
-    This value applies an additional power limit depending on the current speed of the motors.  
-    The formula is as follows:   
-    power_limit = (current_speed / max_speed) * 1000.0 + torque_limit
-
-[geometry_msgs/Twist]: http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
-[geometry_msgs/TwistStamped]: http://docs.ros.org/api/geometry_msgs/html/msg/TwistStamped.html
-[std_msgs/Int16]: http://docs.ros.org/api/std_msgs/html/msg/Int16.html
-[std_msgs/Float32]: http://docs.ros.org/api/std_msgs/html/msg/Float32.html
-[std_msgs/UInt16MultiArray]: http://docs.ros.org/api/std_msgs/html/msg/UInt16MultiArray.html
-[std_srvs/Empty]: http://docs.ros.org/api/std_srvs/html/srv/Empty.html
-[std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
-[std_srvs/SetBool]: http://docs.ros.org/api/std_srvs/html/srv/SetBool.html
-[sensor_msgs/JointState]: http://docs.ros.org/api/sensor_msgs/html/msg/JointState.html
-[geometry_msgs/Vector3Stamped]: http://docs.ros.org/api/geometry_msgs/html/msg/Vector3Stamped.html
-[std_srvs/Trigger]: http://docs.ros.org/api/std_srvs/html/srv/Trigger.html
-[sensor_msgs/NavSatFix]: http://docs.ros.org/api/sensor_msgs/html/msg/NavSatFix.html
+[leo_fw]: http://wiki.ros.org/leo_fw
+[Visual Studio Code]: https://code.visualstudio.com
+[Husarion extension]: https://marketplace.visualstudio.com/items?itemName=husarion.husarion
+[Husarion CORE2]: https://husarion.com/manuals/core2/
+[rosserial]: http://wiki.ros.org/rosserial
+[Husarion SDK]: http://files.fictionlab.pl/husarion/Husarion_SDK-stable.zip
