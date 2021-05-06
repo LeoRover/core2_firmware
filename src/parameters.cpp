@@ -11,27 +11,6 @@ void Parameters::load(ros::NodeHandle &nh) {
   nh.getParam("core2/robot_frame_id", &robot_frame_id_ptr, 1, TIMEOUT);
   char *odom_frame_id_ptr = odom_frame_id;
   nh.getParam("core2/odom_frame_id", &odom_frame_id_ptr, 1, TIMEOUT);
-  char *imu_frame_id_ptr = imu_frame_id;
-  nh.getParam("core2/imu_frame_id", &imu_frame_id_ptr, 1, TIMEOUT);
-  char *gps_frame_id_ptr = gps_frame_id;
-  nh.getParam("core2/gps_frame_id", &gps_frame_id_ptr, 1, TIMEOUT);
-
-  nh.getParam("core2/servo_voltage", &servo_voltage, 1, TIMEOUT);
-  for (int i = 1; i <= 6; i++) {
-    std::string param_prefix =
-        std::string("core2/servo") + static_cast<char>(i + '0') + '/';
-    nh.getParam((param_prefix + "period").c_str(), &servo_period[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "angle_min").c_str(), &servo_angle_min[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "angle_max").c_str(), &servo_angle_max[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "width_min").c_str(), &servo_width_min[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "width_max").c_str(), &servo_width_max[i], 1,
-                TIMEOUT);
-  }
-
   nh.getParam("core2/motors/encoder_resolution", &motor_encoder_resolution, 1,
               TIMEOUT);
   nh.getParam("core2/motors/encoder_pullup", &motor_encoder_pullup, 1, TIMEOUT);
