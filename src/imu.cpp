@@ -1,14 +1,16 @@
-#include <hFramework.h>
+#include <cmath>
 
 #include <leo_firmware/config.h>
 #include <leo_firmware/logging.h>
 #include <leo_firmware/sensors/imu.h>
-#include <leo_firmware/sensors/imu/MPU9250.h>
-#include <leo_firmware/sensors/imu/RegisterMap.h>
 
-static const float gravitationalAcceleration = 9.80665;
-static const float degreeToRadian = 2.0 * M_PI / 360.0;
-static const float mGuassToGauss = 0.001;
+#include <MPU9250/MPU9250.h>
+#include <MPU9250/RegisterMap.h>
+
+static constexpr float PI = 3.141592653F;
+static constexpr float GRAVITATIONAL_ACCELERATION = 9.80665F;
+static constexpr float DEGREE_TO_RADIAN = 2.0F * PI / 360.0F;
+static constexpr float MGAUSS_TO_GAUSS = 0.001F;
 
 void IMU::init() {
   mpu_.begin(100000);
@@ -58,17 +60,17 @@ void IMU::update() {
     ax = static_cast<float>(accel[0]) * ares_ - abias_[0];
     ay = static_cast<float>(accel[1]) * ares_ - abias_[1];
     az = static_cast<float>(accel[2]) * ares_ - abias_[2];
-    ax *= gravitationalAcceleration;
-    ay *= gravitationalAcceleration;
-    az *= gravitationalAcceleration;
+    ax *= GRAVITATIONAL_ACCELERATION;
+    ay *= GRAVITATIONAL_ACCELERATION;
+    az *= GRAVITATIONAL_ACCELERATION;
 
     mpu_.readGyroData(gyro);
     gx = static_cast<float>(gyro[0]) * gres_ - gbias_[0];
     gy = static_cast<float>(gyro[1]) * gres_ - gbias_[1];
     gz = static_cast<float>(gyro[2]) * gres_ - gbias_[2];
-    gx *= degreeToRadian;
-    gy *= degreeToRadian;
-    gz *= degreeToRadian;
+    gx *= DEGREE_TO_RADIAN;
+    gy *= DEGREE_TO_RADIAN;
+    gz *= DEGREE_TO_RADIAN;
   }
 
   mpu_.readMagData(mag);
@@ -77,9 +79,9 @@ void IMU::update() {
   mx = static_cast<float>(mag[1]) * mres_ * magCal_[1] - mbias_[1];
   my = static_cast<float>(mag[0]) * mres_ * magCal_[0] - mbias_[0];
   mz = static_cast<float>(-mag[2]) * mres_ * magCal_[2] - mbias_[2];
-  mx *= mscale_[1] * mGuassToGauss;
-  my *= mscale_[0] * mGuassToGauss;
-  mz *= mscale_[2] * mGuassToGauss;
+  mx *= mscale_[1] * MGAUSS_TO_GAUSS;
+  my *= mscale_[0] * MGAUSS_TO_GAUSS;
+  mz *= mscale_[2] * MGAUSS_TO_GAUSS;
 
   mpu_mutex_.unlock();
 }
@@ -102,7 +104,7 @@ void IMU::calGyroAccel() {
   conf.accel_bias[0] = abias_[0];
   conf.accel_bias[1] = abias_[1];
   conf.accel_bias[2] = abias_[2];
-  store_config();
+  configStore();
 }
 
 void IMU::calMag() {
@@ -121,5 +123,5 @@ void IMU::calMag() {
   conf.mag_bias[0] = mbias_[0];
   conf.mag_bias[1] = mbias_[1];
   conf.mag_bias[2] = mbias_[2];
-  store_config();
+  configStore();
 }

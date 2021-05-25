@@ -2,6 +2,7 @@
 
 #include <ros.h>
 
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/JointState.h>
@@ -17,50 +18,54 @@
 #include <leo_firmware/config.h>
 #include <leo_firmware/diff_drive_controller.h>
 #include <leo_firmware/logging.h>
+#include <leo_firmware/parameters.h>
 #include <leo_firmware/sensors/gps.h>
 #include <leo_firmware/sensors/imu.h>
 #include <leo_firmware/utils.h>
 
 #include "params.h"
 
+using hFramework::hServo;
+using hFramework::sys;
+
 ros::NodeHandle nh;
 
-hFramework::hMutex mutex;
+static std_msgs::Float32 battery;
+static ros::Publisher *battery_pub;
+static bool publish_battery = false;
 
-std_msgs::Float32 battery;
-ros::Publisher *battery_pub;
-bool publish_battery = false;
+static geometry_msgs::TwistStamped odom;
+static ros::Publisher *odom_pub;
+static geometry_msgs::PoseStamped pose;
+static ros::Publisher *pose_pub;
+static bool publish_odom = false;
 
-geometry_msgs::TwistStamped odom;
-ros::Publisher *odom_pub;
-bool publish_odom = false;
+static sensor_msgs::JointState joint_states;
+static ros::Publisher *joint_states_pub;
+static bool publish_joint = false;
 
-sensor_msgs::JointState joint_states;
-ros::Publisher *joint_states_pub;
-bool publish_joint = false;
+static IMU *imu;
+static geometry_msgs::Vector3Stamped imu_gyro_msg;
+static ros::Publisher *imu_gyro_pub;
+static geometry_msgs::Vector3Stamped imu_accel_msg;
+static ros::Publisher *imu_accel_pub;
+static geometry_msgs::Vector3Stamped imu_mag_msg;
+static ros::Publisher *imu_mag_pub;
+static bool publish_imu = false;
 
-IMU *imu;
-geometry_msgs::Vector3Stamped imu_gyro_msg;
-ros::Publisher *imu_gyro_pub;
-geometry_msgs::Vector3Stamped imu_accel_msg;
-ros::Publisher *imu_accel_pub;
-geometry_msgs::Vector3Stamped imu_mag_msg;
-ros::Publisher *imu_mag_pub;
-bool publish_imu = false;
+static GPS *gps;
+static sensor_msgs::NavSatFix gps_fix;
+static ros::Publisher *gps_pub;
+static bool publish_gps = false;
 
-GPS *gps;
-sensor_msgs::NavSatFix gps_fix;
-ros::Publisher *gps_pub;
-bool publish_gps = false;
+static DiffDriveController dc;
 
-DiffDriveController dc;
-
-ServoWrapper servo1(1, hServo.servo1);
-ServoWrapper servo2(2, hServo.servo2);
-ServoWrapper servo3(3, hServo.servo3);
-ServoWrapper servo4(4, hServo.servo4);
-ServoWrapper servo5(5, hServo.servo5);
-ServoWrapper servo6(6, hServo.servo6);
+static ServoWrapper servo1(1, hServo.servo1);
+static ServoWrapper servo2(2, hServo.servo2);
+static ServoWrapper servo3(3, hServo.servo3);
+static ServoWrapper servo4(4, hServo.servo4);
+static ServoWrapper servo5(5, hServo.servo5);
+static ServoWrapper servo6(6, hServo.servo6);
 
 void relay1Callback(const std_msgs::Bool& msg)
 {
@@ -101,7 +106,14 @@ void resetBoardCallback(const std_srvs::EmptyRequest &req,
 void resetConfigCallback(const std_srvs::TriggerRequest &req,
                          std_srvs::TriggerResponse &res) {
   logDebug("[resetConfigCallback]");
-  reset_config();
+  configReset();
+  res.success = true;
+}
+
+void resetOdometryCallback(const std_srvs::TriggerRequest &req,
+                         std_srvs::TriggerResponse &res) {
+  logDebug("[resetOdometryCallback]");
+  dc.resetOdom();
   res.success = true;
 }
 
@@ -116,7 +128,7 @@ void setImuCallback(const std_srvs::SetBoolRequest &req,
                     std_srvs::SetBoolResponse &res) {
   logDebug("[setImuCallback] %s", req.data ? "true" : "false");
   conf.imu_enabled = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -124,7 +136,7 @@ void setGpsCallback(const std_srvs::SetBoolRequest &req,
                     std_srvs::SetBoolResponse &res) {
   logDebug("[setGpsCallback] %s", req.data ? "true" : "false");
   conf.gps_enabled = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -132,7 +144,7 @@ void setDebugCallback(const std_srvs::SetBoolRequest &req,
                       std_srvs::SetBoolResponse &res) {
   logDebug("[setDebugCallback] %s", req.data ? "true" : "false");
   conf.debug_logging = req.data;
-  store_config();
+  configStore();
   res.success = true;
 }
 
@@ -156,10 +168,12 @@ void initROS() {
   // Publishers
   battery_pub = new ros::Publisher("battery", &battery);
   odom_pub = new ros::Publisher("wheel_odom", &odom);
+  pose_pub = new ros::Publisher("wheel_pose", &pose);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
 
   nh.advertise(*battery_pub);
   nh.advertise(*odom_pub);
+  nh.advertise(*pose_pub);
   nh.advertise(*joint_states_pub);
 
   // Subscribers
@@ -232,6 +246,9 @@ void initROS() {
   auto reset_config_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                                  std_srvs::TriggerResponse>(
       "core2/reset_config", &resetConfigCallback);
+  auto reset_odometry_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
+                                                   std_srvs::TriggerResponse>(
+      "core2/reset_odometry", &resetOdometryCallback);
   auto firmware_version_srv = new ros::ServiceServer<std_srvs::TriggerRequest,
                                                      std_srvs::TriggerResponse>(
       "core2/get_firmware_version", &getFirmwareCallback);
@@ -249,6 +266,8 @@ void initROS() {
       *reset_board_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
       *reset_config_srv);
+  nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+      *reset_odometry_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
       *firmware_version_srv);
   nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
@@ -296,10 +315,7 @@ void setupRelay()
 void setupServos() {
   hServo.enablePower();
 
-  int servo_voltage = 2;
-  nh.getParam("core2/servo_voltage", &servo_voltage);
-
-  switch (servo_voltage) {
+  switch (params.servo_voltage) {
     case 0:
       hServo.setVoltage5V();
       break;
@@ -325,17 +341,16 @@ void setupServos() {
 }
 
 void setupJoints() {
-  joint_states.header.frame_id = "base_link";
+  joint_states.name_length = 4;
   joint_states.name = new char *[4] {
     "wheel_FL_joint", "wheel_RL_joint", "wheel_FR_joint", "wheel_RR_joint"
   };
-  joint_states.position = new float[4];
-  joint_states.velocity = new float[4];
-  joint_states.effort = new float[4];
-  joint_states.name_length = 4;
   joint_states.position_length = 4;
+  joint_states.position = dc.positions;
   joint_states.velocity_length = 4;
+  joint_states.velocity = dc.velocities;
   joint_states.effort_length = 4;
+  joint_states.effort = dc.efforts;
 }
 
 void setupIMU() {
@@ -343,13 +358,9 @@ void setupIMU() {
   imu = new IMU(IMU_HSENS.getI2C());
   imu->init();
 
-  static char frame_id[50] = "imu";
-  char *imu_frame_id = &frame_id[0];
-  nh.getParam("core2/imu_frame_id", &imu_frame_id);
-
-  imu_gyro_msg.header.frame_id = frame_id;
-  imu_accel_msg.header.frame_id = frame_id;
-  imu_mag_msg.header.frame_id = frame_id;
+  imu_gyro_msg.header.frame_id = params.imu_frame_id;
+  imu_accel_msg.header.frame_id = params.imu_frame_id;
+  imu_mag_msg.header.frame_id = params.imu_frame_id;
 }
 
 void setupGPS() {
@@ -357,18 +368,17 @@ void setupGPS() {
   gps = new GPS(GPS_HSENS.getSerial());
   gps->init();
 
-  static char frame_id[50] = "gps";
-  char *gps_frame_id = &frame_id[0];
-  nh.getParam("core2/gps_frame_id", &gps_frame_id);
-
-  gps_fix.header.frame_id = frame_id;
+  gps_fix.header.frame_id = params.gps_frame_id;
 }
 
-void setupOdom() { odom.header.frame_id = "base_link"; }
+void setupOdom() {
+  odom.header.frame_id = params.robot_frame_id;
+  pose.header.frame_id = params.odom_frame_id;
+}
 
 void batteryLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 1000;
+  const uint32_t dt = 1000;
 
   while (true) {
     if (!publish_battery) {
@@ -382,15 +392,19 @@ void batteryLoop() {
 
 void odomLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 50;
+  const uint32_t dt = 50;
 
   while (true) {
     if (!publish_odom) {
       odom.header.stamp = nh.now();
 
-      std::vector<float> odo = dc.getOdom();
-      odom.twist.linear.x = odo[0];
-      odom.twist.angular.z = odo[1];
+      Odom odo = dc.getOdom();
+      odom.twist.linear.x = odo.vel_lin;
+      odom.twist.angular.z = odo.vel_ang;
+      pose.pose.position.x = odo.pose_x;
+      pose.pose.position.y = odo.pose_y;
+      pose.pose.orientation.z = std::sin(odo.pose_yaw * 0.5F);
+      pose.pose.orientation.w = std::cos(odo.pose_yaw * 0.5F);
 
       publish_odom = true;
     }
@@ -401,19 +415,12 @@ void odomLoop() {
 
 void jointStatesLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 50;
+  const uint32_t dt = 50;
 
   while (true) {
     if (!publish_joint) {
-      std::vector<float> pos = dc.getWheelPositions();
-      std::vector<float> vel = dc.getWheelVelocities();
-      std::vector<float> eff = dc.getWheelEfforts();
-
       joint_states.header.stamp = nh.now();
-
-      std::copy(pos.begin(), pos.end(), joint_states.position);
-      std::copy(vel.begin(), vel.end(), joint_states.velocity);
-      std::copy(eff.begin(), eff.end(), joint_states.effort);
+      dc.updateWheelStates();
 
       publish_joint = true;
     }
@@ -424,7 +431,7 @@ void jointStatesLoop() {
 
 void imuLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 25;
+  const uint32_t dt = 25;
   while (true) {
     imu->update();
 
@@ -456,7 +463,7 @@ void imuLoop() {
 
 void LEDLoop() {
   uint32_t t = sys.getRefTime();
-  uint32_t dt = 250;
+  const uint32_t dt = 250;
 
   while (true) {
     if (!nh.connected())
@@ -470,7 +477,7 @@ void LEDLoop() {
 
 void GPSLoop() {
   while (true) {
-    gps->pollNextMessage();  // Wait for next GGA message
+    gps->pollNextMessage();  // Wait for the next GGA message
     const gga &gpgga = gps->getMessage();
 
     if (!publish_gps) {
@@ -489,25 +496,25 @@ void GPSLoop() {
 }
 
 void hMain() {
-  uint32_t t = sys.getRefTime();
-  // platform.begin(&RPi);
-  // nh.getHardware()->initWithDevice(&platform.LocalSerial);
   RPi.setBaudrate(250000);
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();
 
   LED.setOut();
-  sys.taskCreate(&LEDLoop);
+  sys.taskCreate(&LEDLoop, 3);
 
   // Wait for rosserial connection
   while (!nh.connected()) {
     nh.spinOnce();
   }
 
-  load_config();
+  // Load configuration from Persistant storage
+  configLoad();
 
-  dc.init(&nh);
-  dc.start();
+  // Load ROS parameters
+  params.load(nh);
+
+  dc.init();
 
   setupOdom();
   setupServos();
@@ -517,18 +524,18 @@ void hMain() {
 
   sys.setLogDev(&Serial);
 
-  sys.taskCreate(&batteryLoop);
-  sys.taskCreate(&odomLoop);
-  sys.taskCreate(&jointStatesLoop);
+  sys.taskCreate(&batteryLoop, 3);
+  sys.taskCreate(&odomLoop, 3);
+  sys.taskCreate(&jointStatesLoop, 3);
 
   if (conf.imu_enabled) {
     setupIMU();
-    sys.taskCreate(&imuLoop);
+    sys.taskCreate(&imuLoop, 3);
   }
 
   if (conf.gps_enabled) {
     setupGPS();
-    sys.taskCreate(&GPSLoop);
+    sys.taskCreate(&GPSLoop, 3);
   }
 
   while (true) {
@@ -542,6 +549,7 @@ void hMain() {
 
       if (publish_odom) {
         odom_pub->publish(&odom);
+        pose_pub->publish(&pose);
         publish_odom = false;
       }
 
@@ -562,7 +570,5 @@ void hMain() {
         publish_gps = false;
       }
     }
-
-    sys.delaySync(t, 1);
   }
 }
