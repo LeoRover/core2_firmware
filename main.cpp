@@ -7,9 +7,9 @@
 #include <geometry_msgs/Vector3Stamped.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/NavSatFix.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
-#include <std_msgs/Bool.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
@@ -67,28 +67,36 @@ static ServoWrapper servo4(4, hServo.servo4);
 static ServoWrapper servo5(5, hServo.servo5);
 static ServoWrapper servo6(6, hServo.servo6);
 
-void relay1Callback(const std_msgs::Bool& msg)
-{
-	if (msg.data==true) hSens1.pin1.write(1);
-	else  hSens1.pin1.write(0);;
+void relay1Callback(const std_msgs::Bool &msg) {
+  if (msg.data == true)
+    hSens1.pin1.write(1);
+  else
+    hSens1.pin1.write(0);
+  ;
 }
 
-void relay2Callback(const std_msgs::Bool& msg)
-{
-	if (msg.data==true) hSens1.pin2.write(1);
-	else  hSens1.pin2.write(0);;
+void relay2Callback(const std_msgs::Bool &msg) {
+  if (msg.data == true)
+    hSens1.pin2.write(1);
+  else
+    hSens1.pin2.write(0);
+  ;
 }
 
-void relay3Callback(const std_msgs::Bool& msg)
-{
-	if (msg.data==true) hSens1.pin3.write(1);
-	else  hSens1.pin3.write(0);;
+void relay3Callback(const std_msgs::Bool &msg) {
+  if (msg.data == true)
+    hSens1.pin3.write(1);
+  else
+    hSens1.pin3.write(0);
+  ;
 }
 
-void relay4Callback(const std_msgs::Bool& msg)
-{
-	if (msg.data==true) hSens1.pin4.write(1);
-	else  hSens1.pin4.write(0);;
+void relay4Callback(const std_msgs::Bool &msg) {
+  if (msg.data == true)
+    hSens1.pin4.write(1);
+  else
+    hSens1.pin4.write(0);
+  ;
 }
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
@@ -111,7 +119,7 @@ void resetConfigCallback(const std_srvs::TriggerRequest &req,
 }
 
 void resetOdometryCallback(const std_srvs::TriggerRequest &req,
-                         std_srvs::TriggerResponse &res) {
+                           std_srvs::TriggerResponse &res) {
   logDebug("[resetOdometryCallback]");
   dc.resetOdom();
   res.success = true;
@@ -180,13 +188,13 @@ void initROS() {
   auto twist_sub =
       new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
 
-  auto relay1_sub = 
+  auto relay1_sub =
       new ros::Subscriber<std_msgs::Bool>("/relay1", &relay1Callback);
-  auto relay2_sub = 
+  auto relay2_sub =
       new ros::Subscriber<std_msgs::Bool>("/relay2", &relay2Callback);
-	auto relay3_sub = 
+  auto relay3_sub =
       new ros::Subscriber<std_msgs::Bool>("/relay3", &relay3Callback);
-	auto relay4_sub = 
+  auto relay4_sub =
       new ros::Subscriber<std_msgs::Bool>("/relay4", &relay4Callback);
 
   auto servo1_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
@@ -223,9 +231,9 @@ void initROS() {
 
   nh.subscribe(*twist_sub);
   nh.subscribe(*relay1_sub);
-	nh.subscribe(*relay2_sub);
-	nh.subscribe(*relay3_sub);
-	nh.subscribe(*relay4_sub);
+  nh.subscribe(*relay2_sub);
+  nh.subscribe(*relay3_sub);
+  nh.subscribe(*relay4_sub);
   nh.subscribe(*servo1_angle_sub);
   nh.subscribe(*servo2_angle_sub);
   nh.subscribe(*servo3_angle_sub);
@@ -304,12 +312,11 @@ void initROS() {
   }
 }
 
-void setupRelay()
-{
+void setupRelay() {
   hSens1.pin1.setOut();
-	hSens1.pin2.setOut();
-	hSens1.pin3.setOut();
-	hSens1.pin4.setOut();
+  hSens1.pin2.setOut();
+  hSens1.pin3.setOut();
+  hSens1.pin4.setOut();
 }
 
 void setupServos() {
