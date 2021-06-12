@@ -1,6 +1,7 @@
 #ifndef LEO_FIRMWARE_INCLUDE_WHEEL_CONTROLLER_H_
 #define LEO_FIRMWARE_INCLUDE_WHEEL_CONTROLLER_H_
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <utility>
