@@ -67,6 +67,8 @@ namespace ros
 const int SPIN_OK = 0;
 const int SPIN_ERR = -1;
 const int SPIN_TIMEOUT = -2;
+const int SPIN_TX_STOP_REQUESTED = -3;
+const int SPIN_TIME_RECV = -4;
 
 const uint8_t SYNC_SECONDS  = 5;
 const uint8_t MODE_FIRST_FF = 0;
@@ -138,6 +140,7 @@ public:
     bytes_ = 0;
     index_ = 0;
     topic_ = 0;
+    configured_ = false;
   };
 
   /* Start a named port, which may be network server IP, initialize buffers */
@@ -148,6 +151,7 @@ public:
     bytes_ = 0;
     index_ = 0;
     topic_ = 0;
+    configured_ = false;
   };
 
   /**
@@ -201,6 +205,9 @@ public:
         mode_ = MODE_FIRST_FF;
       }
     }
+
+    bool tx_stop_requested = false;
+    bool saw_time_msg = false;
 
     /* while available buffer, read data */
     while (true)
@@ -303,6 +310,7 @@ public:
           }
           else if (topic_ == TopicInfo::ID_TIME)
           {
+            saw_time_msg = true;
             syncTime(message_in);
           }
           else if (topic_ == TopicInfo::ID_PARAMETER_REQUEST)
@@ -313,6 +321,7 @@ public:
           else if (topic_ == TopicInfo::ID_TX_STOP)
           {
             configured_ = false;
+            tx_stop_requested = true;
           }
           else
           {
@@ -330,7 +339,7 @@ public:
       last_sync_time = c_time;
     }
 
-    return SPIN_OK;
+    return saw_time_msg ? SPIN_TIME_RECV : (tx_stop_requested ? SPIN_TX_STOP_REQUESTED : SPIN_OK);
   }
 
 
