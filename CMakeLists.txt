@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(LeoFirmware NONE)
+project(LeoCore2Firmware NONE)
 
 set(HFRAMEWORK_PATH "/opt/hFramework" CACHE FILEPATH
     "Path to the hFramework SDK")
@@ -19,14 +19,13 @@ include_directories(
     lib/sensors/
 )
 
-add_hexecutable(leo_firmware 
+add_hexecutable(core2_firmware 
     main.cpp 
     src/diff_drive_controller.cpp 
     src/wheel_controller.cpp
-    src/config.cpp
+    src/motor_controller.cpp
+    src/pid_regulator.cpp
     src/logging.cpp
-    src/imu.cpp
-    src/gps.cpp
     src/parameters.cpp
     lib/rosserial/time.cpp
     lib/rosserial/duration.cpp

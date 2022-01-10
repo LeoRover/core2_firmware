@@ -5,25 +5,22 @@
 
 #include <ros.h>
 
-#include <leo_firmware/config.h>
-#include <leo_firmware/logging.h>
+#include <firmware/logging.hpp>
 
 using hFramework::sys;
 
 extern ros::NodeHandle nh;
 
 void logDebug(const char *format, ...) {
-  if (conf.debug_logging) {
-    char buffer[256];
-    va_list arg;
-    va_start(arg, format);
-    vsnprintf(buffer, sizeof(buffer), format, arg);
-    va_end(arg);
-    nh.logdebug(buffer);
 #ifdef DEBUG
-    sys.log("[DEBUG] %s\r\n", buffer);
+  char buffer[256];
+  va_list arg;
+  va_start(arg, format);
+  vsnprintf(buffer, sizeof(buffer), format, arg);
+  va_end(arg);
+  nh.logdebug(buffer);
+  sys.log("[DEBUG] %s\r\n", buffer);
 #endif
-  }
 }
 
 void logInfo(const char *format, ...) {

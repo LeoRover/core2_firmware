@@ -1,103 +1,89 @@
-#include <leo_firmware/parameters.h>
-#include <leo_firmware/utils.h>
-#include <leo_firmware/wheel_controller.h>
+#include <algorithm>
 
-WheelController::WheelController(hFramework::hMotor &motor, const bool polarity)
-    : motor_(motor),
-      polarity_(polarity),
-      turned_on_(true),
-      ticks_now_(0),
-      ticks_offset_(0),
-      ticks_sum_(0),
-      dt_sum_(0),
-      v_now_(0.0F),
-      v_target_(0.0F),
-      encoder_buffer_(ENCODER_BUFFER_SIZE) {
-  v_reg_.setScale(1);
-  v_reg_.setRange(-V_RANGE, V_RANGE);
-  v_reg_.setIRange(-V_RANGE, V_RANGE);
-  v_reg_.setCoeffs(params.motor_pid_p, params.motor_pid_i, params.motor_pid_d);
+#include "firmware/configuration.hpp"
+#include "firmware/motor_controller.hpp"
+#include "firmware/parameters.hpp"
+#include "firmware/utils.hpp"
+#include "firmware/wheel_controller.hpp"
 
-  if (polarity_) {
-    motor_.setMotorPolarity(Polarity::Reversed);
-    motor_.setEncoderPolarity(Polarity::Reversed);
+static constexpr float PI = 3.141592653F;
+
+WheelController::WheelController(const WheelConfiguration& wheel_conf)
+    : motor(wheel_conf.motor), encoder_buffer_(ENCODER_BUFFER_SIZE) {
+  if (wheel_conf.reverse_polarity) {
+    motor.setMotorPolarity(Polarity::Reversed);
+    motor.setEncoderPolarity(Polarity::Reversed);
   }
-
-  if (params.motor_encoder_pullup)
-    motor_.setEncoderPu();
-  else
-    motor_.setEncoderPd();
-
-  motor_.setPowerLimit(params.motor_power_limit);
-  motor_.resetEncoderCnt();
 }
 
-void WheelController::update(const uint32_t dt) {
+void WheelController::init() {
+  v_reg_.setCoeffs(params.motor_pid_p, params.motor_pid_i, params.motor_pid_d);
+  v_reg_.setRange(std::min(1000.0F, params.motor_power_limit));
+  motor.init();
+  motor.resetEncoderCnt();
+}
+
+void WheelController::update(const uint32_t dt_ms) {
   int32_t ticks_prev = ticks_now_;
-  ticks_now_ = motor_.getEncoderCnt() - ticks_offset_;
+  ticks_now_ = motor.getEncoderCnt();
 
   int32_t new_ticks = ticks_now_ - ticks_prev;
 
-  float ins_vel = static_cast<float>(std::abs(new_ticks)) / (dt * 0.001F);
-  if (ins_vel > WHEEL_VELOCITY_REJECTION_THRESHOLD * params.motor_max_speed) {
-    ticks_offset_ += new_ticks;
-    ticks_now_ -= new_ticks;
-    new_ticks = 0;
-  }
-
   std::pair<int32_t, uint32_t> encoder_old =
-      encoder_buffer_.push_back(std::pair<int32_t, uint32_t>(new_ticks, dt));
+      encoder_buffer_.push_back(std::pair<int32_t, uint32_t>(new_ticks, dt_ms));
 
   ticks_sum_ += new_ticks;
-  dt_sum_ += dt;
+  dt_sum_ += dt_ms;
 
   ticks_sum_ -= encoder_old.first;
   dt_sum_ -= encoder_old.second;
 
   v_now_ = static_cast<float>(ticks_sum_) / (dt_sum_ * 0.001F);
 
-  float v_err = v_now_ - v_target_;
-  float pid_out = v_reg_.update(v_err, dt);
-
-  float est_power = (std::abs(v_now_) / params.motor_max_speed) * 1000.0F;
-  float max_power = std::min(est_power + params.motor_torque_limit, 1000.0F);
-
-  if (turned_on_ == true) {
+  if (enabled_) {
+    float pwm_duty;
     if (v_now_ == 0.0F && v_target_ == 0.0F) {
       v_reg_.reset();
-      power_ = 0;
+      pwm_duty = 0.0F;
     } else {
-      float power_limited = clamp(pid_out, max_power);
-      power_ = static_cast<int16_t>(power_limited);
+      float v_err = v_target_ - v_now_;
+      pwm_duty = v_reg_.update(v_err, dt_ms) / 10.0F;
     }
-    motor_.setPower(power_);
+    motor.setPWMDutyCycle(pwm_duty);
   }
 }
 
-void WheelController::setSpeed(const float speed) {
-  v_target_ = clamp(speed, params.motor_max_speed);
+void WheelController::setTargetVelocity(const float speed) {
+  v_target_ = (speed / (2.0F * PI)) * params.motor_encoder_resolution;
 }
 
-float WheelController::getSpeed() { return v_now_; }
+float WheelController::getVelocity() {
+  return (v_now_ / params.motor_encoder_resolution) * (2.0F * PI);
+}
 
-int16_t WheelController::getPower() { return power_; }
+float WheelController::getTorque() {
+  return 0.0;
+}
 
-int32_t WheelController::getDistance() { return ticks_now_; }
+float WheelController::getDistance() {
+  return (ticks_now_ / params.motor_encoder_resolution) * (2.0F * PI);
+}
 
-void WheelController::resetDistance() { motor_.resetEncoderCnt(); }
-
-void WheelController::reset() {
-  motor_.resetEncoderCnt();
-  v_reg_.reset();
-  v_now_ = 0;
-  v_target_ = 0;
-  motor_.setPower(0);
+void WheelController::resetDistance() {
+  motor.resetEncoderCnt();
   ticks_now_ = 0;
-  ticks_offset_ = 0;
 }
 
-void WheelController::turnOff() {
-  turned_on_ = false;
-  motor_.setPower(0);
+void WheelController::enable() {
+  if (!enabled_) {
+    v_reg_.reset();
+    enabled_ = true;
+  }
 }
-void WheelController::turnOn() { turned_on_ = true; }
+
+void WheelController::disable() {
+  if (enabled_) {
+    enabled_ = false;
+    motor.setPWMDutyCycle(0.0F);
+  }
+}
