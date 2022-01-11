@@ -10,7 +10,8 @@ struct MotorConfiguration {
 
 class MotorController {
  public:
-  MotorController(hFramework::hMotor& motor) : motor_(motor){};
+  MotorController(const MotorConfiguration& motor_conf)
+      : motor_(motor_conf.motor){};
 
   /**
    * Initialize the Motor Controller.
@@ -58,10 +59,5 @@ class MotorController {
 
  private:
   hFramework::hMotor& motor_;
-  Polarity motor_polarity_ = Polarity::Normal;
-  Polarity encoder_polarity_ = Polarity::Normal;
-
   float pwm_duty_ = 0.0F;
-  uint8_t ticks_prev_quarter_ = 0;
-  int32_t ticks_offset_ = 0;
 };

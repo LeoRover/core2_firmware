@@ -38,22 +38,34 @@ const uint8_t IMU_PUB_PERIOD = 1;
 const DiffDriveConfiguration DD_CONFIG = {
     .wheel_FL_conf =
         {
-            .motor = hFramework::hMotC,
+            .motor_conf =
+                {
+                    .motor = hFramework::hMotC,
+                },
             .reverse_polarity = true,
         },
     .wheel_RL_conf =
         {
-            .motor = hFramework::hMotD,
+            .motor_conf =
+                {
+                    .motor = hFramework::hMotD,
+                },
             .reverse_polarity = true,
         },
     .wheel_FR_conf =
         {
-            .motor = hFramework::hMotA,
+            .motor_conf =
+                {
+                    .motor = hFramework::hMotA,
+                },
             .reverse_polarity = false,
         },
     .wheel_RR_conf =
         {
-            .motor = hFramework::hMotB,
+            .motor_conf =
+                {
+                    .motor = hFramework::hMotB,
+                },
             .reverse_polarity = false,
         },
 };

@@ -18,6 +18,7 @@
 #include "firmware/wheel_controller.hpp"
 
 static ros::NodeHandle nh;
+static bool configured = false;
 
 static std_msgs::Float32 battery;
 static std_msgs::Float32 battery_averaged;
@@ -155,15 +156,13 @@ void setup() {
   nh.initNode();
 
   sys.setLogDev(&Serial);
-  // setupServos();
-  LED.setOut();
 
   // Wait for rosserial connection
   while (!nh.connected()) {
     nh.spinOnce();
   }
 
-  // params.load(nh);
+  params.load(nh);
 
   initROS();
 
@@ -171,6 +170,8 @@ void setup() {
 
   // Initialize Diff Drive Controller
   dc.init();
+
+  configured = true;
 }
 
 void loop() {
@@ -222,7 +223,7 @@ void update() {
     }
   }
 
-  // if (!configured) return;
+  if (!configured) return;
 
   dc.update(UPDATE_PERIOD);
 
@@ -270,19 +271,18 @@ void update() {
   // }
 }
 
-void updateLoop() {
-  uint32_t t = sys.getRefTime();
-  while(true)
-  {
-    update();
-    sys.delaySync(t, UPDATE_PERIOD);
-  }
-}
-
 void hMain() {
-  setup();
+  LED.setOut();
 
-  sys.taskCreate(&updateLoop, 3);
+  sys.taskCreate([]() {
+    uint32_t t = sys.getRefTime();
+    while(true) {
+      update();
+      sys.delaySync(t, UPDATE_PERIOD);
+    }
+  }, 3);
+
+  setup();
 
   while(true){
     loop();
