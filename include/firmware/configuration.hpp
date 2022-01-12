@@ -41,31 +41,31 @@ const DiffDriveConfiguration DD_CONFIG = {
             .motor_conf =
                 {
                     .motor = hFramework::hMotC,
+                    .reverse_polarity = true,
                 },
-            .reverse_polarity = true,
         },
     .wheel_RL_conf =
         {
             .motor_conf =
                 {
                     .motor = hFramework::hMotD,
+                    .reverse_polarity = true,
                 },
-            .reverse_polarity = true,
         },
     .wheel_FR_conf =
         {
             .motor_conf =
                 {
                     .motor = hFramework::hMotA,
+                    .reverse_polarity = true,
                 },
-            .reverse_polarity = false,
         },
     .wheel_RR_conf =
         {
             .motor_conf =
                 {
                     .motor = hFramework::hMotB,
+                    .reverse_polarity = true,
                 },
-            .reverse_polarity = false,
         },
 };

@@ -1,7 +1,16 @@
 #include "firmware/motor_controller.hpp"
 #include "firmware/configuration.hpp"
 
-void MotorController::init() { motor_.setEncoderPu(); }
+void MotorController::init() {
+  motor_.setEncoderPu();
+  if (reverse_polarity_) {
+    motor_.setMotorPolarity(Polarity::Reversed);
+    motor_.setEncoderPolarity(Polarity::Normal);
+  } else {
+    motor_.setMotorPolarity(Polarity::Normal);
+    motor_.setEncoderPolarity(Polarity::Reversed);
+  }
+}
 
 void MotorController::setPWMDutyCycle(float pwm_duty) {
   pwm_duty_ = clamp(pwm_duty, 100.0F);
@@ -18,11 +27,3 @@ int32_t MotorController::getEncoderCnt() { return motor_.getEncoderCnt(); }
 void MotorController::resetEncoderCnt() { motor_.resetEncoderCnt(); }
 
 float MotorController::getWindingCurrent() { return 0.0; }
-
-void MotorController::setMotorPolarity(Polarity polarity) {
-  motor_.setMotorPolarity(polarity);
-}
-
-void MotorController::setEncoderPolarity(Polarity polarity) {
-  motor_.setEncoderPolarity(polarity);
-}

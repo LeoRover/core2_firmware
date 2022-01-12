@@ -9,18 +9,12 @@
 static constexpr float PI = 3.141592653F;
 
 WheelController::WheelController(const WheelConfiguration& wheel_conf)
-    : motor(wheel_conf.motor_conf),
-      reverse_polarity_(wheel_conf.reverse_polarity),
-      encoder_buffer_(ENCODER_BUFFER_SIZE) {}
+    : motor(wheel_conf.motor_conf), encoder_buffer_(ENCODER_BUFFER_SIZE) {}
 
 void WheelController::init() {
   v_reg_.setCoeffs(params.motor_pid_p, params.motor_pid_i, params.motor_pid_d);
   v_reg_.setRange(std::min(1000.0F, params.motor_power_limit));
   motor.init();
-  if (reverse_polarity_) {
-    motor.setMotorPolarity(Polarity::Reversed);
-    motor.setEncoderPolarity(Polarity::Reversed);
-  }
   motor.resetEncoderCnt();
 }
 

@@ -6,12 +6,14 @@
 
 struct MotorConfiguration {
   hFramework::hMotor& motor;
+  bool reverse_polarity;
 };
 
 class MotorController {
  public:
   MotorController(const MotorConfiguration& motor_conf)
-      : motor_(motor_conf.motor){};
+      : motor_(motor_conf.motor),
+        reverse_polarity_(motor_conf.reverse_polarity){};
 
   /**
    * Initialize the Motor Controller.
@@ -45,19 +47,8 @@ class MotorController {
    */
   float getWindingCurrent();
 
-  /**
-   * Set motor polarity.
-   * @param polarity motor polarity
-   */
-  void setMotorPolarity(Polarity polarity);
-
-  /**
-   * Set encoder polarity.
-   * @param polarity encoder polarity
-   */
-  void setEncoderPolarity(Polarity polarity);
-
  private:
   hFramework::hMotor& motor_;
+  const bool reverse_polarity_;
   float pwm_duty_ = 0.0F;
 };

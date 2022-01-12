@@ -13,7 +13,6 @@
 
 struct WheelConfiguration {
   MotorConfiguration motor_conf;
-  bool reverse_polarity;
 };
 
 class WheelController {
@@ -75,7 +74,6 @@ class WheelController {
   int16_t power_ = 0;
 
   bool enabled_ = false;
-  bool reverse_polarity_ = false;
 
   int32_t ticks_now_ = 0;
   int32_t ticks_sum_ = 0;
