@@ -7,7 +7,8 @@
             "/usr/include",
             "${workspaceFolder}/include",
             "${workspaceFolder}/lib/rosserial",
-            "${workspaceFolder}/lib/sensors"
+            "${workspaceFolder}/lib/sensors",
+            "${workspaceFolder}/lib/diff_drive_lib"
         ]
     },
     "configurations": [

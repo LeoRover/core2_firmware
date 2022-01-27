@@ -15,7 +15,6 @@
 
 #include "firmware/configuration.hpp"
 #include "firmware/parameters.hpp"
-#include "firmware/wheel_controller.hpp"
 
 static ros::NodeHandle nh;
 static bool configured = false;
@@ -44,6 +43,8 @@ static bool reset_request = false;
 
 static DiffDriveController dc(DD_CONFIG);
 // static ImuReceiver imu_receiver(&IMU_I2C);
+
+static Parameters params;
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
   dc.setSpeed(msg.linear.x, msg.angular.z);
@@ -169,7 +170,7 @@ void setup() {
   // imu_receiver.init();
 
   // Initialize Diff Drive Controller
-  dc.init();
+  dc.init(params);
 
   configured = true;
 }

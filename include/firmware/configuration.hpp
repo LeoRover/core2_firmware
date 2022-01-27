@@ -2,8 +2,8 @@
 
 #include <peripherals.h>
 
-#include "firmware/diff_drive_controller.hpp"
-#include "firmware/motor_controller.hpp"
+#include "core2_motor_controller.hpp"
+#include "diff_drive_controller.hpp"
 
 const char *const FIRMWARE_VERSION = "2.0.0";
 
@@ -35,37 +35,30 @@ const uint8_t JOINTS_PUB_PERIOD = 5;
 const uint8_t ODOM_PUB_PERIOD = 5;
 const uint8_t IMU_PUB_PERIOD = 1;
 
+Core2MotorController MotA(hFramework::hMotA, true);
+Core2MotorController MotB(hFramework::hMotB, true);
+Core2MotorController MotC(hFramework::hMotC, false);
+Core2MotorController MotD(hFramework::hMotD, false);
+
 const DiffDriveConfiguration DD_CONFIG = {
     .wheel_FL_conf =
         {
-            .motor_conf =
-                {
-                    .motor = hFramework::hMotC,
-                    .reverse_polarity = true,
-                },
+            .motor = MotC,
+            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
         },
     .wheel_RL_conf =
         {
-            .motor_conf =
-                {
-                    .motor = hFramework::hMotD,
-                    .reverse_polarity = true,
-                },
+            .motor = MotD,
+            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
         },
     .wheel_FR_conf =
         {
-            .motor_conf =
-                {
-                    .motor = hFramework::hMotA,
-                    .reverse_polarity = true,
-                },
+            .motor = MotA,
+            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
         },
     .wheel_RR_conf =
         {
-            .motor_conf =
-                {
-                    .motor = hFramework::hMotB,
-                    .reverse_polarity = true,
-                },
+            .motor = MotB,
+            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
         },
 };

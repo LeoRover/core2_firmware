@@ -2,15 +2,9 @@
 
 #include <ros.h>
 
-struct Parameters {
-  // Servo
-  int servo_voltage = 2;
-  int servo_period[6] = {20000, 20000, 20000, 20000, 20000, 20000};
-  int servo_angle_min[6] = {-90, -90, -90, -90, -90, -90};
-  int servo_angle_max[6] = {90, 90, 90, 90, 90, 90};
-  int servo_width_min[6] = {1000, 1000, 1000, 1000, 1000, 1000};
-  int servo_width_max[6] = {2000, 2000, 2000, 2000, 2000, 2000};
+#include "diff_drive_controller.hpp"
 
+struct Parameters : DiffDriveParams {
   // Motor
   float motor_encoder_resolution = 878.4F;
   float motor_pid_p = 0.0F;
@@ -28,5 +22,3 @@ struct Parameters {
 
   void load(ros::NodeHandle &nh);
 };
-
-extern Parameters params;

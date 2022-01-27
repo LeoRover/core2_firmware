@@ -4,24 +4,22 @@
 
 static constexpr int TIMEOUT = 1000;
 
-Parameters params;
-
 void Parameters::load(ros::NodeHandle &nh) {
-  nh.getParam("core2/servo_voltage", &servo_voltage, 1, TIMEOUT);
-  for (int i = 1; i <= 6; i++) {
-    std::string param_prefix =
-        std::string("core2/servo") + static_cast<char>(i + '0') + '/';
-    nh.getParam((param_prefix + "period").c_str(), &servo_period[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "angle_min").c_str(), &servo_angle_min[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "angle_max").c_str(), &servo_angle_max[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "width_min").c_str(), &servo_width_min[i], 1,
-                TIMEOUT);
-    nh.getParam((param_prefix + "width_max").c_str(), &servo_width_max[i], 1,
-                TIMEOUT);
-  }
+  // nh.getParam("core2/servo_voltage", &servo_voltage, 1, TIMEOUT);
+  // for (int i = 1; i <= 6; i++) {
+  //   std::string param_prefix =
+  //       std::string("core2/servo") + static_cast<char>(i + '0') + '/';
+  //   nh.getParam((param_prefix + "period").c_str(), &servo_period[i], 1,
+  //               TIMEOUT);
+  //   nh.getParam((param_prefix + "angle_min").c_str(), &servo_angle_min[i], 1,
+  //               TIMEOUT);
+  //   nh.getParam((param_prefix + "angle_max").c_str(), &servo_angle_max[i], 1,
+  //               TIMEOUT);
+  //   nh.getParam((param_prefix + "width_min").c_str(), &servo_width_min[i], 1,
+  //               TIMEOUT);
+  //   nh.getParam((param_prefix + "width_max").c_str(), &servo_width_max[i], 1,
+  //               TIMEOUT);
+  // }
 
   nh.getParam("core2/motors/encoder_resolution", &motor_encoder_resolution, 1,
               TIMEOUT);

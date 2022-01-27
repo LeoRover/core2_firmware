@@ -17,16 +17,17 @@ include_directories(
     include/
     lib/rosserial/
     lib/sensors/
+    lib/diff_drive_lib/
 )
 
 add_hexecutable(core2_firmware 
     main.cpp 
-    src/diff_drive_controller.cpp 
-    src/wheel_controller.cpp
-    src/motor_controller.cpp
-    src/pid_regulator.cpp
     src/logging.cpp
     src/parameters.cpp
+    src/core2_motor_controller.cpp
+    lib/diff_drive_lib/diff_drive_controller.cpp
+    lib/diff_drive_lib/pid_regulator.cpp
+    lib/diff_drive_lib/wheel_controller.cpp
     lib/rosserial/time.cpp
     lib/rosserial/duration.cpp
     lib/sensors/MPU9250/MPU9250.cpp)
