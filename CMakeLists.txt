@@ -21,8 +21,7 @@ include_directories(
 )
 
 add_hexecutable(core2_firmware 
-    main.cpp 
-    src/logging.cpp
+    main.cpp
     src/parameters.cpp
     src/core2_motor_controller.cpp
     lib/diff_drive_lib/diff_drive_controller.cpp
