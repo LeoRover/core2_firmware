@@ -1,3 +1,6 @@
 [submodule "lib/diff_drive_lib"]
 	path = lib/diff_drive_lib
 	url = https://github.com/fictionlab/diff_drive_lib.git
+[submodule "lib/rosserial_lib"]
+	path = lib/rosserial_lib
+	url = https://github.com/fictionlab/rosserial_lib.git
