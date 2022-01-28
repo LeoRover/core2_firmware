@@ -243,15 +243,28 @@ void update() {
   }
 
   if (cnt % JOINTS_PUB_PERIOD == 0 && !publish_wheel_states) {
+    auto dd_wheel_states = dc.getWheelStates();
+
     wheel_states.stamp = nh.now();
-    dc.updateWheelStates(wheel_states);
+    for (size_t i = 0; i < 4; i++) {
+      wheel_states.position[i] = dd_wheel_states.position[i];
+      wheel_states.velocity[i] = dd_wheel_states.velocity[i];
+      wheel_states.torque[i] = dd_wheel_states.torque[i];
+      wheel_states.pwm_duty_cycle[i] = dd_wheel_states.pwm_duty_cycle[i];
+    }
 
     publish_wheel_states = true;
   }
 
   if (cnt % ODOM_PUB_PERIOD == 0 && !publish_wheel_odom) {
-    wheel_odom = dc.getOdom();
+    auto dd_odom = dc.getOdom();
+
     wheel_odom.stamp = nh.now();
+    wheel_odom.velocity_lin = dd_odom.velocity_lin;
+    wheel_odom.velocity_ang = dd_odom.velocity_ang;
+    wheel_odom.pose_x = dd_odom.pose_x;
+    wheel_odom.pose_y = dd_odom.pose_y;
+    wheel_odom.pose_yaw = dd_odom.pose_yaw;
 
     publish_wheel_odom = true;
   }
@@ -275,17 +288,19 @@ void update() {
 void hMain() {
   LED.setOut();
 
-  sys.taskCreate([]() {
-    uint32_t t = sys.getRefTime();
-    while(true) {
-      update();
-      sys.delaySync(t, UPDATE_PERIOD);
-    }
-  }, 3);
+  sys.taskCreate(
+      []() {
+        uint32_t t = sys.getRefTime();
+        while (true) {
+          update();
+          sys.delaySync(t, UPDATE_PERIOD);
+        }
+      },
+      3);
 
   setup();
 
-  while(true){
+  while (true) {
     loop();
   }
 }
