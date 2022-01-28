@@ -9,6 +9,8 @@ set(BOARD_VERSION "1.0.0")
 
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
 
+add_compile_definitions(ROS_PLATFORM_HFRAMEWORK)
+
 if (RELEASE)
     optimization(3)
 endif()
