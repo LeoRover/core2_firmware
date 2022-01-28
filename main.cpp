@@ -71,7 +71,7 @@ void getFirmwareVersionCallback(const std_srvs::TriggerRequest &req,
 
 void getBoardTypeCallback(const std_srvs::TriggerRequest &req,
                           std_srvs::TriggerResponse &res) {
-  res.message = "leocore";
+  res.message = "core2";
   res.success = true;
 }
 
@@ -155,8 +155,6 @@ void setup() {
   RPi.setBaudrate(250000);
   nh.getHardware()->initWithDevice(&RPi);
   nh.initNode();
-
-  sys.setLogDev(&Serial);
 
   // Wait for rosserial connection
   while (!nh.connected()) {
