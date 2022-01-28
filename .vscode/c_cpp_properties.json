@@ -20,7 +20,8 @@
             "defines": [
                 "BOARD_TYPE=CORE2",
                 "PORT=STM32",
-                "BOARD_VERSION=1.0.0"
+                "BOARD_VERSION=1.0.0",
+                "ROS_PLATFORM_HFRAMEWORK"
             ],
             "intelliSenseMode": "gcc-arm",
             "cStandard": "c11",
@@ -35,7 +36,8 @@
             "defines": [
                 "BOARD_TYPE=CORE2",
                 "PORT=STM32",
-                "BOARD_VERSION=1.0.0"
+                "BOARD_VERSION=1.0.0",
+                "ROS_PLATFORM_HFRAMEWORK"
             ],
             "intelliSenseMode": "gcc-arm",
             "cStandard": "c11",
@@ -50,7 +52,8 @@
             "defines": [
                 "BOARD_TYPE=CORE2",
                 "PORT=STM32",
-                "BOARD_VERSION=1.0.0"
+                "BOARD_VERSION=1.0.0",
+                "ROS_PLATFORM_HFRAMEWORK"
             ],
             "macFrameworkPath": [
                 "/System/Library/Frameworks",
