@@ -15,9 +15,9 @@ endif()
 
 include_directories(
     include/
-    lib/rosserial/
-    lib/sensors/
     lib/diff_drive_lib/
+    lib/rosserial_lib/
+    lib/sensors/
 )
 
 add_hexecutable(core2_firmware 
@@ -28,6 +28,6 @@ add_hexecutable(core2_firmware
     lib/diff_drive_lib/diff_drive_controller.cpp
     lib/diff_drive_lib/pid_regulator.cpp
     lib/diff_drive_lib/wheel_controller.cpp
-    lib/rosserial/time.cpp
-    lib/rosserial/duration.cpp
+    lib/rosserial_lib/time.cpp
+    lib/rosserial_lib/duration.cpp
     lib/sensors/MPU9250/MPU9250.cpp)

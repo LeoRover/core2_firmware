@@ -6,9 +6,9 @@
             "${hFrameworkPath}/ports/stm32/include",
             "/usr/include",
             "${workspaceFolder}/include",
-            "${workspaceFolder}/lib/rosserial",
-            "${workspaceFolder}/lib/sensors",
-            "${workspaceFolder}/lib/diff_drive_lib"
+            "${workspaceFolder}/lib/diff_drive_lib",
+            "${workspaceFolder}/lib/rosserial_lib",
+            "${workspaceFolder}/lib/sensors"
         ]
     },
     "configurations": [
