@@ -15,6 +15,7 @@
 
 #include "firmware/configuration.hpp"
 #include "firmware/parameters.hpp"
+#include "firmware/imu_receiver.hpp"
 
 static ros::NodeHandle nh;
 static bool configured = false;
@@ -35,14 +36,15 @@ static leo_msgs::WheelStates wheel_states;
 static ros::Publisher wheel_states_pub("firmware/wheel_states", &wheel_states);
 static bool publish_wheel_states = false;
 
-// static leo_msgs::Imu imu;
-// static ros::Publisher imu_pub("firmware/imu", &imu);
-// static bool publish_imu = false;
+static leo_msgs::Imu imu;
+static ros::Publisher imu_pub("firmware/imu", &imu);
+static bool publish_imu = false;
+static bool imu_detected = false;
 
 static bool reset_request = false;
 
 static DiffDriveController dc(DD_CONFIG);
-// static ImuReceiver imu_receiver(&IMU_I2C);
+static ImuReceiver imu_receiver(IMU_HSENS.i2c);
 
 static Parameters params;
 
@@ -134,7 +136,6 @@ void initROS() {
   nh.advertise(battery_averaged_pub);
   nh.advertise(wheel_odom_pub);
   nh.advertise(wheel_states_pub);
-  // nh.advertise(imu_pub);
 
   // Subscribers
   nh.subscribe(twist_sub);
@@ -165,7 +166,11 @@ void setup() {
 
   initROS();
 
-  // imu_receiver.init();
+  if (imu_receiver.init()) {
+    imu_detected = true;
+    nh.loginfo("IMU sensor detected");
+    nh.advertise(imu_pub);
+  }
 
   // Initialize Diff Drive Controller
   dc.init(params);
@@ -194,10 +199,10 @@ void loop() {
     publish_wheel_states = false;
   }
 
-  // if (publish_imu) {
-  //   imu_pub.publish(&imu);
-  //   publish_imu = false;
-  // }
+  if (publish_imu) {
+    imu_pub.publish(&imu);
+    publish_imu = false;
+  }
 }
 
 void update() {
@@ -267,24 +272,25 @@ void update() {
     publish_wheel_odom = true;
   }
 
-  // if (cnt % IMU_PUB_PERIOD == 0 && !publish_imu) {
-  //   imu_receiver.update();
+  if (imu_detected && cnt % IMU_PUB_PERIOD == 0 && !publish_imu) {
+    imu_receiver.update();
 
-  //   imu.stamp = nh.now();
-  //   imu.temperature = imu_receiver.temp;
-  //   imu.accel_x = imu_receiver.ax;
-  //   imu.accel_y = imu_receiver.ay;
-  //   imu.accel_z = imu_receiver.az;
-  //   imu.gyro_x = imu_receiver.gx;
-  //   imu.gyro_y = imu_receiver.gy;
-  //   imu.gyro_z = imu_receiver.gz;
+    imu.stamp = nh.now();
+    imu.temperature = imu_receiver.temp;
+    imu.accel_x = imu_receiver.ax;
+    imu.accel_y = imu_receiver.ay;
+    imu.accel_z = imu_receiver.az;
+    imu.gyro_x = imu_receiver.gx;
+    imu.gyro_y = imu_receiver.gy;
+    imu.gyro_z = imu_receiver.gz;
 
-  //   publish_imu = true;
-  // }
+    publish_imu = true;
+  }
 }
 
 void hMain() {
   LED.setOut();
+  IMU_HSENS.selectI2C();
 
   sys.taskCreate(
       []() {
