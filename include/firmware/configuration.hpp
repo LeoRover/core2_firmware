@@ -2,7 +2,7 @@
 
 #include <peripherals.h>
 
-#include "core2_motor_controller.hpp"
+#include "motor_controller.hpp"
 #include "diff_drive_controller.hpp"
 
 const char *const FIRMWARE_VERSION = "2.0.0";
@@ -35,10 +35,10 @@ const uint8_t JOINTS_PUB_PERIOD = 5;
 const uint8_t ODOM_PUB_PERIOD = 5;
 const uint8_t IMU_PUB_PERIOD = 1;
 
-Core2MotorController MotA(hFramework::hMotA, true);
-Core2MotorController MotB(hFramework::hMotB, true);
-Core2MotorController MotC(hFramework::hMotC, false);
-Core2MotorController MotD(hFramework::hMotD, false);
+extern MotorController MotA;
+extern MotorController MotB;
+extern MotorController MotC;
+extern MotorController MotD;
 
 const DiffDriveConfiguration DD_CONFIG = {
     .wheel_FL_conf =

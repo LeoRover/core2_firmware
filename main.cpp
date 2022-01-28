@@ -43,6 +43,11 @@ static bool imu_detected = false;
 
 static bool reset_request = false;
 
+MotorController MotA(hMotA, true);
+MotorController MotB(hMotB, true);
+MotorController MotC(hMotC, false);
+MotorController MotD(hMotD, false);
+
 static DiffDriveController dc(DD_CONFIG);
 static ImuReceiver imu_receiver(IMU_HSENS.i2c);
 

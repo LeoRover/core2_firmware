@@ -1,4 +1,4 @@
-#include "firmware/core2_motor_controller.hpp"
+#include "firmware/motor_controller.hpp"
 
 inline float clamp(const float value, const float limit) {
   if (value > limit)
@@ -9,7 +9,7 @@ inline float clamp(const float value, const float limit) {
     return value;
 }
 
-void Core2MotorController::init() {
+void MotorController::init() {
   motor_.setEncoderPu();
   if (reverse_polarity_) {
     motor_.setMotorPolarity(Polarity::Reversed);
@@ -20,7 +20,7 @@ void Core2MotorController::init() {
   }
 }
 
-void Core2MotorController::setPWMDutyCycle(float pwm_duty) {
+void MotorController::setPWMDutyCycle(float pwm_duty) {
   pwm_duty_ = clamp(pwm_duty, 100.0F);
 
   int16_t power = static_cast<int16_t>((pwm_duty_ / 100.0F) * 1000.0);
@@ -28,18 +28,18 @@ void Core2MotorController::setPWMDutyCycle(float pwm_duty) {
   motor_.setPower(power);
 }
 
-float Core2MotorController::getPWMDutyCycle() {
+float MotorController::getPWMDutyCycle() {
   return pwm_duty_;
 }
 
-int32_t Core2MotorController::getEncoderCnt() {
+int32_t MotorController::getEncoderCnt() {
   return motor_.getEncoderCnt();
 }
 
-void Core2MotorController::resetEncoderCnt() {
+void MotorController::resetEncoderCnt() {
   motor_.resetEncoderCnt();
 }
 
-float Core2MotorController::getWindingCurrent() {
+float MotorController::getWindingCurrent() {
   return 0.0;
 }

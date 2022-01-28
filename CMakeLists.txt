@@ -23,7 +23,7 @@ include_directories(
 add_hexecutable(core2_firmware 
     main.cpp
     src/parameters.cpp
-    src/core2_motor_controller.cpp
+    src/motor_controller.cpp
     src/imu_receiver.cpp
     lib/diff_drive_lib/diff_drive_controller.cpp
     lib/diff_drive_lib/pid_regulator.cpp

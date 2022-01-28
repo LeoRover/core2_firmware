@@ -4,10 +4,10 @@
 
 #include "motor_controller_interface.hpp"
 
-class Core2MotorController : public MotorControllerInterface {
+class MotorController : public MotorControllerInterface {
  public:
-  explicit Core2MotorController(hFramework::hMotor& motor,
-                                const bool reverse_polarity)
+  explicit MotorController(hFramework::hMotor& motor,
+                           const bool reverse_polarity)
       : motor_(motor), reverse_polarity_(reverse_polarity) {}
 
   void init() override;
