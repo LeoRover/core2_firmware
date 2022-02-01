@@ -11,11 +11,13 @@
 #include <leo_msgs/WheelOdom.h>
 #include <leo_msgs/WheelStates.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Int16.h>
+#include <std_msgs/UInt16MultiArray.h>
 #include <std_srvs/Trigger.h>
 
 #include "firmware/configuration.hpp"
-#include "firmware/parameters.hpp"
 #include "firmware/imu_receiver.hpp"
+#include "firmware/parameters.hpp"
 
 static ros::NodeHandle nh;
 static bool configured = false;
@@ -120,6 +122,69 @@ static WheelWrapper wheel_RL_wrapper(dc.wheel_RL, "RL");
 static WheelWrapper wheel_FR_wrapper(dc.wheel_FR, "FR");
 static WheelWrapper wheel_RR_wrapper(dc.wheel_RR, "RR");
 
+class ServoWrapper {
+ public:
+  explicit ServoWrapper(hFramework::IServo &servo, int servo_num)
+      : servo_(servo),
+        num_(servo_num),
+        cmd_angle_topic_("firmware/servo" + std::to_string(num_) +
+                         "/cmd_angle"),
+        cmd_pwm_topic_("firmware/servo" + std::to_string(num_) + "/cmd_pwm"),
+        cmd_angle_sub_(cmd_angle_topic_.c_str(),
+                       &ServoWrapper::cmdAngleCallback, this),
+        cmd_pwm_sub_(cmd_pwm_topic_.c_str(), &ServoWrapper::cmdPWMCallback,
+                     this) {}
+
+  void init() {
+    servo_period_ = static_cast<uint16_t>(params.servo_period[num_]);
+
+    servo_.calibrate(static_cast<int16_t>(params.servo_angle_min[num_]),
+                     static_cast<uint16_t>(params.servo_width_min[num_]),
+                     static_cast<int16_t>(params.servo_angle_max[num_]),
+                     static_cast<uint16_t>(params.servo_width_max[num_]));
+  }
+
+  void initROS() {
+    nh.subscribe(cmd_angle_sub_);
+    nh.subscribe(cmd_pwm_sub_);
+  }
+
+  void cmdAngleCallback(const std_msgs::Int16 &msg) {
+    if (current_period_ != servo_period_) {
+      servo_.setPeriod(servo_period_);
+      current_period_ = servo_period_;
+    }
+    servo_.rotAbs(msg.data);
+  }
+
+  void cmdPWMCallback(const std_msgs::UInt16MultiArray &msg) {
+    if (msg.data_length >= 2) {
+      current_period_ = msg.data[0];
+      servo_.setPeriod(current_period_);
+      servo_.setWidth(msg.data[1]);
+    }
+  }
+
+ private:
+  const int num_;
+  hFramework::IServo &servo_;
+
+  uint16_t current_period_;
+  uint16_t servo_period_;
+
+  std::string cmd_angle_topic_;
+  std::string cmd_pwm_topic_;
+  ros::Subscriber<std_msgs::Int16, ServoWrapper> cmd_angle_sub_;
+  ros::Subscriber<std_msgs::UInt16MultiArray, ServoWrapper> cmd_pwm_sub_;
+};
+
+static ServoWrapper servo1_wrapper(hServo.servo1, 1);
+static ServoWrapper servo2_wrapper(hServo.servo2, 2);
+static ServoWrapper servo3_wrapper(hServo.servo3, 3);
+static ServoWrapper servo4_wrapper(hServo.servo4, 4);
+static ServoWrapper servo5_wrapper(hServo.servo5, 5);
+static ServoWrapper servo6_wrapper(hServo.servo6, 6);
+
 static ros::Subscriber<geometry_msgs::Twist> twist_sub("cmd_vel",
                                                        &cmdVelCallback);
 
@@ -155,6 +220,13 @@ void initROS() {
   wheel_RL_wrapper.initROS();
   wheel_FR_wrapper.initROS();
   wheel_RR_wrapper.initROS();
+
+  servo1_wrapper.initROS();
+  servo2_wrapper.initROS();
+  servo3_wrapper.initROS();
+  servo4_wrapper.initROS();
+  servo5_wrapper.initROS();
+  servo6_wrapper.initROS();
 }
 
 void setup() {
@@ -179,6 +251,13 @@ void setup() {
 
   // Initialize Diff Drive Controller
   dc.init(params);
+
+  servo1_wrapper.init();
+  servo2_wrapper.init();
+  servo3_wrapper.init();
+  servo4_wrapper.init();
+  servo5_wrapper.init();
+  servo6_wrapper.init();
 
   configured = true;
 }
