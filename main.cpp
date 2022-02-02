@@ -252,6 +252,23 @@ void setup() {
   // Initialize Diff Drive Controller
   dc.init(params);
 
+  switch (params.servo_voltage) {
+    case 0:
+      hServo.setVoltage5V();
+      break;
+    case 1:
+      hServo.setVoltage6V();
+      break;
+    case 2:
+      hServo.setVoltage7V4();
+      break;
+    case 3:
+      hServo.setVoltage8V6();
+      break;
+    default:
+      hServo.setVoltage7V4();
+  }
+
   servo1_wrapper.init();
   servo2_wrapper.init();
   servo3_wrapper.init();
