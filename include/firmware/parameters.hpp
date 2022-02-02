@@ -13,6 +13,8 @@ struct Parameters : DiffDriveParams {
     wheel_pid_i = 0.005F;
     wheel_pid_d = 0.0F;
     wheel_pwm_duty_limit = 100.0F;
+    wheel_encoder_jump_detection_enabled = true;
+    wheel_encoder_jump_threshold = 20000.0F;
 
     // Differential drive
     dd_wheel_radius = 0.0625F;
