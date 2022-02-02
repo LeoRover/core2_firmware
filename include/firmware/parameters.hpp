@@ -7,12 +7,12 @@
 struct Parameters : DiffDriveParams {
   // Override inherited parameters
   Parameters() {
-    // Motor
-    motor_encoder_resolution = 878.4F;
-    motor_pid_p = 0.0F;
-    motor_pid_i = 0.005F;
-    motor_pid_d = 0.0F;
-    motor_pwm_duty_limit = 100.0F;
+    // Wheel
+    wheel_encoder_resolution = 878.4F;
+    wheel_pid_p = 0.0F;
+    wheel_pid_i = 0.005F;
+    wheel_pid_d = 0.0F;
+    wheel_pwm_duty_limit = 100.0F;
 
     // Differential drive
     dd_wheel_radius = 0.0625F;
