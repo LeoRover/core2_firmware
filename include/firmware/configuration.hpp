@@ -14,9 +14,6 @@ static hFramework::hSensor_i2c &IMU_HSENS = hFramework::hSens2;
 // The pin which will be used to drive the informative LED on the power switch
 static hFramework::hGPIO &LED = hFramework::hExt.pin1;
 
-// Number of encoder readings to remember when estimating the wheel velocity
-const uint32_t ENCODER_BUFFER_SIZE = 10;
-
 // Number of battery voltage readings to average
 const uint32_t BATTERY_BUFFER_SIZE = 3000;
 
@@ -39,21 +36,21 @@ const DiffDriveConfiguration DD_CONFIG = {
     .wheel_FL_conf =
         {
             .motor = MotC,
-            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
+            .velocity_rolling_window_size = 10,
         },
     .wheel_RL_conf =
         {
             .motor = MotD,
-            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
+            .velocity_rolling_window_size = 10,
         },
     .wheel_FR_conf =
         {
             .motor = MotA,
-            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
+            .velocity_rolling_window_size = 10,
         },
     .wheel_RR_conf =
         {
             .motor = MotB,
-            .encoder_buffer_size = ENCODER_BUFFER_SIZE,
+            .velocity_rolling_window_size = 10,
         },
 };
