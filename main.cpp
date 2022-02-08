@@ -403,7 +403,7 @@ void odomLoop() {
 
   while (true) {
     if (!publish_odom) {
-      odom.header.stamp = nh.now();
+      pose.header.stamp = odom.header.stamp = nh.now();
 
       Odom odo = dc.getOdom();
       odom.twist.linear.x = odo.vel_lin;
