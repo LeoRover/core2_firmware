@@ -67,36 +67,58 @@ static ServoWrapper servo4(4, hServo.servo4);
 static ServoWrapper servo5(5, hServo.servo5);
 static ServoWrapper servo6(6, hServo.servo6);
 
-void relay1Callback(const std_msgs::Bool &msg) {
-  if (msg.data == true)
+static std_msgs::Bool relay1_status;
+static ros::Publisher *relay1_pub;
+static std_msgs::Bool relay2_status;
+static ros::Publisher *relay2_pub;
+static std_msgs::Bool relay3_status;
+static ros::Publisher *relay3_pub;
+static std_msgs::Bool relay4_status;
+static ros::Publisher *relay4_pub;
+static bool publish_relay = false;
+
+void setRelay1Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay1Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
     hSens1.pin1.write(1);
   else
     hSens1.pin1.write(0);
   ;
+  res.success = true;
 }
 
-void relay2Callback(const std_msgs::Bool &msg) {
-  if (msg.data == true)
+void setRelay2Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay2Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
     hSens1.pin2.write(1);
   else
     hSens1.pin2.write(0);
   ;
+  res.success = true;
 }
 
-void relay3Callback(const std_msgs::Bool &msg) {
-  if (msg.data == true)
+void setRelay3Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay3Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
     hSens1.pin3.write(1);
   else
     hSens1.pin3.write(0);
   ;
+  res.success = true;
 }
 
-void relay4Callback(const std_msgs::Bool &msg) {
-  if (msg.data == true)
+void setRelay4Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay4Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
     hSens1.pin4.write(1);
   else
     hSens1.pin4.write(0);
   ;
+  res.success = true;
 }
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
@@ -178,24 +200,23 @@ void initROS() {
   odom_pub = new ros::Publisher("wheel_odom", &odom);
   pose_pub = new ros::Publisher("wheel_pose", &pose);
   joint_states_pub = new ros::Publisher("joint_states", &joint_states);
+  relay1_pub = new ros::Publisher("relay1_status", &relay1_status);
+  relay2_pub = new ros::Publisher("relay2_status", &relay2_status);
+  relay3_pub = new ros::Publisher("relay3_status", &relay3_status);
+  relay4_pub = new ros::Publisher("relay4_status", &relay4_status);
 
   nh.advertise(*battery_pub);
   nh.advertise(*odom_pub);
   nh.advertise(*pose_pub);
   nh.advertise(*joint_states_pub);
+  nh.advertise(*relay1_pub);
+  nh.advertise(*relay2_pub);
+  nh.advertise(*relay3_pub);
+  nh.advertise(*relay4_pub);
 
   // Subscribers
   auto twist_sub =
       new ros::Subscriber<geometry_msgs::Twist>("cmd_vel", &cmdVelCallback);
-
-  auto relay1_sub =
-      new ros::Subscriber<std_msgs::Bool>("/relay1", &relay1Callback);
-  auto relay2_sub =
-      new ros::Subscriber<std_msgs::Bool>("/relay2", &relay2Callback);
-  auto relay3_sub =
-      new ros::Subscriber<std_msgs::Bool>("/relay3", &relay3Callback);
-  auto relay4_sub =
-      new ros::Subscriber<std_msgs::Bool>("/relay4", &relay4Callback);
 
   auto servo1_angle_sub = new ros::Subscriber<std_msgs::Int16, ServoWrapper>(
       "servo1/angle", &ServoWrapper::angleCallback, &servo1);
@@ -230,10 +251,6 @@ void initROS() {
           "servo6/pwm", &ServoWrapper::pwmCallback, &servo6);
 
   nh.subscribe(*twist_sub);
-  nh.subscribe(*relay1_sub);
-  nh.subscribe(*relay2_sub);
-  nh.subscribe(*relay3_sub);
-  nh.subscribe(*relay4_sub);
   nh.subscribe(*servo1_angle_sub);
   nh.subscribe(*servo2_angle_sub);
   nh.subscribe(*servo3_angle_sub);
@@ -248,6 +265,18 @@ void initROS() {
   nh.subscribe(*servo6_pwm_sub);
 
   // Services
+  auto set_relay1_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                              std_srvs::SetBoolResponse>(
+          "core2/set_relay1", &setRelay1Callback);
+  auto set_relay2_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay2", &setRelay2Callback);
+  auto set_relay3_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay3", &setRelay3Callback);
+  auto set_relay4_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay4", &setRelay4Callback);
   auto reset_board_srv =
       new ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
           "core2/reset_board", &resetBoardCallback);
@@ -270,6 +299,14 @@ void initROS() {
                                               std_srvs::SetBoolResponse>(
       "core2/set_debug", &setDebugCallback);
 
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay1_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay2_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay3_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay4_srv);
   nh.advertiseService<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
       *reset_board_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
@@ -470,7 +507,7 @@ void imuLoop() {
 
 void LEDLoop() {
   uint32_t t = sys.getRefTime();
-  const uint32_t dt = 250;
+  const uint32_t dt = 500;
 
   while (true) {
     if (!nh.connected())
@@ -500,6 +537,24 @@ void GPSLoop() {
       publish_gps = true;
     }
   }
+}
+
+void relayLoop() {
+  uint32_t t = sys.getRefTime();
+  const uint32_t dt = 60;
+
+  while (true)
+  {
+    relay1_status.data = hSens1.pin1.read();
+    relay2_status.data = hSens1.pin2.read();
+    relay3_status.data = hSens1.pin3.read();
+    relay4_status.data = hSens1.pin4.read();
+
+    publish_relay = true;
+    
+    sys.delaySync(t, dt);
+  }
+  
 }
 
 void hMain() {
@@ -534,6 +589,7 @@ void hMain() {
   sys.taskCreate(&batteryLoop, 3);
   sys.taskCreate(&odomLoop, 3);
   sys.taskCreate(&jointStatesLoop, 3);
+  sys.taskCreate(&relayLoop, 3);
 
   if (conf.imu_enabled) {
     setupIMU();
@@ -576,6 +632,16 @@ void hMain() {
         gps_pub->publish(&gps_fix);
         publish_gps = false;
       }
+
+      if (publish_relay)
+      {
+        relay1_pub->publish(&relay1_status);
+        relay2_pub->publish(&relay2_status);
+        relay3_pub->publish(&relay3_status);
+        relay4_pub->publish(&relay4_status);
+        publish_relay = false;
+      }
+      
     }
   }
 }
