@@ -145,18 +145,18 @@ void setRelay4Callback(const std_srvs::SetBoolRequest &req,
 
 void setRelayAllCallback(const std_srvs::SetBoolRequest &req,
                     std_srvs::SetBoolResponse &res) {
-  logDebug("[setRelayAllCallback] %s", req.data ? "true" : "false");
-  if (req.data == true)
+  logDebug("[setRelayAllCallback] %s", req.data ? "true" : "false");  
+  if (req.data == true){
     hSens1.pin1.write(1);
     hSens1.pin2.write(1);
     hSens1.pin3.write(1);
     hSens1.pin4.write(1);
-  else
+  } else {
     hSens1.pin1.write(0);
     hSens1.pin2.write(0);
     hSens1.pin3.write(0);
     hSens1.pin4.write(0);
-  ;
+  };
   res.success = true;
 }
 
