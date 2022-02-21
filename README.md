@@ -36,9 +36,9 @@ To flash, you can either use a USB cable to connect your computer to hSerial por
 ```
 make flash
 ```
-or you can upload the `leo_firmware.bin` file to Leo Rover and use [leo_fw] package to flash it:
+or you can upload the `core2_firmware.bin` file to Leo Rover and use [leo_fw] package to flash it:
 ```
-rosrun leo_fw flash leo_firmware.bin
+rosrun leo_fw flash core2_firmware.bin
 ```
 
 ### Using Husarion extension for VSCode
