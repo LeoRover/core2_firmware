@@ -13,7 +13,13 @@ The main functionalities include:
 
 It uses [rosserial] client library to expose its functionalities on ROS topics, services and parameters.
 
+The v2.0.0+ releases are targeting ROS Noetic distribution. For development targeting ROS Melodic distribution, checkout the [melodic] branch.
+
 ## Building and flashing
+This repository uses git submodules for external libraries, so make sure you clone this repository with `--recurse-submodules` option or, if you cloned without this option, initialize the missing submodules by typing:
+```
+git submodule update --init
+```
 To build the project you will need to install cmake and GNU Arm Embedded Toolchain. On Ubuntu/Debian, you can do:
 ```
 sudo apt-get install cmake gcc-arm-none-eabi
@@ -36,7 +42,7 @@ rosrun leo_fw flash leo_firmware.bin
 ```
 
 ### Using Husarion extension for VSCode
-You can also use the VSCode extension which already contains the Husarion SDK. This should work on Windows, Linux and MacOS platforms, but unfortunately break the VSCode IntelliSense configuration.
+You can also use the VSCode extension which already contains the Husarion SDK. This should work on Windows, Linux and MacOS platforms, but unfortunately breaks the VSCode IntelliSense configuration.
 
  Make sure you have installed:
 - [Visual Studio Code],
@@ -60,3 +66,4 @@ For the information about exposed ROS topics, services and parameters, visit [le
 [Husarion CORE2]: https://husarion.com/manuals/core2/
 [rosserial]: http://wiki.ros.org/rosserial
 [Husarion SDK]: http://files.fictionlab.pl/husarion/Husarion_SDK-stable.zip
+[melodic]: https://github.com/LeoRover/core2_firmware/tree/melodic
