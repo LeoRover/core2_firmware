@@ -1,14 +1,15 @@
-# leo_firmware
+# core2_firmware
 
 The firmware for the [Husarion CORE2] board running inside Leo Rover. 
 
 The main functionalities include:
-- steering the robot,
-- setting position on the servos connected to `hServo` ports,
-- reading battery voltage,
-- reading motor positions
-- estimating velocity of the robot
-- IMU and GPS sensor support
+- velocity commands for the robot,
+- velocity and PWM commands for individual wheels,
+- position commands for the servos connected to `hServo` ports,
+- battery voltage feedback,
+- wheel states (position, velocity, PWM duty) feedback,
+- odometry feedback (calculated from wheel encoders),
+- IMU sensor support.
 
 It uses [rosserial] client library to expose its functionalities on ROS topics, services and parameters.
 
