@@ -99,6 +99,67 @@ void relay4Callback(const std_msgs::Bool &msg) {
   ;
 }
 
+void setRelay1Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay1Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
+    hSens1.pin1.write(1);
+  else
+    hSens1.pin1.write(0);
+  ;
+  res.success = true;
+}
+
+void setRelay2Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay2Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
+    hSens1.pin2.write(1);
+  else
+    hSens1.pin2.write(0);
+  ;
+  res.success = true;
+}
+
+void setRelay3Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay3Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
+    hSens1.pin3.write(1);
+  else
+    hSens1.pin3.write(0);
+  ;
+  res.success = true;
+}
+
+void setRelay4Callback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelay4Callback] %s", req.data ? "true" : "false");
+  if (req.data == true)
+    hSens1.pin4.write(1);
+  else
+    hSens1.pin4.write(0);
+  ;
+  res.success = true;
+}
+
+void setRelayAllCallback(const std_srvs::SetBoolRequest &req,
+                    std_srvs::SetBoolResponse &res) {
+  logDebug("[setRelayAllCallback] %s", req.data ? "true" : "false");  
+  if (req.data == true){
+    hSens1.pin1.write(1);
+    hSens1.pin2.write(1);
+    hSens1.pin3.write(1);
+    hSens1.pin4.write(1);
+  } else {
+    hSens1.pin1.write(0);
+    hSens1.pin2.write(0);
+    hSens1.pin3.write(0);
+    hSens1.pin4.write(0);
+  };
+  res.success = true;
+}
+
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
   logDebug("[cmdVelCallback] linear: %f angular %f", msg.linear.x,
            msg.angular.z);
@@ -248,6 +309,21 @@ void initROS() {
   nh.subscribe(*servo6_pwm_sub);
 
   // Services
+  auto set_relay1_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                              std_srvs::SetBoolResponse>(
+          "core2/set_relay1", &setRelay1Callback);
+  auto set_relay2_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay2", &setRelay2Callback);
+  auto set_relay3_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay3", &setRelay3Callback);
+  auto set_relay4_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay4", &setRelay4Callback);
+  auto set_relay_all_srv = new ros::ServiceServer<std_srvs::SetBoolRequest,
+                                            std_srvs::SetBoolResponse>(
+          "core2/set_relay_all", &setRelayAllCallback);
   auto reset_board_srv =
       new ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
           "core2/reset_board", &resetBoardCallback);
@@ -270,6 +346,16 @@ void initROS() {
                                               std_srvs::SetBoolResponse>(
       "core2/set_debug", &setDebugCallback);
 
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay1_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay2_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay3_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay4_srv);
+  nh.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      *set_relay_all_srv);
   nh.advertiseService<std_srvs::EmptyRequest, std_srvs::EmptyResponse>(
       *reset_board_srv);
   nh.advertiseService<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
@@ -403,7 +489,7 @@ void odomLoop() {
 
   while (true) {
     if (!publish_odom) {
-      odom.header.stamp = nh.now();
+      pose.header.stamp = odom.header.stamp = nh.now();
 
       Odom odo = dc.getOdom();
       odom.twist.linear.x = odo.vel_lin;
@@ -576,6 +662,7 @@ void hMain() {
         gps_pub->publish(&gps_fix);
         publish_gps = false;
       }
+      
     }
   }
 }
