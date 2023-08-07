@@ -2,8 +2,8 @@
 
 #include <peripherals.h>
 
-#include "firmware/motor_controller.hpp"
 #include "diff_drive_lib/robot_controller.hpp"
+#include "firmware/motor_controller.hpp"
 
 const char *const FIRMWARE_VERSION = "2.0.0";
 
