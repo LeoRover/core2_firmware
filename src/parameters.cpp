@@ -46,12 +46,13 @@ void Parameters::load(ros::NodeHandle &nh) {
     nh.getParam("firmware/mecanum_drive/input_timeout", &robot_input_timeout, 1,
                 TIMEOUT);
   } else {
-    nh.getParam("firmware/diff_drive/wheel_radius", &robot_wheel_radius, 1, TIMEOUT);
-    nh.getParam("firmware/diff_drive/wheel_separation", &robot_wheel_separation, 1,
-              TIMEOUT);
+    nh.getParam("firmware/diff_drive/wheel_radius", &robot_wheel_radius, 1,
+                TIMEOUT);
+    nh.getParam("firmware/diff_drive/wheel_separation", &robot_wheel_separation,
+                1, TIMEOUT);
     nh.getParam("firmware/diff_drive/angular_velocity_multiplier",
-              &robot_angular_velocity_multiplier, 1, TIMEOUT);
+                &robot_angular_velocity_multiplier, 1, TIMEOUT);
     nh.getParam("firmware/diff_drive/input_timeout", &robot_input_timeout, 1,
-              TIMEOUT);
+                TIMEOUT);
   }
 }
