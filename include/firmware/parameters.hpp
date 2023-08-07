@@ -19,6 +19,7 @@ struct Parameters : diff_drive_lib::RobotParams {
     // Differential drive
     robot_wheel_radius = 0.0625F;
     robot_wheel_separation = 0.358F;
+    robot_wheel_base = 0.3052F;
     robot_angular_velocity_multiplier = 1.76F;
     robot_input_timeout = 500;
   }
@@ -32,6 +33,8 @@ struct Parameters : diff_drive_lib::RobotParams {
   int servo_width_max[6] = {2000, 2000, 2000, 2000, 2000, 2000};
 
   float battery_min_voltage = 10.0;
+
+  bool mecanum_wheels = false;
 
   void load(ros::NodeHandle &nh);
 };
