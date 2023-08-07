@@ -19,6 +19,9 @@
 #include "firmware/imu_receiver.hpp"
 #include "firmware/parameters.hpp"
 
+#include "diff_drive_lib/diff_drive_controller.hpp"
+#include "diff_drive_lib/wheel_controller.hpp"
+
 static ros::NodeHandle nh;
 static bool configured = false;
 
@@ -27,7 +30,7 @@ static std_msgs::Float32 battery_averaged;
 static ros::Publisher battery_pub("firmware/battery", &battery);
 static ros::Publisher battery_averaged_pub("firmware/battery_averaged",
                                            &battery);
-static CircularBuffer<float> battery_buffer_(BATTERY_BUFFER_SIZE);
+static diff_drive_lib::CircularBuffer<float> battery_buffer_(BATTERY_BUFFER_SIZE);
 static bool publish_battery = false;
 
 static leo_msgs::WheelOdom wheel_odom;
@@ -50,13 +53,13 @@ MotorController MotB(hMotB, true);
 MotorController MotC(hMotC, false);
 MotorController MotD(hMotD, false);
 
-static DiffDriveController dc(DD_CONFIG);
+static diff_drive_lib::DiffDriveController dc(ROBOT_CONFIG);
 static ImuReceiver imu_receiver(IMU_HSENS.i2c);
 
 static Parameters params;
 
 void cmdVelCallback(const geometry_msgs::Twist &msg) {
-  dc.setSpeed(msg.linear.x, msg.angular.z);
+  dc.setSpeed(msg.linear.x, msg.linear.y, msg.angular.z);
 }
 
 void resetOdometryCallback(const std_srvs::TriggerRequest &req,
@@ -85,7 +88,7 @@ void getBoardTypeCallback(const std_srvs::TriggerRequest &req,
 }
 
 struct WheelWrapper {
-  explicit WheelWrapper(WheelController &wheel, std::string wheel_name)
+  explicit WheelWrapper(diff_drive_lib::WheelController &wheel, std::string wheel_name)
       : wheel_(wheel),
         cmd_pwm_topic("firmware/wheel_" + wheel_name + "/cmd_pwm_duty"),
         cmd_vel_topic("firmware/wheel_" + wheel_name + "/cmd_velocity"),
@@ -110,7 +113,7 @@ struct WheelWrapper {
   }
 
  private:
-  WheelController &wheel_;
+  diff_drive_lib::WheelController &wheel_;
   std::string cmd_pwm_topic;
   std::string cmd_vel_topic;
   ros::Subscriber<std_msgs::Float32, WheelWrapper> cmd_pwm_sub_;
@@ -364,7 +367,7 @@ void update() {
     auto dd_odom = dc.getOdom();
 
     wheel_odom.stamp = nh.now();
-    wheel_odom.velocity_lin = dd_odom.velocity_lin;
+    wheel_odom.velocity_lin = dd_odom.velocity_lin_x;
     wheel_odom.velocity_ang = dd_odom.velocity_ang;
     wheel_odom.pose_x = dd_odom.pose_x;
     wheel_odom.pose_y = dd_odom.pose_y;

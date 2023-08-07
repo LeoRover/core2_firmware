@@ -29,12 +29,12 @@ void Parameters::load(ros::NodeHandle &nh) {
   nh.getParam("firmware/wheels/pwm_duty_limit", &wheel_pwm_duty_limit, 1,
               TIMEOUT);
 
-  nh.getParam("firmware/diff_drive/wheel_radius", &dd_wheel_radius, 1, TIMEOUT);
-  nh.getParam("firmware/diff_drive/wheel_separation", &dd_wheel_separation, 1,
+  nh.getParam("firmware/diff_drive/wheel_radius", &robot_wheel_radius, 1, TIMEOUT);
+  nh.getParam("firmware/diff_drive/wheel_separation", &robot_wheel_separation, 1,
               TIMEOUT);
   nh.getParam("firmware/diff_drive/angular_velocity_multiplier",
-              &dd_angular_velocity_multiplier, 1, TIMEOUT);
-  nh.getParam("firmware/diff_drive/input_timeout", &dd_input_timeout, 1,
+              &robot_angular_velocity_multiplier, 1, TIMEOUT);
+  nh.getParam("firmware/diff_drive/input_timeout", &robot_input_timeout, 1,
               TIMEOUT);
   nh.getParam("firmware/battery_min_voltage", &battery_min_voltage, 1, TIMEOUT);
 }
