@@ -1,4 +1,4 @@
-name: PlatformIO CI
+name: core2_firmware CI
 
 on:
   workflow_dispatch:
