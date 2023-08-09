@@ -639,9 +639,9 @@ void MPU9250::calibrateMPU9250(float* dest1, float* dest2) {
     int16_t accel_temp[3] = {0, 0, 0}, gyro_temp[3] = {0, 0, 0};
     readBytes(MPU9250_ADDRESS, FIFO_R_W, 12,
               &data[0]);  // read data for averaging
-    accel_temp[0] = (int16_t)(
-        ((int16_t)data[0] << 8) |
-        data[1]);  // Form signed 16-bit integer for each sample in FIFO
+    accel_temp[0] = (int16_t)(((int16_t)data[0] << 8) |
+                              data[1]);  // Form signed 16-bit integer for each
+                                         // sample in FIFO
     accel_temp[1] = (int16_t)(((int16_t)data[2] << 8) | data[3]);
     accel_temp[2] = (int16_t)(((int16_t)data[4] << 8) | data[5]);
     gyro_temp[0] = (int16_t)(((int16_t)data[6] << 8) | data[7]);
@@ -794,18 +794,18 @@ void MPU9250::SelfTest(
 
     readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6,
               &rawData[0]);  // Read the six raw data registers into data array
-    aAvg[0] += (int16_t)(
-        ((int16_t)rawData[0] << 8) |
-        rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
+    aAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) |
+                         rawData[1]);  // Turn the MSB and LSB into a signed
+                                       // 16-bit value
     aAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);
     aAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]);
 
     readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6,
               &rawData[0]);  // Read the six raw data registers sequentially
                              // into data array
-    gAvg[0] += (int16_t)(
-        ((int16_t)rawData[0] << 8) |
-        rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
+    gAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) |
+                         rawData[1]);  // Turn the MSB and LSB into a signed
+                                       // 16-bit value
     gAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);
     gAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]);
   }
@@ -830,18 +830,18 @@ void MPU9250::SelfTest(
 
     readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6,
               &rawData[0]);  // Read the six raw data registers into data array
-    aSTAvg[0] += (int16_t)(
-        ((int16_t)rawData[0] << 8) |
-        rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
+    aSTAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) |
+                           rawData[1]);  // Turn the MSB and LSB into a signed
+                                         // 16-bit value
     aSTAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);
     aSTAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]);
 
     readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6,
               &rawData[0]);  // Read the six raw data registers sequentially
                              // into data array
-    gSTAvg[0] += (int16_t)(
-        ((int16_t)rawData[0] << 8) |
-        rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
+    gSTAvg[0] += (int16_t)(((int16_t)rawData[0] << 8) |
+                           rawData[1]);  // Turn the MSB and LSB into a signed
+                                         // 16-bit value
     gSTAvg[1] += (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);
     gSTAvg[2] += (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]);
   }
