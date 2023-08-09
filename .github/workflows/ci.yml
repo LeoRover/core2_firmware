@@ -33,7 +33,7 @@ jobs:
           wget http://files.fictionlab.pl/husarion/Husarion_SDK-stable.zip
           unzip Husarion_SDK-stable.zip -d hFramework
       - name: Configure and build the project
-        uses: threeal/cmake-action@v1.3.0
+        uses: threeal/cmake-action@v1.2.0
         with:
           run-build: true
           options: HFRAMEWORK_PATH=../hFramework
