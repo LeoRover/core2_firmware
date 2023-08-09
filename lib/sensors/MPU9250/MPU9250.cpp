@@ -12,8 +12,9 @@
 
 */
 
-#include <Arduino.h>
 #include <string>
+
+#include "Arduino.h"
 
 #include "MPU9250.h"
 #include "RegisterMap.h"
