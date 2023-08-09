@@ -36,6 +36,7 @@ jobs:
         uses: threeal/cmake-action@v1.2.0
         with:
           run-build: true
-          options: HFRAMEWORK_PATH=../hFramework
+          options: HFRAMEWORK_PATH=hFramework
+
 
 
