@@ -27,9 +27,10 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Prepare environment
         run: |
-          git submodule update --init
           sudo apt install gcc-arm-none-eabi
           wget http://files.fictionlab.pl/husarion/Husarion_SDK-stable.zip
           unzip Husarion_SDK-stable.zip -d hFramework
