@@ -2,9 +2,9 @@
 
 #include <hMotor.h>
 
-#include "motor_controller_interface.hpp"
+#include "diff_drive_lib/motor_controller_interface.hpp"
 
-class MotorController : public MotorControllerInterface {
+class MotorController : public diff_drive_lib::MotorControllerInterface {
  public:
   explicit MotorController(hFramework::hMotor& motor,
                            const bool reverse_polarity)

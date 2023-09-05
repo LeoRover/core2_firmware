@@ -2,9 +2,9 @@
 
 #include <ros.h>
 
-#include "diff_drive_controller.hpp"
+#include "diff_drive_lib/robot_controller.hpp"
 
-struct Parameters : DiffDriveParams {
+struct Parameters : diff_drive_lib::RobotParams {
   // Override inherited parameters
   Parameters() {
     // Wheel
@@ -17,10 +17,11 @@ struct Parameters : DiffDriveParams {
     wheel_encoder_jump_threshold = 20000.0F;
 
     // Differential drive
-    dd_wheel_radius = 0.0625F;
-    dd_wheel_separation = 0.33F;
-    dd_angular_velocity_multiplier = 1.91F;
-    dd_input_timeout = 500;
+    robot_wheel_radius = 0.0625F;
+    robot_wheel_separation = 0.358F;
+    robot_wheel_base = 0.3052F;
+    robot_angular_velocity_multiplier = 1.76F;
+    robot_input_timeout = 500;
   }
 
   // Servo
@@ -32,6 +33,8 @@ struct Parameters : DiffDriveParams {
   int servo_width_max[6] = {2000, 2000, 2000, 2000, 2000, 2000};
 
   float battery_min_voltage = 10.0;
+
+  bool mecanum_wheels = false;
 
   void load(ros::NodeHandle &nh);
 };

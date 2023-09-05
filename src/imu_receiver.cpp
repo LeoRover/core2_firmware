@@ -13,8 +13,7 @@ bool ImuReceiver::init() {
 
   uint8_t c = mpu_.getMPU9250ID();
 
-  if (c != 0x71)
-    return false;
+  if (c != 0x71) return false;
 
   mpu_.initMPU9250(AFS_2G, GFS_250DPS, 0x02);
 
