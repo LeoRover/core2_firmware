@@ -5,7 +5,7 @@
 #include "diff_drive_lib/robot_controller.hpp"
 #include "firmware/motor_controller.hpp"
 
-const char *const FIRMWARE_VERSION = "2.0.0";
+const char *const FIRMWARE_VERSION = "2.1.0";
 
 // The hSens port to which the IMU is connected
 // Set to either hSens1 or hSens2
